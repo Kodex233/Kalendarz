@@ -12,12 +12,12 @@ import {
 } from 'lucide-react';
 
 const COLORS = [
-  { id: 'blue', label: 'Błękitny', bg: 'bg-blue-500' },
-  { id: 'green', label: 'Szmaragdowy', bg: 'bg-emerald-500' },
-  { id: 'purple', label: 'Fioletowy', bg: 'bg-purple-500' },
-  { id: 'red', label: 'Koralowy', bg: 'bg-rose-500' },
-  { id: 'yellow', label: 'Bursztynowy', bg: 'bg-amber-500' },
-  { id: 'gray', label: 'Grafitowy', bg: 'bg-gray-600' },
+  { id: 'blue', label: 'Błękitny', bg: 'bg-[#8ab4f8]' },
+  { id: 'green', label: 'Szmaragdowy', bg: 'bg-[#81c995]' },
+  { id: 'purple', label: 'Fioletowy', bg: 'bg-[#c58af9]' },
+  { id: 'red', label: 'Koralowy', bg: 'bg-[#f28b82]' },
+  { id: 'yellow', label: 'Bursztynowy', bg: 'bg-[#fdd663]' },
+  { id: 'gray', label: 'Grafitowy', bg: 'bg-[#9aa0a6]' },
 ];
 
 export default function EventModal({
@@ -27,7 +27,8 @@ export default function EventModal({
   onDelete,
   initialData,
   currentUserId,
-  onOpenExchangeForEvent
+  onOpenExchangeForEvent,
+  eventType = 'Wydarzenie'
 }) {
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
@@ -79,31 +80,32 @@ export default function EventModal({
         color,
         description,
         isExchangeable,
-        invitedEmail
+        invitedEmail,
+        type: eventType
       });
       onClose();
     } catch (err) {
       console.error(err);
-      alert('Błąd podczas zapisywania wydarzenia');
+      alert('Błąd podczas zapisywania');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200 animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-[#282a2d] text-[#e3e3e3] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-[#3c4043] animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 bg-gray-50 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800">
-            {initialData ? (isOwner ? 'Edytuj termin' : 'Szczegóły terminu') : 'Nowy termin'}
+        <div className="flex items-center justify-between px-6 py-4 bg-[#202124] border-b border-[#3c4043]">
+          <h3 className="text-lg font-semibold text-[#e3e3e3]">
+            {initialData ? (isOwner ? `Edytuj: ${initialData.type || 'termin'}` : 'Szczegóły terminu') : `Nowe: ${eventType}`}
           </h3>
           <div className="flex items-center space-x-2">
             {initialData && isOwner && (
               <button
                 type="button"
                 onClick={() => onDelete(initialData.id)}
-                className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition"
+                className="p-2 text-[#9aa0a6] hover:text-[#f28b82] hover:bg-[#35373a] rounded-full transition"
                 title="Usuń termin"
               >
                 <Trash2 className="w-5 h-5" />
@@ -111,7 +113,7 @@ export default function EventModal({
             )}
             <button
               onClick={onClose}
-              className="p-2 text-gray-500 hover:bg-gray-200 rounded-full transition"
+              className="p-2 text-[#9aa0a6] hover:bg-[#35373a] hover:text-[#e3e3e3] rounded-full transition"
             >
               <X className="w-5 h-5" />
             </button>
@@ -124,20 +126,20 @@ export default function EventModal({
           <div>
             <input
               type="text"
-              placeholder="Dodaj tytuł lub nazwę wydarzenia..."
+              placeholder={eventType === 'Zadanie' ? "Dodaj tytuł zadania..." : "Dodaj tytuł wydarzenia..."}
               value={title}
               disabled={!isOwner}
               onChange={(e) => setTitle(e.target.value)}
               required
-              className="w-full text-xl font-medium border-b border-gray-300 pb-2 focus:border-blue-600 focus:outline-none transition placeholder-gray-400"
+              className="w-full text-xl font-medium bg-transparent border-b border-[#5f6368] pb-2 text-[#e3e3e3] focus:border-[#8ab4f8] focus:outline-none transition placeholder-[#9aa0a6]"
             />
           </div>
 
           {/* Date & Time */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 flex items-center space-x-1">
-                <CalIcon className="w-3.5 h-3.5 text-blue-600" />
+              <label className="block text-xs font-semibold text-[#9aa0a6] mb-1 flex items-center space-x-1">
+                <CalIcon className="w-3.5 h-3.5 text-[#8ab4f8]" />
                 <span>Data</span>
               </label>
               <input
@@ -146,12 +148,12 @@ export default function EventModal({
                 disabled={!isOwner}
                 onChange={(e) => setDate(e.target.value)}
                 required
-                className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full bg-[#1f1f1f] border border-[#5f6368] rounded-lg p-2 text-sm text-[#e3e3e3] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 flex items-center space-x-1">
-                <Clock className="w-3.5 h-3.5 text-blue-600" />
+              <label className="block text-xs font-semibold text-[#9aa0a6] mb-1 flex items-center space-x-1">
+                <Clock className="w-3.5 h-3.5 text-[#8ab4f8]" />
                 <span>Od godziny</span>
               </label>
               <input
@@ -159,12 +161,12 @@ export default function EventModal({
                 value={startTime}
                 disabled={!isOwner}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full bg-[#1f1f1f] border border-[#5f6368] rounded-lg p-2 text-sm text-[#e3e3e3] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1 flex items-center space-x-1">
-                <Clock className="w-3.5 h-3.5 text-blue-600" />
+              <label className="block text-xs font-semibold text-[#9aa0a6] mb-1 flex items-center space-x-1">
+                <Clock className="w-3.5 h-3.5 text-[#8ab4f8]" />
                 <span>Do godziny</span>
               </label>
               <input
@@ -172,17 +174,17 @@ export default function EventModal({
                 value={endTime}
                 disabled={!isOwner}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full bg-[#1f1f1f] border border-[#5f6368] rounded-lg p-2 text-sm text-[#e3e3e3] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
               />
             </div>
           </div>
 
           {/* Exchangeable Switch */}
-          <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-xl space-y-2">
+          <div className="p-4 bg-[#332a15] border border-[#fdd663]/30 rounded-xl space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <ArrowLeftRight className="w-4 h-4 text-amber-600" />
-                <span className="text-sm font-semibold text-amber-900">
+                <ArrowLeftRight className="w-4 h-4 text-[#fdd663]" />
+                <span className="text-sm font-semibold text-[#feefc3]">
                   Udostępnij na wymianę ze znajomym
                 </span>
               </div>
@@ -192,20 +194,20 @@ export default function EventModal({
                 checked={isExchangeable}
                 disabled={!isOwner}
                 onChange={(e) => setIsExchangeable(e.target.checked)}
-                className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500"
+                className="w-4 h-4 text-amber-500 rounded bg-[#1f1f1f] border-[#5f6368] focus:ring-[#fdd663]"
               />
             </div>
-            <p className="text-xs text-amber-700">
+            <p className="text-xs text-[#fdd663]/80">
               Gdy ta opcja jest zaznaczona, Twoi koledzy mogą zaproponować zamianę swojego terminu na ten slot!
             </p>
           </div>
 
           {/* If looking at someone else's exchangeable event */}
           {initialData && !isOwner && initialData.isExchangeable && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between">
+            <div className="p-4 bg-[#1b3a57] border border-[#8ab4f8]/30 rounded-xl flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-blue-900">Ten termin jest dostępny na wymianę!</p>
-                <p className="text-[11px] text-blue-700">Właściciel: {initialData.userName || initialData.userEmail}</p>
+                <p className="text-xs font-bold text-[#c2e7ff]">Ten termin jest dostępny na wymianę!</p>
+                <p className="text-[11px] text-[#8ab4f8]">Właściciel: {initialData.userName || initialData.userEmail}</p>
               </div>
               <button
                 type="button"
@@ -213,7 +215,7 @@ export default function EventModal({
                   onClose();
                   onOpenExchangeForEvent(initialData);
                 }}
-                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs"
+                className="px-3.5 py-1.5 bg-[#8ab4f8] hover:bg-[#aecbfa] text-[#1f1f1f] rounded-lg text-xs font-bold shadow-xs"
               >
                 Zaproponuj wymianę
               </button>
@@ -222,8 +224,8 @@ export default function EventModal({
 
           {/* Friend Invitation Email */}
           <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1 flex items-center space-x-1">
-              <Mail className="w-3.5 h-3.5 text-gray-500" />
+            <label className="block text-xs font-semibold text-[#9aa0a6] mb-1 flex items-center space-x-1">
+              <Mail className="w-3.5 h-3.5 text-[#9aa0a6]" />
               <span>Zaproś znajomego (opcjonalnie e-mail)</span>
             </label>
             <input
@@ -232,14 +234,14 @@ export default function EventModal({
               value={invitedEmail}
               disabled={!isOwner}
               onChange={(e) => setInvitedEmail(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full bg-[#1f1f1f] border border-[#5f6368] rounded-lg p-2 text-sm text-[#e3e3e3] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
             />
           </div>
 
           {/* Color selector */}
           <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-2 flex items-center space-x-1">
-              <Tag className="w-3.5 h-3.5 text-gray-500" />
+            <label className="block text-xs font-semibold text-[#9aa0a6] mb-2 flex items-center space-x-1">
+              <Tag className="w-3.5 h-3.5 text-[#9aa0a6]" />
               <span>Kolor etykiety</span>
             </label>
             <div className="flex items-center space-x-3">
@@ -250,11 +252,11 @@ export default function EventModal({
                   disabled={!isOwner}
                   onClick={() => setColor(col.id)}
                   className={`w-7 h-7 rounded-full ${col.bg} flex items-center justify-center transition-transform ${
-                    color === col.id ? 'scale-115 ring-2 ring-offset-2 ring-gray-400' : 'hover:scale-105'
+                    color === col.id ? 'scale-115 ring-2 ring-offset-2 ring-offset-[#282a2d] ring-white' : 'hover:scale-105'
                   }`}
                   title={col.label}
                 >
-                  {color === col.id && <Check className="w-4 h-4 text-white" />}
+                  {color === col.id && <Check className="w-4 h-4 text-[#1f1f1f] stroke-[3]" />}
                 </button>
               ))}
             </div>
@@ -262,8 +264,8 @@ export default function EventModal({
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1 flex items-center space-x-1">
-              <FileText className="w-3.5 h-3.5 text-gray-500" />
+            <label className="block text-xs font-semibold text-[#9aa0a6] mb-1 flex items-center space-x-1">
+              <FileText className="w-3.5 h-3.5 text-[#9aa0a6]" />
               <span>Opis lub notatki</span>
             </label>
             <textarea
@@ -272,16 +274,16 @@ export default function EventModal({
               value={description}
               disabled={!isOwner}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full bg-[#1f1f1f] border border-[#5f6368] rounded-lg p-2 text-sm text-[#e3e3e3] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
             />
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end space-x-3 pt-3 border-t border-gray-200">
+          <div className="flex items-center justify-end space-x-3 pt-3 border-t border-[#3c4043]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition"
+              className="px-4 py-2 border border-[#5f6368] text-[#e3e3e3] hover:bg-[#35373a] rounded-lg text-sm font-medium transition"
             >
               Anuluj
             </button>
@@ -289,7 +291,7 @@ export default function EventModal({
               <button
                 type="submit"
                 disabled={loading}
-                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition shadow-sm disabled:opacity-50"
+                className="px-5 py-2 bg-[#8ab4f8] hover:bg-[#aecbfa] text-[#1f1f1f] rounded-lg text-sm font-bold transition shadow-sm disabled:opacity-50"
               >
                 {loading ? 'Zapisywanie...' : 'Zapisz'}
               </button>

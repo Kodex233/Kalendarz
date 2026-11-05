@@ -4,11 +4,11 @@
 
 @layer base {
   body {
-    @apply bg-white text-gray-800 font-sans antialiased overflow-hidden select-none;
+    @apply bg-[#1f1f1f] text-[#e3e3e3] font-sans antialiased overflow-hidden select-none;
   }
 }
 
-/* Custom scrollbar */
+/* Custom dark scrollbar matching Google Calendar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -19,12 +19,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #dadce0;
+  background: #3c4043;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #bdc1c6;
+  background: #5f6368;
 }
 
 /* Google-like transitions */

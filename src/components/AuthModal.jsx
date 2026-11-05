@@ -61,16 +61,16 @@ export default function AuthModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-200 animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-[#282a2d] text-[#e3e3e3] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-[#3c4043] animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-bold text-gray-800">
+        <div className="flex items-center justify-between px-6 py-4 bg-[#202124] border-b border-[#3c4043]">
+          <h3 className="text-lg font-bold text-[#e3e3e3]">
             {isRegister ? 'Utwórz konto w Kalendarzu' : 'Zaloguj się do Kalendarza'}
           </h3>
           <button
             onClick={onClose}
-            className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition"
+            className="p-2 text-[#9aa0a6] hover:bg-[#35373a] hover:text-[#e3e3e3] rounded-full transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -78,8 +78,8 @@ export default function AuthModal({ isOpen, onClose }) {
 
         <div className="p-6 space-y-4">
           {error && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-start space-x-2 text-rose-800 text-xs">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+            <div className="p-3 bg-[#4c1f24] border border-[#f28b82]/30 rounded-lg flex items-start space-x-2 text-[#fce8e6] text-xs">
+              <AlertCircle className="w-4 h-4 text-[#f28b82] shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
@@ -88,7 +88,7 @@ export default function AuthModal({ isOpen, onClose }) {
           <button
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full flex items-center justify-center space-x-3 py-2.5 px-4 border border-gray-300 rounded-xl hover:bg-gray-50 text-gray-700 font-medium text-sm transition shadow-xs disabled:opacity-50"
+            className="w-full flex items-center justify-center space-x-3 py-2.5 px-4 bg-[#1f1f1f] hover:bg-[#35373a] border border-[#5f6368] rounded-xl text-[#e3e3e3] font-medium text-sm transition shadow-xs disabled:opacity-50"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -112,49 +112,49 @@ export default function AuthModal({ isOpen, onClose }) {
           </button>
 
           <div className="flex items-center my-4">
-            <div className="flex-1 border-t border-gray-200"></div>
-            <span className="px-3 text-xs text-gray-400 font-medium">LUB PRZEZ E-MAIL</span>
-            <div className="flex-1 border-t border-gray-200"></div>
+            <div className="flex-1 border-t border-[#3c4043]"></div>
+            <span className="px-3 text-xs text-[#9aa0a6] font-medium">LUB PRZEZ E-MAIL</span>
+            <div className="flex-1 border-t border-[#3c4043]"></div>
           </div>
 
           {/* Email/Password Form */}
           <form onSubmit={handleEmailAuth} className="space-y-3">
             {isRegister && (
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Twoje imię / Nick</label>
+                <label className="block text-xs font-semibold text-[#9aa0a6] mb-1">Twoje imię / Nick</label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <User className="w-4 h-4 text-[#9aa0a6] absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     required
                     placeholder="np. Michał"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full pl-9 pr-3 py-2 bg-[#1f1f1f] border border-[#5f6368] rounded-lg text-sm text-[#e3e3e3] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
                   />
                 </div>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Adres e-mail</label>
+              <label className="block text-xs font-semibold text-[#9aa0a6] mb-1">Adres e-mail</label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Mail className="w-4 h-4 text-[#9aa0a6] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="email"
                   required
                   placeholder="twoj@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full pl-9 pr-3 py-2 bg-[#1f1f1f] border border-[#5f6368] rounded-lg text-sm text-[#e3e3e3] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Hasło</label>
+              <label className="block text-xs font-semibold text-[#9aa0a6] mb-1">Hasło</label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-[#9aa0a6] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="password"
                   required
@@ -162,7 +162,7 @@ export default function AuthModal({ isOpen, onClose }) {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full pl-9 pr-3 py-2 bg-[#1f1f1f] border border-[#5f6368] rounded-lg text-sm text-[#e3e3e3] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
                 />
               </div>
             </div>
@@ -170,7 +170,7 @@ export default function AuthModal({ isOpen, onClose }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm transition shadow-sm disabled:opacity-50 mt-2"
+              className="w-full py-2.5 bg-[#8ab4f8] hover:bg-[#aecbfa] text-[#1f1f1f] font-bold rounded-xl text-sm transition shadow-sm disabled:opacity-50 mt-2"
             >
               {loading ? 'Przetwarzanie...' : (isRegister ? 'Zarejestruj się' : 'Zaloguj się')}
             </button>
@@ -184,7 +184,7 @@ export default function AuthModal({ isOpen, onClose }) {
                 setIsRegister(!isRegister);
                 setError('');
               }}
-              className="text-xs text-blue-600 hover:underline font-medium"
+              className="text-xs text-[#8ab4f8] hover:underline font-medium"
             >
               {isRegister ? 'Masz już konto? Zaloguj się' : 'Nie masz konta? Zarejestruj się bezpłatnie'}
             </button>

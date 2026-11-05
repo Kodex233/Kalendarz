@@ -3,12 +3,9 @@ import {
   X, 
   ArrowLeftRight, 
   Check, 
-  XCircle, 
-  Clock, 
   Calendar, 
   User, 
-  Send,
-  AlertCircle
+  Send
 } from 'lucide-react';
 
 export default function ExchangeModal({
@@ -86,40 +83,40 @@ export default function ExchangeModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-gray-200 animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-[#282a2d] text-[#e3e3e3] rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-[#3c4043] animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]">
         {/* Header */}
-        <div className="px-6 py-4 bg-amber-50 border-b border-amber-200/80 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-xs">
-              <ArrowLeftRight className="w-5 h-5" />
+        <div className="px-6 py-4 bg-[#202124] border-b border-[#3c4043] flex items-center justify-between">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#fdd663] text-[#1f1f1f] flex items-center justify-center shadow-xs">
+              <ArrowLeftRight className="w-5 h-5 stroke-[2.5]" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Wymiana terminami z kolegą</h3>
-              <p className="text-xs text-amber-800">Wymieniajcie się terminami spotkań i dyżurów bezpośrednio w kalendarzu</p>
+              <h3 className="text-lg font-bold text-[#e3e3e3]">Wymiana terminami z kolegą</h3>
+              <p className="text-xs text-[#9aa0a6]">Wymieniajcie się terminami spotkań i dyżurów w czasie rzeczywistym</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-500 hover:bg-amber-100 rounded-full transition"
+            className="p-2 text-[#9aa0a6] hover:bg-[#35373a] hover:text-[#e3e3e3] rounded-full transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 px-6 pt-3 space-x-6 bg-white">
+        <div className="flex border-b border-[#3c4043] px-6 pt-3 space-x-6 bg-[#282a2d]">
           <button
             onClick={() => setActiveTab('incoming')}
             className={`pb-3 text-sm font-semibold border-b-2 transition flex items-center space-x-2 ${
               activeTab === 'incoming' 
-                ? 'border-amber-600 text-amber-700' 
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-[#fdd663] text-[#fdd663]' 
+                : 'border-transparent text-[#9aa0a6] hover:text-[#e3e3e3]'
             }`}
           >
             <span>Otrzymane prośby</span>
             {incomingExchanges.length > 0 && (
-              <span className="w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+              <span className="w-5 h-5 bg-[#f28b82] text-[#1f1f1f] text-xs font-bold rounded-full flex items-center justify-center">
                 {incomingExchanges.length}
               </span>
             )}
@@ -129,12 +126,12 @@ export default function ExchangeModal({
             onClick={() => setActiveTab('outgoing')}
             className={`pb-3 text-sm font-semibold border-b-2 transition flex items-center space-x-2 ${
               activeTab === 'outgoing' 
-                ? 'border-amber-600 text-amber-700' 
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-[#fdd663] text-[#fdd663]' 
+                : 'border-transparent text-[#9aa0a6] hover:text-[#e3e3e3]'
             }`}
           >
             <span>Wysłane propozycje</span>
-            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+            <span className="text-xs bg-[#35373a] text-[#c4c7c5] px-2 py-0.5 rounded-full font-medium">
               {outgoingExchanges.length}
             </span>
           </button>
@@ -143,8 +140,8 @@ export default function ExchangeModal({
             onClick={() => setActiveTab('new')}
             className={`pb-3 text-sm font-semibold border-b-2 transition flex items-center space-x-2 ${
               activeTab === 'new' 
-                ? 'border-amber-600 text-amber-700' 
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-[#fdd663] text-[#fdd663]' 
+                : 'border-transparent text-[#9aa0a6] hover:text-[#e3e3e3]'
             }`}
           >
             <span>Zaproponuj nową wymianę</span>
@@ -157,48 +154,48 @@ export default function ExchangeModal({
           {activeTab === 'incoming' && (
             <div>
               {incomingExchanges.length === 0 ? (
-                <div className="py-12 text-center text-gray-400">
-                  <ArrowLeftRight className="w-10 h-10 mx-auto text-gray-300 mb-2" />
+                <div className="py-12 text-center text-[#9aa0a6]">
+                  <ArrowLeftRight className="w-10 h-10 mx-auto text-[#5f6368] mb-2" />
                   <p className="text-sm font-medium">Brak oczekujących próśb o wymianę</p>
                   <p className="text-xs mt-1">Gdy znajomy wyśle propozycję zamiany terminu, pojawi się tutaj.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {incomingExchanges.map((ex) => (
-                    <div key={ex.id} className="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3">
+                    <div key={ex.id} className="p-4 bg-[#202124] border border-[#3c4043] rounded-xl space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <User className="w-4 h-4 text-gray-600" />
-                          <span className="text-sm font-bold text-gray-900">{ex.fromUserName || ex.fromUserEmail}</span>
-                          <span className="text-xs text-gray-500">chce zamienić terminy</span>
+                          <User className="w-4 h-4 text-[#8ab4f8]" />
+                          <span className="text-sm font-bold text-[#e3e3e3]">{ex.fromUserName || ex.fromUserEmail}</span>
+                          <span className="text-xs text-[#9aa0a6]">chce zamienić terminy</span>
                         </div>
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#433519] text-[#fdd663]">
                           Oczekuje
                         </span>
                       </div>
 
                       {/* Swap cards comparison */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-white border border-gray-200 rounded-lg">
-                        <div className="border-r border-gray-100 pr-2">
-                          <span className="text-[10px] font-bold uppercase text-gray-400">Oddaje Ci swój termin:</span>
-                          <p className="text-sm font-bold text-blue-700">{ex.myEventTitle}</p>
-                          <p className="text-xs text-gray-600 flex items-center space-x-1 mt-1">
-                            <Calendar className="w-3 h-3 text-gray-400" />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-[#282a2d] border border-[#3c4043] rounded-lg">
+                        <div className="border-r border-[#3c4043] pr-2">
+                          <span className="text-[10px] font-bold uppercase text-[#9aa0a6]">Oddaje Ci swój termin:</span>
+                          <p className="text-sm font-bold text-[#8ab4f8]">{ex.myEventTitle}</p>
+                          <p className="text-xs text-[#9aa0a6] flex items-center space-x-1 mt-1">
+                            <Calendar className="w-3 h-3 text-[#5f6368]" />
                             <span>{ex.myEventDate} ({ex.myEventTime})</span>
                           </p>
                         </div>
                         <div className="pl-2">
-                          <span className="text-[10px] font-bold uppercase text-gray-400">W zamian za Twój termin:</span>
-                          <p className="text-sm font-bold text-emerald-700">{ex.targetEventTitle}</p>
-                          <p className="text-xs text-gray-600 flex items-center space-x-1 mt-1">
-                            <Calendar className="w-3 h-3 text-gray-400" />
+                          <span className="text-[10px] font-bold uppercase text-[#9aa0a6]">W zamian za Twój termin:</span>
+                          <p className="text-sm font-bold text-[#81c995]">{ex.targetEventTitle}</p>
+                          <p className="text-xs text-[#9aa0a6] flex items-center space-x-1 mt-1">
+                            <Calendar className="w-3 h-3 text-[#5f6368]" />
                             <span>{ex.targetEventDate} ({ex.targetEventTime})</span>
                           </p>
                         </div>
                       </div>
 
                       {ex.message && (
-                        <p className="text-xs text-gray-600 italic bg-amber-50/50 p-2 rounded border border-amber-100">
+                        <p className="text-xs text-[#c4c7c5] italic bg-[#35373a] p-2 rounded border border-[#3c4043]">
                           "{ex.message}"
                         </p>
                       )}
@@ -207,13 +204,13 @@ export default function ExchangeModal({
                       <div className="flex items-center justify-end space-x-3 pt-2">
                         <button
                           onClick={() => onRespondExchange(ex.id, false, ex)}
-                          className="px-4 py-1.5 border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg transition"
+                          className="px-4 py-1.5 border border-[#5f6368] hover:bg-[#35373a] text-[#e3e3e3] text-xs font-semibold rounded-lg transition"
                         >
                           Odrzuć
                         </button>
                         <button
                           onClick={() => onRespondExchange(ex.id, true, ex)}
-                          className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center space-x-1"
+                          className="px-4 py-1.5 bg-[#81c995] hover:bg-[#a8dab5] text-[#1f1f1f] text-xs font-bold rounded-lg shadow-sm transition flex items-center space-x-1"
                         >
                           <Check className="w-3.5 h-3.5" />
                           <span>Akceptuj wymianę</span>
@@ -230,35 +227,35 @@ export default function ExchangeModal({
           {activeTab === 'outgoing' && (
             <div>
               {outgoingExchanges.length === 0 ? (
-                <div className="py-12 text-center text-gray-400">
+                <div className="py-12 text-center text-[#9aa0a6]">
                   <p className="text-sm font-medium">Brak wysłanych propozycji</p>
                   <p className="text-xs mt-1">Przejdź do zakładki "Zaproponuj nową wymianę", aby wysłać propozycję.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {outgoingExchanges.map((ex) => (
-                    <div key={ex.id} className="p-3.5 border border-gray-200 rounded-xl bg-white space-y-2">
+                    <div key={ex.id} className="p-3.5 border border-[#3c4043] rounded-xl bg-[#202124] space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-gray-700">
-                          Wysłano do: <strong className="text-gray-900">{ex.targetUserEmail || "Kolega"}</strong>
+                        <span className="text-xs font-semibold text-[#9aa0a6]">
+                          Wysłano do: <strong className="text-[#e3e3e3]">{ex.targetUserEmail || "Kolega"}</strong>
                         </span>
                         <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                          ex.status === 'accepted' ? 'bg-emerald-100 text-emerald-800' :
-                          ex.status === 'rejected' ? 'bg-rose-100 text-rose-800' :
-                          'bg-amber-100 text-amber-800'
+                          ex.status === 'accepted' ? 'bg-[#133926] text-[#81c995]' :
+                          ex.status === 'rejected' ? 'bg-[#4c1f24] text-[#f28b82]' :
+                          'bg-[#433519] text-[#fdd663]'
                         }`}>
                           {ex.status === 'accepted' ? 'Zaakceptowana ✓' :
                            ex.status === 'rejected' ? 'Odrzucona ✗' : 'Oczekuje...'}
                         </span>
                       </div>
-                      <div className="text-xs text-gray-600 grid grid-cols-2 gap-2 bg-gray-50 p-2 rounded">
+                      <div className="text-xs text-[#c4c7c5] grid grid-cols-2 gap-2 bg-[#282a2d] p-2 rounded">
                         <div>
-                          <span className="text-[10px] text-gray-400 block font-bold">Oferujesz:</span>
-                          <span className="font-medium text-gray-800">{ex.myEventTitle}</span> ({ex.myEventDate})
+                          <span className="text-[10px] text-[#9aa0a6] block font-bold">Oferujesz:</span>
+                          <span className="font-medium text-[#e3e3e3]">{ex.myEventTitle}</span> ({ex.myEventDate})
                         </div>
                         <div>
-                          <span className="text-[10px] text-gray-400 block font-bold">W zamian za:</span>
-                          <span className="font-medium text-gray-800">{ex.targetEventTitle}</span> ({ex.targetEventDate})
+                          <span className="text-[10px] text-[#9aa0a6] block font-bold">W zamian za:</span>
+                          <span className="font-medium text-[#e3e3e3]">{ex.targetEventTitle}</span> ({ex.targetEventDate})
                         </div>
                       </div>
                     </div>
@@ -272,11 +269,11 @@ export default function ExchangeModal({
           {activeTab === 'new' && (
             <form onSubmit={handleCreateProposal} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-[#9aa0a6] mb-1">
                   1. Wybierz swój termin, który chcesz oddać:
                 </label>
                 {myEvents.length === 0 ? (
-                  <p className="text-xs text-rose-600 bg-rose-50 p-2 rounded border border-rose-200">
+                  <p className="text-xs text-[#f28b82] bg-[#4c1f24] p-2.5 rounded-lg border border-[#f28b82]/30">
                     Nie masz jeszcze żadnych utworzonych terminów w kalendarzu. Dodaj najpierw termin!
                   </p>
                 ) : (
@@ -284,7 +281,7 @@ export default function ExchangeModal({
                     value={selectedMyEventId}
                     onChange={(e) => setSelectedMyEventId(e.target.value)}
                     required
-                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full bg-[#1f1f1f] border border-[#5f6368] rounded-lg p-2.5 text-sm text-[#e3e3e3] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
                   >
                     <option value="">-- Wybierz swój termin --</option>
                     {myEvents.map((ev) => (
@@ -297,11 +294,11 @@ export default function ExchangeModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-[#9aa0a6] mb-1">
                   2. Wybierz termin kolegi, który chcesz otrzymać:
                 </label>
                 {exchangeableEvents.length === 0 ? (
-                  <p className="text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200">
+                  <p className="text-xs text-[#fdd663] bg-[#433519] p-2.5 rounded-lg border border-[#fdd663]/30">
                     Brak publicznych terminów oznaczonych do wymiany. Poproś znajomego o zaznaczenie "Udostępnij na wymianę" w swoim wydarzeniu!
                   </p>
                 ) : (
@@ -309,7 +306,7 @@ export default function ExchangeModal({
                     value={selectedTargetEventId}
                     onChange={(e) => setSelectedTargetEventId(e.target.value)}
                     required
-                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full bg-[#1f1f1f] border border-[#5f6368] rounded-lg p-2.5 text-sm text-[#e3e3e3] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
                   >
                     <option value="">-- Wybierz termin znajomego --</option>
                     {exchangeableEvents.map((ev) => (
@@ -322,7 +319,7 @@ export default function ExchangeModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-[#9aa0a6] mb-1">
                   Wiadomość do kolegi (opcjonalnie):
                 </label>
                 <input
@@ -330,15 +327,15 @@ export default function ExchangeModal({
                   placeholder="np. Cześć! Bardzo zależy mi na tym terminie, zamienisz się?"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full bg-[#1f1f1f] border border-[#5f6368] rounded-lg p-2 text-sm text-[#e3e3e3] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
                 />
               </div>
 
-              <div className="pt-3 border-t border-gray-200 flex justify-end">
+              <div className="pt-3 border-t border-[#3c4043] flex justify-end">
                 <button
                   type="submit"
                   disabled={submitting || myEvents.length === 0 || exchangeableEvents.length === 0}
-                  className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-semibold transition shadow-sm flex items-center space-x-2 disabled:opacity-50"
+                  className="px-5 py-2.5 bg-[#fdd663] hover:bg-[#ffe082] text-[#1f1f1f] rounded-lg text-sm font-bold transition shadow-sm flex items-center space-x-2 disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
                   <span>{submitting ? 'Wysyłanie...' : 'Wyślij propozycję wymiany'}</span>
