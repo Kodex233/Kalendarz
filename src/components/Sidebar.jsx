@@ -1,8 +1,5 @@
 import React from 'react';
 import { 
-  Plus, 
-  CheckSquare, 
-  Square, 
   Users, 
   ArrowLeftRight, 
   ChevronLeft, 
@@ -10,6 +7,7 @@ import {
   Clock,
   Sparkles
 } from 'lucide-react';
+import CreateDropdown from './CreateDropdown';
 import { 
   format, 
   startOfMonth, 
@@ -47,17 +45,11 @@ export default function Sidebar({
   if (!isOpen) return null;
 
   return (
-    <aside className="w-64 border-r border-gray-200 bg-white flex flex-col p-4 space-y-6 select-none shrink-0 overflow-y-auto h-[calc(100vh-4rem)]">
-      {/* Google-like "+ Utwórz" button */}
-      <button
-        onClick={onOpenCreateModal}
-        className="flex items-center space-x-3 px-6 py-3.5 bg-white hover:bg-gray-50 border border-gray-200 shadow-md hover:shadow-lg rounded-full text-gray-700 font-medium transition text-sm max-w-[150px] group"
-      >
-        <span className="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-500 via-red-500 to-yellow-500 flex items-center justify-center text-white font-bold group-hover:scale-105 transition">
-          <Plus className="w-5 h-5 text-white" />
-        </span>
-        <span className="font-['Product_Sans',sans-serif] text-base text-gray-800">Utwórz</span>
-      </button>
+    <aside className="w-64 border-r border-[#3c4043] bg-[#1f1f1f] text-[#e3e3e3] flex flex-col p-4 space-y-6 select-none shrink-0 overflow-y-auto h-[calc(100vh-4rem)]">
+      {/* Google-like "+ Utwórz ▾" button with smaller rounding and dropdown */}
+      <div>
+        <CreateDropdown onSelectType={onOpenCreateModal} />
+      </div>
 
       {/* Mini Calendar Picker */}
       <div className="bg-gray-50/70 p-3 rounded-xl border border-gray-200/60">

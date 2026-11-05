@@ -124,8 +124,15 @@ export default function App() {
     setCalendarsFilter(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Open Event Modal for new event
-  const handleOpenCreateModal = () => {
+  const [eventType, setEventType] = useState('Wydarzenie');
+
+  // Open Event Modal for new event with type
+  const handleOpenCreateModal = (type = 'Wydarzenie') => {
+    if (type === 'Harmonogram spotkań') {
+      setExchangeModalOpen(true);
+      return;
+    }
+    setEventType(type);
     setSelectedEvent(null);
     setEventModalOpen(true);
   };
@@ -282,6 +289,7 @@ export default function App() {
         initialData={selectedEvent}
         currentUserId={user?.uid || 'demo-user'}
         onOpenExchangeForEvent={handleProposeSwapWithEvent}
+        eventType={eventType}
       />
 
       <ExchangeModal
