@@ -22,7 +22,19 @@ import {
   respondToExchange
 } from './firebase/eventsService';
 
-// Default starter demo events if offline or not logged in
+// Default starter calendars matching user's screenshot
+const INITIAL_MY_CALENDARS = [
+  { id: 'kodex', name: 'kodex', color: '#1a73e8', checked: true },
+  { id: 'familijne', name: 'Familijne', color: '#5f6368', checked: true },
+  { id: 'zadania', name: 'Lista zadań', color: '#4285f4', checked: true },
+  { id: 'urodziny', name: 'Urodziny', color: '#34a853', checked: true },
+];
+
+const INITIAL_OTHER_CALENDARS = [
+  { id: 'swieta', name: 'Święta w Polsce', color: '#1e8e3e', checked: true },
+];
+
+// Default starter demo events
 const DEMO_EVENTS = [
   {
     id: 'demo-1',
@@ -31,6 +43,7 @@ const DEMO_EVENTS = [
     startTime: '10:00',
     endTime: '11:30',
     color: 'blue',
+    calendarId: 'kodex',
     description: 'Omówienie harmonogramu i wymiany terminów',
     isExchangeable: true,
     userId: 'demo-user',
@@ -43,11 +56,25 @@ const DEMO_EVENTS = [
     startTime: '14:00',
     endTime: '16:00',
     color: 'yellow',
+    calendarId: 'swieta',
     description: 'Chętnie zamienię się na inny termin!',
     isExchangeable: true,
     userId: 'friend-1',
     userName: 'Kolega Janek',
     userEmail: 'janek@firma.pl'
+  },
+  {
+    id: 'demo-3',
+    title: 'Obiad rodzinny',
+    date: format(new Date(Date.now() + 86400000 * 4), 'yyyy-MM-dd'),
+    startTime: '13:00',
+    endTime: '15:00',
+    color: 'gray',
+    calendarId: 'familijne',
+    description: 'Uroczysty obiad',
+    isExchangeable: false,
+    userId: 'demo-user',
+    userEmail: 'demo@kalendarz.pl'
   }
 ];
 
@@ -61,6 +88,25 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
+  // Calendars state
+  const [myCalendars, setMyCalendars] = useState(() => {
+    const saved = localStorage.getItem('kalendarz_my_calendars');
+    return saved ? JSON.parse(saved) : INITIAL_MY_CALENDARS;
+  });
+
+  const [otherCalendars, setOtherCalendars] = useState(() => {
+    const saved = localStorage.getItem('kalendarz_other_calendars');
+    return saved ? JSON.parse(saved) : INITIAL_OTHER_CALENDARS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('kalendarz_my_calendars', JSON.stringify(myCalendars));
+  }, [myCalendars]);
+
+  useEffect(() => {
+    localStorage.setItem('kalendarz_other_calendars', JSON.stringify(otherCalendars));
+  }, [otherCalendars]);
+
   // Firestore data
   const [myEvents, setMyEvents] = useState([]);
   const [exchangeableEvents, setExchangeableEvents] = useState([]);
@@ -71,20 +117,13 @@ export default function App() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [exchangeModalOpen, setExchangeModalOpen] = useState(false);
   const [initialTargetEventForSwap, setInitialTargetEventForSwap] = useState(null);
-
-  // Filters
-  const [calendarsFilter, setCalendarsFilter] = useState({
-    myEvents: true,
-    exchangeable: true,
-    friendsExchangeable: true
-  });
+  const [eventType, setEventType] = useState('Wydarzenie');
 
   // Track Firebase Auth state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (!currentUser) {
-        // Fallback to local demo events for instant preview
         setMyEvents(DEMO_EVENTS.filter(e => e.userId === 'demo-user'));
         setExchangeableEvents(DEMO_EVENTS.filter(e => e.userId !== 'demo-user'));
       }
@@ -115,16 +154,56 @@ export default function App() {
     };
   }, [user]);
 
-  // Handlers for month navigation
+  // Month navigation handlers
   const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
   const handleToday = () => setCurrentDate(new Date());
 
-  const handleToggleFilter = (key) => {
-    setCalendarsFilter(prev => ({ ...prev, [key]: !prev[key] }));
+  // Calendar Management Handlers
+  const handleToggleCalendar = (id) => {
+    setMyCalendars(prev => prev.map(c => c.id === id ? { ...c, checked: !c.checked } : c));
   };
 
-  const [eventType, setEventType] = useState('Wydarzenie');
+  const handleUpdateCalendarColor = (id, newColor) => {
+    setMyCalendars(prev => prev.map(c => c.id === id ? { ...c, color: newColor } : c));
+  };
+
+  const handleDeleteCalendar = (id) => {
+    if (confirm('Czy na pewno chcesz usunąć ten kalendarz?')) {
+      setMyCalendars(prev => prev.filter(c => c.id !== id));
+    }
+  };
+
+  const handleSoloCalendar = (id) => {
+    setMyCalendars(prev => prev.map(c => ({ ...c, checked: c.id === id })));
+    setOtherCalendars(prev => prev.map(c => ({ ...c, checked: false })));
+  };
+
+  const handleToggleOtherCalendar = (id) => {
+    setOtherCalendars(prev => prev.map(c => c.id === id ? { ...c, checked: !c.checked } : c));
+  };
+
+  const handleUpdateOtherCalendarColor = (id, newColor) => {
+    setOtherCalendars(prev => prev.map(c => c.id === id ? { ...c, color: newColor } : c));
+  };
+
+  const handleDeleteOtherCalendar = (id) => {
+    if (confirm('Czy na pewno chcesz usunąć ten kalendarz?')) {
+      setOtherCalendars(prev => prev.filter(c => c.id !== id));
+    }
+  };
+
+  const handleAddOtherCalendar = () => {
+    const name = prompt('Wpisz nazwę nowego kalendarza:');
+    if (!name || !name.trim()) return;
+    const newCal = {
+      id: 'other-' + Date.now(),
+      name: name.trim(),
+      color: '#9c54b6',
+      checked: true
+    };
+    setOtherCalendars(prev => [...prev, newCal]);
+  };
 
   // Open Event Modal for new event with type
   const handleOpenCreateModal = (type = 'Wydarzenie') => {
@@ -144,19 +223,20 @@ export default function App() {
       startTime: '09:00',
       endTime: '10:00'
     });
+    setEventType('Wydarzenie');
     setEventModalOpen(true);
   };
 
   // Open Event Modal for existing event
   const handleSelectEvent = (event) => {
     setSelectedEvent(event);
+    setEventType(event.type || 'Wydarzenie');
     setEventModalOpen(true);
   };
 
-  // Save Event (Create or Update in Firestore)
+  // Save Event
   const handleSaveEvent = async (eventData) => {
     if (!user) {
-      // Demo mode fallback
       if (selectedEvent && selectedEvent.id) {
         setMyEvents(prev => prev.map(e => e.id === selectedEvent.id ? { ...e, ...eventData } : e));
       } else {
@@ -164,7 +244,8 @@ export default function App() {
           ...eventData,
           id: 'demo-' + Date.now(),
           userId: 'demo-user',
-          userEmail: 'demo@kalendarz.pl'
+          userEmail: 'demo@kalendarz.pl',
+          calendarId: 'kodex'
         };
         setMyEvents(prev => [...prev, newEv]);
       }
@@ -178,7 +259,8 @@ export default function App() {
         ...eventData,
         userId: user.uid,
         userEmail: user.email,
-        userName: user.displayName || user.email.split('@')[0]
+        userName: user.displayName || user.email.split('@')[0],
+        calendarId: 'kodex'
       });
     }
   };
@@ -204,17 +286,35 @@ export default function App() {
     setExchangeModalOpen(true);
   };
 
-  // Filter events to display on the calendar
+  // Filter events based on active checked calendars and search query
   const visibleEvents = React.useMemo(() => {
-    let combined = [];
+    const activeCalendarIds = new Set([
+      ...myCalendars.filter(c => c.checked).map(c => c.id),
+      ...otherCalendars.filter(c => c.checked).map(c => c.id)
+    ]);
 
-    if (calendarsFilter.myEvents) {
-      combined = [...combined, ...myEvents];
-    }
-    if (calendarsFilter.friendsExchangeable) {
-      combined = [...combined, ...exchangeableEvents];
-    }
+    const calendarColorMap = {};
+    myCalendars.forEach(c => { calendarColorMap[c.id] = c.color; });
+    otherCalendars.forEach(c => { calendarColorMap[c.id] = c.color; });
 
+    let combined = [...myEvents, ...exchangeableEvents];
+
+    // Filter by calendar visibility
+    combined = combined.filter(e => {
+      const calId = e.calendarId || 'kodex';
+      return activeCalendarIds.has(calId);
+    });
+
+    // Attach custom background color from calendar if applicable
+    combined = combined.map(e => {
+      const calId = e.calendarId || 'kodex';
+      return {
+        ...e,
+        customBg: calendarColorMap[calId] || null
+      };
+    });
+
+    // Filter by search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       combined = combined.filter(e => 
@@ -226,7 +326,7 @@ export default function App() {
     }
 
     return combined;
-  }, [myEvents, exchangeableEvents, calendarsFilter, searchQuery]);
+  }, [myEvents, exchangeableEvents, myCalendars, otherCalendars, searchQuery]);
 
   const pendingExchangesCount = exchanges.filter(ex => 
     (ex.targetUserId === user?.uid || (user?.email && ex.targetUserEmail?.toLowerCase() === user.email.toLowerCase())) &&
@@ -234,7 +334,7 @@ export default function App() {
   ).length;
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-white overflow-hidden">
+    <div className="h-screen w-screen flex flex-col bg-[#1f1f1f] text-[#e3e3e3] overflow-hidden">
       {/* Top Navbar */}
       <Navbar
         currentDate={currentDate}
@@ -263,8 +363,16 @@ export default function App() {
             setCurrentDate(date);
             handleSelectDate(date);
           }}
-          calendarsFilter={calendarsFilter}
-          onToggleFilter={handleToggleFilter}
+          myCalendars={myCalendars}
+          onToggleCalendar={handleToggleCalendar}
+          onUpdateCalendarColor={handleUpdateCalendarColor}
+          onDeleteCalendar={handleDeleteCalendar}
+          onSoloCalendar={handleSoloCalendar}
+          otherCalendars={otherCalendars}
+          onToggleOtherCalendar={handleToggleOtherCalendar}
+          onUpdateOtherCalendarColor={handleUpdateOtherCalendarColor}
+          onDeleteOtherCalendar={handleDeleteOtherCalendar}
+          onAddOtherCalendar={handleAddOtherCalendar}
           exchangeableEvents={exchangeableEvents}
           onProposeSwapWithEvent={handleProposeSwapWithEvent}
           onOpenExchangeModal={() => setExchangeModalOpen(true)}
