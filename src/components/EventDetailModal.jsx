@@ -37,10 +37,17 @@ export default function EventDetailModal({
     alert('Link do wydarzenia skopiowany do schowka!');
   };
 
+  const handleDelete = () => {
+    if (event && event.id) {
+      onDelete(event.id);
+      onClose();
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
       <div 
-        className="bg-[#282a2d] text-[#e3e3e3] rounded-[24px] shadow-2xl w-full max-w-sm overflow-hidden border-0 ring-1 ring-white/10 animate-in fade-in zoom-in-95 duration-150 p-5 space-y-4"
+        className="bg-[#1e1f20] text-[#e3e3e3] rounded-[24px] shadow-2xl w-full max-w-sm overflow-hidden border border-[#303134]/80 animate-in fade-in zoom-in-95 duration-150 p-5 space-y-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Right Action Icons matching image 5 */}
@@ -50,21 +57,18 @@ export default function EventDetailModal({
               onClose();
               onEdit(event);
             }}
-            className="p-1.5 hover:bg-[#35373a] hover:text-[#e3e3e3] rounded-full transition"
+            className="p-1.5 hover:bg-[#282a2d] hover:text-[#e3e3e3] rounded-full transition"
             title="Edytuj wydarzenie"
           >
-            <Edit3 className="w-4 h-4" />
+            <Edit3 className="w-4 h-4 text-[#9aa0a6]" />
           </button>
 
           <button
-            onClick={() => {
-              onDelete(event.id);
-              onClose();
-            }}
-            className="p-1.5 hover:bg-[#35373a] hover:text-[#f28b82] rounded-full transition"
+            onClick={handleDelete}
+            className="p-1.5 hover:bg-[#282a2d] hover:text-[#f28b82] rounded-full transition"
             title="Usuń wydarzenie"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-4 h-4 text-[#9aa0a6]" />
           </button>
 
           <button
@@ -75,26 +79,26 @@ export default function EventDetailModal({
                 alert('Brak zaproszonych gości do wysłania e-maila');
               }
             }}
-            className="p-1.5 hover:bg-[#35373a] hover:text-[#e3e3e3] rounded-full transition"
+            className="p-1.5 hover:bg-[#282a2d] hover:text-[#e3e3e3] rounded-full transition"
             title="Wyślij e-mail do gości"
           >
-            <Mail className="w-4 h-4" />
+            <Mail className="w-4 h-4 text-[#9aa0a6]" />
           </button>
 
           <button
             onClick={() => alert('Więcej opcji')}
-            className="p-1.5 hover:bg-[#35373a] hover:text-[#e3e3e3] rounded-full transition"
+            className="p-1.5 hover:bg-[#282a2d] hover:text-[#e3e3e3] rounded-full transition"
             title="Opcje"
           >
-            <MoreVertical className="w-4 h-4" />
+            <MoreVertical className="w-4 h-4 text-[#9aa0a6]" />
           </button>
 
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-[#35373a] hover:text-[#e3e3e3] rounded-full transition ml-1"
+            className="p-1.5 hover:bg-[#282a2d] hover:text-[#e3e3e3] rounded-full transition ml-1"
             title="Zamknij"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 text-[#9aa0a6]" />
           </button>
         </div>
 
@@ -118,7 +122,7 @@ export default function EventDetailModal({
         <div className="pl-7">
           <button
             onClick={handleCopyLink}
-            className="flex items-center space-x-2 px-4 py-1.5 rounded-full border border-[#5f6368] hover:bg-[#35373a] text-xs font-medium text-[#e3e3e3] transition"
+            className="flex items-center space-x-2 px-4 py-1.5 rounded-full border border-[#5f6368] hover:bg-[#282a2d] text-xs font-medium text-[#e3e3e3] transition"
           >
             <LinkIcon className="w-3.5 h-3.5 text-[#9aa0a6]" />
             <span>Zaproś przez link</span>

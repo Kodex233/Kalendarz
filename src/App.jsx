@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
+  addDays, 
+  subDays, 
+  addWeeks, 
+  subWeeks, 
   addMonths, 
   subMonths, 
+  addYears, 
+  subYears, 
   format 
 } from 'date-fns';
+import { X } from 'lucide-react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import CalendarMonth from './components/CalendarMonth';
@@ -24,7 +31,7 @@ import {
   respondToExchange
 } from './firebase/eventsService';
 
-// Default starter calendars matching user's screenshot
+// Default starter calendars matching user screenshots
 const INITIAL_MY_CALENDARS = [
   { id: 'kodex', name: 'kodex', color: '#1a73e8', checked: true },
   { id: 'familijne', name: 'Familijne', color: '#5f6368', checked: true },
@@ -37,7 +44,7 @@ const INITIAL_OTHER_CALENDARS = [
 ];
 
 // Default starter demo events matching user screenshots
-const DEMO_EVENTS = [
+const INITIAL_DEMO_EVENTS = [
   {
     id: 'demo-holiday',
     title: 'Dzień Niepodległości',
@@ -61,10 +68,11 @@ const DEMO_EVENTS = [
     endTime: '11:30',
     color: 'blue',
     calendarId: 'kodex',
-    description: 'Omówienie harmonogramu spotkań',
+    description: 'Omówienie harmonogramu i terminów',
     isExchangeable: true,
-    userId: 'demo-user',
-    userEmail: 'demo@kalendarz.pl'
+    userId: 'user-kodex',
+    userName: 'Kodex',
+    userEmail: 'kodex233@gmail.com'
   },
   {
     id: 'demo-2',
@@ -89,6 +97,27 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [personSearchQuery, setPersonSearchQuery] = useState('');
 
+  // Advanced search filters matching image 2
+  const [advancedFilters, setAdvancedFilters] = useState({
+    searchIn: 'Aktywne kalendarze',
+    what: '',
+    who: '',
+    where: '',
+    notContain: '',
+    dateFrom: '',
+    dateTo: ''
+  });
+
+  // Toast / Snackbar notification matching image 5
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, actionText = 'Cofnij', onAction = null) => {
+    setToast({ message, actionText, onAction });
+    setTimeout(() => {
+      setToast(null);
+    }, 5000);
+  };
+
   // Authentication
   const [user, setUser] = useState(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -112,10 +141,18 @@ export default function App() {
     localStorage.setItem('kalendarz_other_calendars', JSON.stringify(otherCalendars));
   }, [otherCalendars]);
 
-  // Firestore data
-  const [myEvents, setMyEvents] = useState([]);
+  // Events & Exchanges state
+  const [myEvents, setMyEvents] = useState(() => {
+    const saved = localStorage.getItem('kalendarz_my_events');
+    return saved ? JSON.parse(saved) : INITIAL_DEMO_EVENTS;
+  });
+
   const [exchangeableEvents, setExchangeableEvents] = useState([]);
   const [exchanges, setExchanges] = useState([]);
+
+  useEffect(() => {
+    localStorage.setItem('kalendarz_my_events', JSON.stringify(myEvents));
+  }, [myEvents]);
 
   // Modals state
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -130,8 +167,8 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (!currentUser) {
-        setMyEvents(DEMO_EVENTS.filter(e => e.userId === 'demo-user' || e.userId === 'system'));
-        setExchangeableEvents(DEMO_EVENTS.filter(e => e.userId !== 'demo-user' && e.userId !== 'system'));
+        setMyEvents(INITIAL_DEMO_EVENTS.filter(e => e.userId === 'user-kodex' || e.userId === 'system'));
+        setExchangeableEvents(INITIAL_DEMO_EVENTS.filter(e => e.userId !== 'user-kodex' && e.userId !== 'system'));
       }
     });
     return () => unsubscribe();
@@ -139,10 +176,10 @@ export default function App() {
 
   // Subscribe to Firestore events when user is logged in
   useEffect(() => {
-    if (!user) return;
+    if (!user || user.uid.startsWith('user-') || user.uid.startsWith('friend-')) return;
 
     const unsubMyEvents = subscribeToUserEvents(user.uid, (events) => {
-      setMyEvents([...DEMO_EVENTS.filter(e => e.userId === 'system'), ...events]);
+      setMyEvents([...INITIAL_DEMO_EVENTS.filter(e => e.userId === 'system'), ...events]);
     });
 
     const unsubExchangeable = subscribeToExchangeableEvents(user.uid, (events) => {
@@ -160,9 +197,35 @@ export default function App() {
     };
   }, [user]);
 
-  // Month navigation handlers
-  const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
-  const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
+  // Stepping navigation handlers `< >` that step by the active view
+  const handlePrevDate = () => {
+    if (activeView === 'day') {
+      setCurrentDate(prev => subDays(prev, 1));
+    } else if (activeView === 'week') {
+      setCurrentDate(prev => subWeeks(prev, 1));
+    } else if (activeView === 'fourDays') {
+      setCurrentDate(prev => subDays(prev, 4));
+    } else if (activeView === 'year') {
+      setCurrentDate(prev => subYears(prev, 1));
+    } else {
+      setCurrentDate(prev => subMonths(prev, 1));
+    }
+  };
+
+  const handleNextDate = () => {
+    if (activeView === 'day') {
+      setCurrentDate(prev => addDays(prev, 1));
+    } else if (activeView === 'week') {
+      setCurrentDate(prev => addWeeks(prev, 1));
+    } else if (activeView === 'fourDays') {
+      setCurrentDate(prev => addDays(prev, 4));
+    } else if (activeView === 'year') {
+      setCurrentDate(prev => addYears(prev, 1));
+    } else {
+      setCurrentDate(prev => addMonths(prev, 1));
+    }
+  };
+
   const handleToday = () => setCurrentDate(new Date(2026, 10, 8));
   const handleSelectDate = (date) => setCurrentDate(date);
 
@@ -252,53 +315,128 @@ export default function App() {
 
   // Save Event
   const handleSaveEvent = async (eventData) => {
-    if (!user) {
+    const currentUid = user?.uid || 'user-kodex';
+    const currentEmail = user?.email || 'kodex233@gmail.com';
+    const currentName = user?.displayName || 'Kodex';
+
+    // Local / Demo mode or test users
+    if (!user || user.uid.startsWith('user-') || user.uid.startsWith('friend-')) {
       if (selectedEvent && selectedEvent.id) {
         setMyEvents(prev => prev.map(e => e.id === selectedEvent.id ? { ...e, ...eventData } : e));
       } else {
         const newEv = {
           ...eventData,
           id: 'demo-' + Date.now(),
-          userId: 'demo-user',
-          userEmail: 'demo@kalendarz.pl',
+          userId: currentUid,
+          userEmail: currentEmail,
+          userName: currentName,
           calendarId: eventData.calendarId || 'kodex'
         };
         setMyEvents(prev => [...prev, newEv]);
       }
+      showToast('Wydarzenie zostało zapisane');
       return;
     }
 
-    if (selectedEvent && selectedEvent.id && selectedEvent.userId === user.uid) {
-      await updateEvent(selectedEvent.id, eventData);
-    } else {
-      await createEvent({
-        ...eventData,
-        userId: user.uid,
-        userEmail: user.email,
-        userName: user.displayName || user.email.split('@')[0],
-        calendarId: eventData.calendarId || 'kodex'
-      });
+    // Real Firebase Firestore
+    try {
+      if (selectedEvent && selectedEvent.id && selectedEvent.userId === user.uid) {
+        await updateEvent(selectedEvent.id, eventData);
+      } else {
+        await createEvent({
+          ...eventData,
+          userId: user.uid,
+          userEmail: user.email,
+          userName: user.displayName || user.email.split('@')[0],
+          calendarId: eventData.calendarId || 'kodex'
+        });
+      }
+      showToast('Wydarzenie zostało zapisane');
+    } catch (err) {
+      console.error(err);
+      alert('Nie udało się zapisać w Firestore: ' + err.message);
     }
   };
 
   // Delete Event
   const handleDeleteEvent = async (eventId) => {
-    if (!user) {
-      setMyEvents(prev => prev.filter(e => e.id !== eventId));
-      setCreateModalOpen(false);
-      setDetailModalOpen(false);
-      return;
-    }
-    await deleteEvent(eventId);
+    // Optimistically update local state immediately
+    setMyEvents(prev => prev.filter(e => e.id !== eventId));
+    setExchangeableEvents(prev => prev.filter(e => e.id !== eventId));
     setCreateModalOpen(false);
     setDetailModalOpen(false);
+    showToast('Wydarzenie zostało usunięte');
+
+    // If logged into real Firebase and event is not a local demo event
+    if (user && !user.uid.startsWith('user-') && !eventId.startsWith('demo-')) {
+      try {
+        await deleteEvent(eventId);
+      } catch (err) {
+        console.warn('Firestore deletion failed:', err);
+      }
+    }
   };
 
-  // Filter events based on active checked calendars and search queries
-  const visibleEvents = React.useMemo(() => {
+  // Propose slot exchange
+  const handleProposeExchange = async (proposalData) => {
+    if (!user || user.uid.startsWith('user-') || user.uid.startsWith('friend-')) {
+      const newProposal = {
+        ...proposalData,
+        id: 'exch-' + Date.now(),
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      };
+      setExchanges(prev => [newProposal, ...prev]);
+      showToast('Wysłano propozycję wymiany');
+      return;
+    }
+    await proposeExchange(proposalData);
+    showToast('Wysłano propozycję wymiany');
+  };
+
+  // Respond to slot exchange (Accept / Reject)
+  const handleRespondExchange = async (exchangeId, accept, exchange) => {
+    if (!user || user.uid.startsWith('user-') || user.uid.startsWith('friend-') || exchangeId.startsWith('exch-')) {
+      if (accept) {
+        // Swap date, startTime, and endTime between the two events
+        setMyEvents(prev => {
+          const myEv = prev.find(e => e.id === exchange.myEventId);
+          const targetEv = prev.find(e => e.id === exchange.targetEventId) || exchangeableEvents.find(e => e.id === exchange.targetEventId);
+          if (!myEv || !targetEv) return prev;
+          return prev.map(e => {
+            if (e.id === myEv.id) return { ...e, date: targetEv.date, startTime: targetEv.startTime, endTime: targetEv.endTime };
+            if (e.id === targetEv.id) return { ...e, date: myEv.date, startTime: myEv.startTime, endTime: myEv.endTime };
+            return e;
+          });
+        });
+        setExchangeableEvents(prev => {
+          const myEv = myEvents.find(e => e.id === exchange.myEventId);
+          const targetEv = prev.find(e => e.id === exchange.targetEventId);
+          if (!myEv || !targetEv) return prev;
+          return prev.map(e => {
+            if (e.id === targetEv.id) return { ...e, date: myEv.date, startTime: myEv.startTime, endTime: myEv.endTime };
+            return e;
+          });
+        });
+        setExchanges(prev => prev.map(ex => ex.id === exchangeId ? { ...ex, status: 'accepted' } : ex));
+        showToast('Wymiana zaakceptowana! Terminy zamienione.');
+      } else {
+        setExchanges(prev => prev.map(ex => ex.id === exchangeId ? { ...ex, status: 'rejected' } : ex));
+        showToast('Propozycja odrzucona');
+      }
+      return;
+    }
+
+    await respondToExchange(exchangeId, accept, exchange);
+    showToast(accept ? 'Wymiana zaakceptowana w Firebase!' : 'Propozycja odrzucona');
+  };
+
+  // Filter events based on active checked calendars and search queries + advanced filters
+  const visibleEvents = useMemo(() => {
+    const isSearchAll = advancedFilters.searchIn === 'Wszystkie kalendarze';
     const activeCalendarIds = new Set([
-      ...myCalendars.filter(c => c.checked).map(c => c.id),
-      ...otherCalendars.filter(c => c.checked).map(c => c.id)
+      ...myCalendars.filter(c => isSearchAll || c.checked).map(c => c.id),
+      ...otherCalendars.filter(c => isSearchAll || c.checked).map(c => c.id)
     ]);
 
     const calendarColorMap = {};
@@ -322,18 +460,54 @@ export default function App() {
       };
     });
 
-    // Filter by general search query
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+    // Filter by general search query / "Co"
+    const keyword = (searchQuery || advancedFilters.what || '').trim().toLowerCase();
+    if (keyword) {
       combined = combined.filter(e => 
-        e.title.toLowerCase().includes(q) || 
-        (e.description && e.description.toLowerCase().includes(q)) ||
-        (e.userEmail && e.userEmail.toLowerCase().includes(q)) ||
-        (e.userName && e.userName.toLowerCase().includes(q))
+        (e.title && e.title.toLowerCase().includes(keyword)) || 
+        (e.description && e.description.toLowerCase().includes(keyword)) ||
+        (e.userEmail && e.userEmail.toLowerCase().includes(keyword)) ||
+        (e.userName && e.userName.toLowerCase().includes(keyword))
       );
     }
 
-    // Filter by person search query (Gmail)
+    // Filter by "Kto"
+    const who = (advancedFilters.who || '').trim().toLowerCase();
+    if (who) {
+      combined = combined.filter(e =>
+        (e.userEmail && e.userEmail.toLowerCase().includes(who)) ||
+        (e.invitedEmail && e.invitedEmail.toLowerCase().includes(who)) ||
+        (e.userName && e.userName.toLowerCase().includes(who))
+      );
+    }
+
+    // Filter by "Gdzie"
+    const where = (advancedFilters.where || '').trim().toLowerCase();
+    if (where) {
+      combined = combined.filter(e =>
+        e.location && e.location.toLowerCase().includes(where)
+      );
+    }
+
+    // Filter by "Nie zawiera"
+    const notContain = (advancedFilters.notContain || '').trim().toLowerCase();
+    if (notContain) {
+      combined = combined.filter(e => {
+        const inTitle = e.title && e.title.toLowerCase().includes(notContain);
+        const inDesc = e.description && e.description.toLowerCase().includes(notContain);
+        return !inTitle && !inDesc;
+      });
+    }
+
+    // Filter by date range
+    if (advancedFilters.dateFrom) {
+      combined = combined.filter(e => e.date >= advancedFilters.dateFrom);
+    }
+    if (advancedFilters.dateTo) {
+      combined = combined.filter(e => e.date <= advancedFilters.dateTo);
+    }
+
+    // Filter by person search query (Gmail from sidebar)
     if (personSearchQuery.trim()) {
       const pq = personSearchQuery.toLowerCase();
       combined = combined.filter(e =>
@@ -344,33 +518,38 @@ export default function App() {
     }
 
     return combined;
-  }, [myEvents, exchangeableEvents, myCalendars, otherCalendars, searchQuery, personSearchQuery]);
+  }, [myEvents, exchangeableEvents, myCalendars, otherCalendars, searchQuery, personSearchQuery, advancedFilters]);
 
   const activeEventCal = selectedEvent ? (
     myCalendars.find(c => c.id === selectedEvent.calendarId) || { name: 'kodex', color: '#1a73e8' }
   ) : { name: 'kodex', color: '#1a73e8' };
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-[#131314] text-[#e3e3e3] overflow-hidden">
-      {/* Top Navbar */}
+    <div className="h-screen w-screen flex flex-col bg-[#1e1f20] text-[#e3e3e3] overflow-hidden">
+      {/* Top Navbar: tło #1e1f20, wyszukiwarka Google */}
       <Navbar
         currentDate={currentDate}
-        onPrevMonth={handlePrevMonth}
-        onNextMonth={handleNextMonth}
+        onPrevDate={handlePrevDate}
+        onNextDate={handleNextDate}
         onToday={handleToday}
         onSelectDate={handleSelectDate}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         user={user}
         onOpenAuth={() => setAuthModalOpen(true)}
-        onLogout={logoutUser}
+        onLogout={() => {
+          logoutUser();
+          setUser(null);
+        }}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         activeView={activeView}
         onViewChange={setActiveView}
+        advancedFilters={advancedFilters}
+        onAdvancedFiltersChange={setAdvancedFilters}
       />
 
-      {/* Main Container: Sidebar + Rounded Calendar Canvas */}
-      <div className="flex-1 flex overflow-hidden bg-[#131314]">
+      {/* Main Container: Sidebar + Rounded Borderless Calendar Canvas */}
+      <div className="flex-1 flex overflow-hidden bg-[#1e1f20]">
         <Sidebar
           isOpen={sidebarOpen}
           onOpenCreateModal={handleOpenCreateModal}
@@ -395,7 +574,8 @@ export default function App() {
             events={visibleEvents}
             onSelectEvent={handleSelectEvent}
             onSelectDate={handleSelectDate}
-            currentUserId={user?.uid || 'demo-user'}
+            onViewChange={setActiveView}
+            currentUserId={user?.uid || 'user-kodex'}
           />
         ) : (
           <CalendarWeek
@@ -406,23 +586,46 @@ export default function App() {
             viewMode={activeView}
             isSidebarOpen={sidebarOpen}
             onOpenCreateModal={handleOpenCreateModal}
+            onSelectDate={handleSelectDate}
+            onViewChange={setActiveView}
           />
         )}
       </div>
 
-      {/* 1. Okienko dodawania wydarzenia (Create Event Modal) matching image 3 */}
+      {/* Toast Notification matching image 5 at the bottom */}
+      {toast && (
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-[#e3e3e3] text-[#1f1f1f] px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-6 text-sm font-medium animate-in fade-in slide-in-from-bottom-2 duration-150">
+          <span>{toast.message}</span>
+          {toast.onAction && (
+            <button 
+              onClick={toast.onAction}
+              className="text-[#1a73e8] font-semibold hover:underline"
+            >
+              {toast.actionText}
+            </button>
+          )}
+          <button 
+            onClick={() => setToast(null)}
+            className="p-1 text-[#5f6368] hover:text-[#1f1f1f] hover:bg-black/10 rounded-full transition"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* 1. Okienko dodawania/edycji wydarzenia matching image 5 */}
       <EventModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onSave={handleSaveEvent}
         onDelete={handleDeleteEvent}
         initialData={selectedEvent}
-        currentUserId={user?.uid || 'demo-user'}
+        currentUserId={user?.uid || 'user-kodex'}
         eventType={eventType}
         myCalendars={myCalendars}
       />
 
-      {/* 2. Okienko szczegółów wydarzenia (Event Detail Modal) matching image 5 */}
+      {/* 2. Okienko szczegółów wydarzenia matching image 5 */}
       <EventDetailModal
         isOpen={detailModalOpen}
         onClose={() => setDetailModalOpen(false)}
@@ -443,16 +646,17 @@ export default function App() {
         myEvents={myEvents}
         exchangeableEvents={exchangeableEvents}
         exchanges={exchanges}
-        onProposeExchange={proposeExchange}
-        onRespondExchange={respondToExchange}
+        onProposeExchange={handleProposeExchange}
+        onRespondExchange={handleRespondExchange}
         user={user}
         initialTargetEvent={initialTargetEventForSwap}
       />
 
-      {/* 4. Auth Modal */}
+      {/* 4. Auth Modal - Autentyczny styl Google */}
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
+        onTestLogin={(mockUser) => setUser(mockUser)}
       />
     </div>
   );

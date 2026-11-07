@@ -70,7 +70,7 @@ export default function Sidebar({
   if (!isOpen) return null;
 
   return (
-    <aside className="w-64 bg-[#131314] text-[#e3e3e3] flex flex-col px-4 py-3 space-y-4 select-none shrink-0 overflow-y-auto h-[calc(100vh-4rem)]">
+    <aside className="w-64 bg-[#1e1f20] text-[#e3e3e3] flex flex-col px-4 py-3 space-y-4 select-none shrink-0 overflow-y-auto h-[calc(100vh-4rem)]">
       {/* 1. Button + Utwórz ▾ without border */}
       <div>
         <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={false} />

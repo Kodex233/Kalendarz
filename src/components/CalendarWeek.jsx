@@ -24,7 +24,9 @@ export default function CalendarWeek({
   onSelectSlot,
   viewMode = 'week', // 'week', 'day', 'fourDays'
   isSidebarOpen = true,
-  onOpenCreateModal
+  onOpenCreateModal,
+  onSelectDate,
+  onViewChange
 }) {
   const containerRef = useRef(null);
   const today = new Date();
@@ -44,22 +46,28 @@ export default function CalendarWeek({
 
   const DAY_NAMES = ['NIEDZ.', 'PON.', 'WT.', 'ŚR.', 'CZW.', 'PT.', 'SOB.'];
 
-  // Current time position (around 7 PM in screenshots)
+  // Current time position indicator
   const now = new Date();
   const currentHour = now.getHours();
   const currentMinutes = now.getMinutes();
   const timeProgressMinutes = currentHour * 56 + (currentMinutes / 60) * 56;
 
-  // Separate all-day events (or holiday events) vs timed events
+  // Separate all-day events vs timed events
   const allDayEvents = events.filter(e => e.calendarId === 'swieta' || e.isAllDay);
   const timedEvents = events.filter(e => e.calendarId !== 'swieta' && !e.isAllDay);
 
+  // Click on a day header switches directly to Day view
+  const handleDayHeaderClick = (day) => {
+    if (onSelectDate) onSelectDate(day);
+    if (onViewChange) onViewChange('day');
+  };
+
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-4rem)] bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] border border-[#303134]/60 overflow-hidden select-none m-2 ml-1 mr-3 shadow-xl">
-      {/* Top Header: Bez kratek / pionowych kresek między dniami (matching image 1 and 4) */}
-      <div className="flex border-b border-[#303134] bg-[#1e1f20] shrink-0">
-        {/* Left top box: When sidebar is collapsed, + button sits right here over GMT+1 (matching image 4) */}
-        <div className="w-16 shrink-0 flex items-center justify-center py-2.5">
+    <div className="flex-1 flex flex-col h-[calc(100vh-4.5rem)] bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none m-3 ml-2 shadow-2xl">
+      {/* Top Header: BEZ POZIOMEJ KRESKI POD DNIAMI (no border-b) matching user request & images */}
+      <div className="flex bg-[#131314] shrink-0 pt-1 pb-1">
+        {/* Left top box: When sidebar is collapsed, + button sits right here over GMT+1 */}
+        <div className="w-16 shrink-0 flex items-center justify-center py-2">
           {!isSidebarOpen ? (
             <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={true} />
           ) : (
@@ -67,7 +75,7 @@ export default function CalendarWeek({
           )}
         </div>
 
-        {/* Day columns: NO vertical borders between days (border-r-0) matching image 1 and 4 */}
+        {/* Day columns: NO vertical borders, NO horizontal line below */}
         <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
           {days.map((day, idx) => {
             const isToday = isSameDay(day, today);
@@ -77,9 +85,11 @@ export default function CalendarWeek({
             return (
               <div 
                 key={idx}
-                className="py-2.5 text-center flex flex-col items-center justify-center cursor-pointer hover:bg-[#282a2d]/30 transition border-0"
+                onClick={() => handleDayHeaderClick(day)}
+                className="py-2 text-center flex flex-col items-center justify-center cursor-pointer group transition border-0 select-none"
+                title={`Przejdź do widoku dnia: ${format(day, 'd MMMM')}`}
               >
-                <span className="text-[11px] font-semibold tracking-wider text-[#9aa0a6] mb-1">
+                <span className="text-[11px] font-semibold tracking-wider text-[#9aa0a6] mb-1 group-hover:text-white transition">
                   {dayName}
                 </span>
 
@@ -87,7 +97,7 @@ export default function CalendarWeek({
                   className={`w-10 h-10 rounded-full flex items-center justify-center text-lg transition ${
                     isToday || isSelected
                       ? 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-md'
-                      : 'text-[#e3e3e3] font-normal hover:bg-[#35373a]'
+                      : 'text-[#e3e3e3] font-normal group-hover:bg-[#282a2d]'
                   }`}
                 >
                   {format(day, 'd')}
@@ -100,7 +110,7 @@ export default function CalendarWeek({
 
       {/* All-Day Events row (e.g. Dzień Niepodległości matching image 1) */}
       {allDayEvents.length > 0 && (
-        <div className="flex border-b border-[#303134] bg-[#1e1f20] shrink-0 py-1">
+        <div className="flex bg-[#131314] shrink-0 py-1.5 border-b border-[#282a2d]/60">
           <div className="w-16 shrink-0 text-center text-[10px] text-[#9aa0a6] pt-1">
             GMT+1
           </div>
@@ -129,10 +139,10 @@ export default function CalendarWeek({
       )}
 
       {/* Scrollable Time Grid with vertical borders and horizontal lines */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto relative">
+      <div ref={containerRef} className="flex-1 overflow-y-auto relative bg-[#131314]">
         <div className="flex min-h-[1350px]">
           {/* Left Hours column */}
-          <div className="w-16 shrink-0 bg-[#1e1f20] select-none">
+          <div className="w-16 shrink-0 bg-[#131314] select-none">
             {HOURS.slice(1).map((hour, idx) => (
               <div 
                 key={idx} 
@@ -156,14 +166,14 @@ export default function CalendarWeek({
               return (
                 <div 
                   key={dIdx} 
-                  className="border-r border-[#303134] relative h-full"
+                  className="border-r border-[#282a2d]/60 relative h-full"
                 >
                   {/* Hour slots */}
                   {HOURS.slice(1).map((_, hIdx) => (
                     <div 
                       key={hIdx} 
                       onClick={() => onSelectSlot(day, `${(hIdx + 1).toString().padStart(2, '0')}:00`)}
-                      className="h-14 border-b border-[#303134]/60 hover:bg-[#282a2d]/30 cursor-pointer transition"
+                      className="h-14 border-b border-[#282a2d]/40 hover:bg-[#1f2022] cursor-pointer transition"
                     />
                   ))}
 

@@ -16,6 +16,7 @@ export default function CalendarMonth({
   events,
   onSelectEvent,
   onSelectDate,
+  onViewChange,
   currentUserId
 }) {
   const monthStart = startOfMonth(currentDate);
@@ -44,10 +45,15 @@ export default function CalendarMonth({
     return map;
   }, [events]);
 
+  const handleDayClick = (day) => {
+    if (onSelectDate) onSelectDate(day);
+    if (onViewChange) onViewChange('day');
+  };
+
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-4rem)] bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] border border-[#303134]/60 overflow-hidden select-none m-2 ml-1 mr-3 shadow-xl">
+    <div className="flex-1 flex flex-col h-[calc(100vh-4.5rem)] bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none m-3 ml-2 shadow-2xl">
       {/* Week day headers */}
-      <div className="grid grid-cols-7 border-b border-[#303134] bg-[#1e1f20]">
+      <div className="grid grid-cols-7 bg-[#131314] border-b border-[#282a2d]/60">
         {weekDayNames.map((name, i) => (
           <div 
             key={i} 
@@ -58,8 +64,8 @@ export default function CalendarMonth({
         ))}
       </div>
 
-      {/* Days Grid */}
-      <div className="flex-1 grid grid-cols-7 grid-rows-5 md:grid-rows-6 border-b border-l border-[#303134]">
+      {/* Month Days Grid */}
+      <div className="flex-1 grid grid-cols-7 grid-rows-6 bg-[#131314]">
         {days.map((day, idx) => {
           const dateStr = format(day, 'yyyy-MM-dd');
           const dayEvents = eventsByDate[dateStr] || [];
@@ -71,60 +77,52 @@ export default function CalendarMonth({
             <div
               key={idx}
               onClick={() => onSelectDate(day)}
-              className={`border-r border-b border-[#303134] p-1.5 flex flex-col min-h-0 overflow-hidden cursor-pointer transition ${
-                isCurrentMonth 
-                  ? 'bg-[#1e1f20] hover:bg-[#282a2d]' 
-                  : 'bg-[#161718] text-[#5f6368]'
+              className={`border-r border-b border-[#282a2d]/50 p-1.5 flex flex-col overflow-hidden transition ${
+                !isCurrentMonth ? 'bg-[#131314]/50 opacity-40' : 'hover:bg-[#1a1b1e]'
               }`}
             >
-              {/* Day header number with circular highlight */}
-              <div className="flex justify-between items-center mb-1">
-                <span
-                  className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full transition ${
+              {/* Day Number Header */}
+              <div className="flex items-center justify-between mb-1">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDayClick(day);
+                  }}
+                  className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-medium transition ${
                     isToday || isSelected
                       ? 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-xs'
-                      : isCurrentMonth
-                      ? 'text-[#e3e3e3]'
-                      : 'text-[#5f6368]'
+                      : 'text-[#e3e3e3] hover:bg-[#35373a]'
                   }`}
+                  title="Kliknij, aby przejść do widoku dnia"
                 >
                   {format(day, 'd')}
-                </span>
-
-                {dayEvents.length > 3 && (
-                  <span className="text-[10px] text-[#9aa0a6] font-medium">
-                    +{dayEvents.length - 2} więcej
-                  </span>
-                )}
+                </button>
               </div>
 
-              {/* Event Chips List */}
-              <div className="flex-1 space-y-1 overflow-y-auto pr-0.5">
+              {/* Event Pills */}
+              <div className="flex-1 overflow-y-auto space-y-1">
                 {dayEvents.slice(0, 3).map((event) => {
-                  const customStyle = event.customBg ? { backgroundColor: event.customBg, color: '#ffffff' } : { backgroundColor: '#1a73e8', color: '#ffffff' };
-
+                  const bgCol = event.customBg || '#1a73e8';
                   return (
                     <div
                       key={event.id}
-                      style={customStyle}
                       onClick={(e) => {
                         e.stopPropagation();
                         onSelectEvent(event);
                       }}
-                      className="text-[11px] font-medium px-2 py-0.5 rounded truncate shadow-xs flex items-center justify-between transition cursor-pointer hover:brightness-110"
-                      title={`${event.title} (${event.startTime || ''} - ${event.endTime || ''})`}
+                      className="px-2 py-0.5 rounded text-[11px] truncate cursor-pointer transition hover:brightness-110 text-white font-medium shadow-2xs"
+                      style={{ backgroundColor: bgCol }}
                     >
-                      <div className="flex items-center space-x-1.5 truncate">
-                        {event.startTime && (
-                          <span className="font-semibold text-[10px] opacity-90 shrink-0">
-                            {event.startTime}
-                          </span>
-                        )}
-                        <span className="truncate">{event.title}</span>
-                      </div>
+                      {event.title}
                     </div>
                   );
                 })}
+                {dayEvents.length > 3 && (
+                  <div className="text-[10px] text-[#9aa0a6] pl-1 font-medium">
+                    +{dayEvents.length - 3} więcej
+                  </div>
+                )}
               </div>
             </div>
           );
