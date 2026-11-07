@@ -304,7 +304,7 @@ export default function App() {
   };
 
   // Open Create Event Modal for a clicked slot on weekly grid
-  const handleSelectSlot = (date, timeStr, dayIndex = 2) => {
+  const handleSelectSlot = (date, timeStr, slotInfo = {}) => {
     const [h] = timeStr.split(':').map(Number);
     const endH = (h + 1) % 24;
     setSelectedEvent({
@@ -312,8 +312,10 @@ export default function App() {
       startTime: `${h.toString().padStart(2, '0')}:00`,
       endTime: `${endH.toString().padStart(2, '0')}:00`,
       calendarId: 'kodex',
-      dayIndex,
-      isNew: true
+      dayIndex: slotInfo.dayIndex ?? 2,
+      slotRect: slotInfo.slotRect,
+      isNew: true,
+      title: ''
     });
     setEventType('Wydarzenie');
     setCreateModalOpen(true);

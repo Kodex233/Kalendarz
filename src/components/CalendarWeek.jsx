@@ -150,9 +150,9 @@ export default function CalendarWeek({
         <div className="w-[9px] shrink-0" />
       </div>
 
-      {/* Row with GMT+1 and all-day events: pionowa kreska wychodzi o połowę mniej ponad 1. poziomą, brak border-b zapobiega podwójnej linii */}
+      {/* Row with GMT+1 and all-day events: godziny i GMT lekko mniej białe */}
       <div className="flex bg-[#131314] shrink-0 pr-1.5 min-h-[18px]">
-        <div className="w-16 shrink-0 text-center text-[10px] font-medium text-white flex items-center justify-center border-r border-white/20 py-0.5 relative">
+        <div className="w-16 shrink-0 text-center text-[10px] font-medium text-[#c4c7c5] flex items-center justify-center border-r border-white/20 py-0.5 relative">
           GMT+1
         </div>
         <div className="flex-1 grid relative" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
@@ -187,7 +187,7 @@ export default function CalendarWeek({
       {/* Scrollable Time Grid: 1 AM ma odstęp 1 kratki od GMT, kreski tylko z prawej (brak kresek po lewej stronie godzin, brak podwójnych kresek) */}
       <div ref={containerRef} className="flex-1 overflow-y-auto relative bg-[#131314] pr-1.5 pt-0">
         <div className="flex min-h-[1152px]">
-          {/* Left Hours column: godziny minimalnie bliżej prawej (pr-3.5), kreski 8px tylko z prawej (brak kresek po lewej) */}
+          {/* Left Hours column: godziny minimalnie mniej białe (text-[#c4c7c5]) */}
           <div className="w-16 shrink-0 bg-[#131314] select-none border-r border-white/20 relative">
             {Array.from({ length: HOURS_COUNT }).map((_, idx) => {
               const label = HOUR_LABELS[idx];
@@ -195,7 +195,7 @@ export default function CalendarWeek({
               return (
                 <div 
                   key={idx} 
-                  className={`h-12 relative flex items-start justify-end pr-3.5 text-[11px] font-medium text-white ${
+                  className={`h-12 relative flex items-start justify-end pr-3.5 text-[11px] font-medium text-[#c4c7c5] ${
                     isLast ? 'border-b border-white/15' : ''
                   }`}
                 >
@@ -225,13 +225,26 @@ export default function CalendarWeek({
                   key={dIdx} 
                   className={`relative h-full ${isLastColumn ? 'border-r-0' : 'border-r border-white/20'}`}
                 >
-                  {/* 24 Hour slots: border-t na każdej kratce, brak podwójnej kreski pod GMT */}
+                  {/* 24 Hour slots: przekazanie współrzędnych klikniętej kratki dla pozycjonowania okienka */}
                   {Array.from({ length: HOURS_COUNT }).map((_, hIdx) => {
                     const isLast = hIdx === HOURS_COUNT - 1;
                     return (
                       <div 
                         key={hIdx} 
-                        onClick={() => onSelectSlot(day, `${hIdx.toString().padStart(2, '0')}:00`, dIdx)}
+                        onClick={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          onSelectSlot(day, `${hIdx.toString().padStart(2, '0')}:00`, {
+                            dayIndex: dIdx,
+                            slotRect: {
+                              top: rect.top,
+                              bottom: rect.bottom,
+                              left: rect.left,
+                              right: rect.right,
+                              width: rect.width,
+                              height: rect.height
+                            }
+                          });
+                        }}
                         className={`h-12 border-t border-white/15 hover:bg-[#1f2022] cursor-pointer transition ${
                           isLast ? 'border-b border-white/15' : ''
                         }`}

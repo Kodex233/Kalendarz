@@ -199,8 +199,42 @@ export default function EventModal({
     }
   };
 
-  // Determine modal placement to the left of the clicked column (Image 4)
-  const isShiftedLeft = initialData && (initialData.dayIndex !== undefined ? initialData.dayIndex >= 2 : true);
+  // Dynamiczne pozycjonowanie okienka bezpośrednio obok podglądu klikniętej kratki
+  const modalStyle = useMemo(() => {
+    if (!initialData?.slotRect) {
+      return {
+        top: '80px',
+        left: '280px'
+      };
+    }
+
+    const { left: slotLeft, right: slotRight, top: slotTop } = initialData.slotRect;
+    const modalWidth = 495;
+    const modalHeight = 490;
+    const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1400;
+    const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 900;
+
+    let targetLeft = 0;
+    // Jeśli po lewej stronie kratki mieści się okienko: umieść je z lewej od kratki/podglądu
+    if (slotLeft - modalWidth - 10 >= 40) {
+      targetLeft = slotLeft - modalWidth - 12;
+    } else {
+      // W przeciwnym razie umieść je z prawej strony kratki/podglądu
+      targetLeft = slotRight + 12;
+    }
+
+    // Ograniczenie poziome w granicach ekranu
+    targetLeft = Math.max(16, Math.min(windowWidth - modalWidth - 16, targetLeft));
+
+    // Wyrównanie pionowe na poziomie wybranej godziny
+    let targetTop = slotTop - 60;
+    targetTop = Math.max(64, Math.min(windowHeight - modalHeight - 16, targetTop));
+
+    return {
+      top: `${targetTop}px`,
+      left: `${targetLeft}px`
+    };
+  }, [initialData?.slotRect]);
 
   return (
     <>
@@ -208,13 +242,10 @@ export default function EventModal({
         className="fixed inset-0 z-50 bg-transparent animate-in fade-in duration-100"
         onClick={onClose}
       >
-        {/* Okienko dodawania wydarzenia: przesunięte z lewej od dodawanej kratki (Image 4) */}
+        {/* Okienko dodawania wydarzenia: umieszczone obok podglądu kratki */}
         <div 
-          className={`bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[495px] overflow-hidden border-0 animate-in fade-in zoom-in-95 duration-150 absolute ${
-            isShiftedLeft 
-              ? 'sm:left-[275px] sm:top-16 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:translate-x-0 sm:translate-y-0' 
-              : 'sm:left-[460px] sm:top-16 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:translate-x-0 sm:translate-y-0'
-          }`}
+          style={modalStyle}
+          className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[495px] overflow-hidden border-0 animate-in fade-in zoom-in-95 duration-150 fixed z-50"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Top Header bar with drag handle and action icons */}
@@ -232,7 +263,14 @@ export default function EventModal({
                   className="p-1.5 text-[#c4c7c5] hover:text-[#f28b82] hover:bg-[#35373a] rounded-full transition"
                   title="Usuń wydarzenie"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  {/* Google Trash Can ze zdjęcia Image 1 */}
+                  <svg className="w-5 h-5 text-[#c4c7c5] hover:text-[#f28b82] transition" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 6h18" />
+                    <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                    <path d="M10 11v6" />
+                    <path d="M14 11v6" />
+                  </svg>
                 </button>
               )}
               <button
