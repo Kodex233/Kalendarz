@@ -36,3 +36,36 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Calendar page turn / slide animations when switching dates or views */
+@keyframes slideInFromRight {
+  0% {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.calendar-slide-next {
+  animation: slideInFromRight 0.22s cubic-bezier(0.2, 0, 0, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.calendar-slide-prev {
+  animation: slideInFromLeft 0.22s cubic-bezier(0.2, 0, 0, 1) forwards;
+  will-change: transform, opacity;
+}

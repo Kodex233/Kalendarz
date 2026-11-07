@@ -64,10 +64,10 @@ export default function CalendarWeek({
 
   return (
     <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-5 mr-4 m-3 ml-2 mt-1 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none shadow-2xl">
-      {/* Top Header: BEZ POZIOMEJ KRESKI POD DNIAMI, mniejszy odstep */}
-      <div className="flex bg-[#131314] shrink-0 pt-1 pb-0 pr-1.5">
-        {/* Left top box: When sidebar is collapsed, + button sits right here */}
-        <div className="w-16 shrink-0 flex items-center justify-center">
+      {/* Top Header: kreski pionowe ponad pierwszą poziomą, mniejszy odstęp */}
+      <div className="flex bg-[#131314] shrink-0 pt-1 pb-1 pr-1.5 border-b border-white/15">
+        {/* Left top box: When sidebar is collapsed, + button sits right here, pionowa kreska z prawej */}
+        <div className="w-16 shrink-0 flex items-center justify-center border-r border-white/20">
           {!isSidebarOpen ? (
             <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={true} />
           ) : (
@@ -75,14 +75,14 @@ export default function CalendarWeek({
           )}
         </div>
 
-        {/* Day columns: W widoku dnia wyrównanie DO LEWEJ, zielony kolor usunięty z głównego kalendarza */}
+        {/* Day columns: W widoku dnia wyrównanie DO LEWEJ, kreski pionowe ponad poziomą */}
         <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
           {days.map((day, idx) => {
             const isToday = isSameDay(day, today);
+            const isLastColumn = idx === days.length - 1;
             const dayName = DAY_NAMES[day.getDay()];
 
             // W głównym kalendarzu tylko dzisiejsza data ma niebieskie tło koła i niebieską nazwę;
-            // Pozostałe dni mają zwykły tekst (bez zielonego tła)
             let circleClass = 'text-[#e3e3e3] font-normal hover:bg-[#282a2d]';
             let nameClass = 'text-[#9aa0a6]';
 
@@ -95,7 +95,9 @@ export default function CalendarWeek({
               <div 
                 key={idx}
                 onClick={() => handleDayHeaderClick(day)}
-                className={`py-0.5 transition border-0 select-none cursor-pointer group ${
+                className={`py-0.5 transition select-none cursor-pointer group ${
+                  isLastColumn ? 'border-r-0' : 'border-r border-white/20'
+                } ${
                   viewMode === 'day' 
                     ? 'flex flex-row items-center space-x-3.5 pl-4 text-left justify-start' 
                     : 'flex flex-col items-center justify-center text-center'
@@ -127,51 +129,51 @@ export default function CalendarWeek({
         </div>
       </div>
 
-      {/* All-Day Events row: GMT+1 na biało, bez zbędnych odstępów */}
-      {allDayEvents.length > 0 && (
-        <div className="flex bg-[#131314] shrink-0 py-1 border-b border-white/10 pr-1.5">
-          <div className="w-16 shrink-0 text-center text-[11px] font-medium text-white flex items-center justify-center border-r border-white/20 relative">
-            GMT+1
-            {/* Linia pozioma wystająca 8px w lewo */}
-            <div className="absolute right-0 bottom-0 w-2 border-t border-white/20 pointer-events-none" />
-          </div>
-          <div className="flex-1 grid relative" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
-            {days.map((day, idx) => {
-              const dateStr = format(day, 'yyyy-MM-dd');
-              const dayHolidays = allDayEvents.filter(e => e.date === dateStr);
-
-              return (
-                <div key={idx} className="px-1.5 flex flex-col justify-center">
-                  {dayHolidays.map(hol => (
-                    <div
-                      key={hol.id}
-                      onClick={() => onSelectEvent(hol)}
-                      className="px-3 py-1 rounded-md text-xs font-medium text-white truncate shadow-xs cursor-pointer hover:brightness-110 transition text-center"
-                      style={{ backgroundColor: hol.customBg || '#34a853' }}
-                    >
-                      {hol.title}
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
-          </div>
+      {/* Row with GMT+1 and all-day events: linia pozioma taka jak inne (border-white/15), ciągłość pionowej kreski */}
+      <div className="flex bg-[#131314] shrink-0 border-b border-white/15 pr-1.5 min-h-[32px]">
+        <div className="w-16 shrink-0 text-center text-[11px] font-medium text-white flex items-center justify-center border-r border-white/20 py-1.5">
+          GMT+1
         </div>
-      )}
+        <div className="flex-1 grid relative" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
+          {days.map((day, idx) => {
+            const isLastColumn = idx === days.length - 1;
+            const dateStr = format(day, 'yyyy-MM-dd');
+            const dayHolidays = allDayEvents.filter(e => e.date === dateStr);
 
-      {/* Scrollable Time Grid: godziny na biało, linie poziome wystają 8px w lewo poza pionową kreskę */}
+            return (
+              <div 
+                key={idx} 
+                className={`px-1.5 flex flex-col justify-center py-1 ${isLastColumn ? 'border-r-0' : 'border-r border-white/20'}`}
+              >
+                {dayHolidays.map(hol => (
+                  <div
+                    key={hol.id}
+                    onClick={() => onSelectEvent(hol)}
+                    className="px-3 py-1 rounded-md text-xs font-medium text-white truncate shadow-xs cursor-pointer hover:brightness-110 transition text-center"
+                    style={{ backgroundColor: hol.customBg || '#34a853' }}
+                  >
+                    {hol.title}
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Scrollable Time Grid: godziny na biało, kreski wystające w lewo na TYM SAMYM poziomie co linia pozioma siatki */}
       <div ref={containerRef} className="flex-1 overflow-y-auto relative bg-[#131314] pr-1.5 pt-0">
         <div className="flex min-h-[1150px]">
-          {/* Left Hours column: godziny na biało, poziome linie wystające minimalnie w lewo */}
+          {/* Left Hours column: pozioma kreska wystająca w lewo na dokładnym poziomie linii siatki */}
           <div className="w-16 shrink-0 bg-[#131314] select-none border-r border-white/20 relative">
             {HOURS.map((hour, idx) => (
               <div 
                 key={idx} 
                 className="h-12 relative text-right pr-3 text-[11px] font-medium text-white flex items-start justify-end"
               >
-                <span>{hour}</span>
-                {/* Linia pozioma wystająca minimalnie (8px) w lewo poza pionową kreskę godzin */}
-                <div className="absolute right-0 top-0 w-2 border-t border-white/20 pointer-events-none" />
+                <span className="-mt-2">{hour}</span>
+                {/* Linia pozioma wystająca minimalnie w lewo - na TYM SAMYM poziomie (bottom-0 border-b border-white/15) */}
+                <div className="absolute right-0 bottom-0 w-2 border-b border-white/15 pointer-events-none" />
               </div>
             ))}
           </div>

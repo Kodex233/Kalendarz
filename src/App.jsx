@@ -94,6 +94,7 @@ const INITIAL_DEMO_EVENTS = [
 
 export default function App() {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 10, 8)); // 8 Nov 2026 as in screenshots
+  const [slideDirection, setSlideDirection] = useState('next'); // 'next' or 'prev' for slide animation
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeView, setActiveView] = useState('week'); // Default to week matching image 1
   const [searchQuery, setSearchQuery] = useState('');
@@ -201,6 +202,7 @@ export default function App() {
 
   // Stepping navigation handlers `< >` that step by the active view
   const handlePrevDate = () => {
+    setSlideDirection('prev');
     if (activeView === 'day') {
       setCurrentDate(prev => subDays(prev, 1));
     } else if (activeView === 'week') {
@@ -215,6 +217,7 @@ export default function App() {
   };
 
   const handleNextDate = () => {
+    setSlideDirection('next');
     if (activeView === 'day') {
       setCurrentDate(prev => addDays(prev, 1));
     } else if (activeView === 'week') {
@@ -228,8 +231,17 @@ export default function App() {
     }
   };
 
-  const handleToday = () => setCurrentDate(new Date(2026, 10, 8));
-  const handleSelectDate = (date) => setCurrentDate(date);
+  const handleToday = () => {
+    const todayDate = new Date(2026, 10, 8);
+    setSlideDirection(todayDate >= currentDate ? 'next' : 'prev');
+    setCurrentDate(todayDate);
+  };
+
+  const handleSelectDate = (date) => {
+    if (date > currentDate) setSlideDirection('next');
+    else if (date < currentDate) setSlideDirection('prev');
+    setCurrentDate(date);
+  };
 
   // Calendar Management Handlers
   const handleToggleCalendar = (id) => {
@@ -572,10 +584,10 @@ export default function App() {
           onSearchPerson={setPersonSearchQuery}
         />
 
-        {/* Animated Calendar Container: płynna animacja przy zmianie daty i widoku */}
+        {/* Animated Calendar Container: płynna animacja w lewo lub w prawo przy zmianie daty */}
         <div 
           key={`${format(currentDate, 'yyyy-MM-dd')}-${activeView}`}
-          className="flex-1 flex overflow-hidden animate-in fade-in zoom-in-[0.99] duration-200"
+          className={`flex-1 flex overflow-hidden ${slideDirection === 'next' ? 'calendar-slide-next' : 'calendar-slide-prev'}`}
         >
           {activeView === 'month' ? (
             <CalendarMonth

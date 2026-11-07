@@ -90,8 +90,8 @@ export default function Sidebar({
         <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={false} />
       </div>
 
-      {/* 2. Mini Calendar: lekko nizej, lekko wieksza wysokosc, mniejsza szerokosc */}
-      <div className="bg-transparent border-0 w-[222px] mx-auto mt-2 space-y-2.5">
+      {/* 2. Mini Calendar: większy odstęp na wysokość, perfekcyjnie okrągłe tła */}
+      <div className="bg-transparent border-0 px-2 mt-1 space-y-2.5">
         <div className="flex items-center justify-between px-1">
           <span className="text-sm font-semibold text-[#e3e3e3] capitalize">
             {format(miniDate, 'LLLL yyyy', { locale: pl })}
@@ -115,14 +115,14 @@ export default function Sidebar({
         </div>
 
         {/* Days of week header: N P W Ś C P S */}
-        <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-[#9aa0a6]">
+        <div className="grid grid-cols-7 gap-x-1 text-center text-xs font-medium text-[#9aa0a6] mb-1">
           {['N', 'P', 'W', 'Ś', 'C', 'P', 'S'].map((d, i) => (
             <div key={i} className="py-0.5">{d}</div>
           ))}
         </div>
 
-        {/* Mini Month Grid: zaznaczony dzień ma tło #004a77 */}
-        <div className="grid grid-cols-7 gap-1 text-center text-xs">
+        {/* Mini Month Grid: większy odstęp w pionie (gap-y-2), idealne koła w-7 h-7 */}
+        <div className="grid grid-cols-7 gap-x-1 gap-y-2 text-center text-xs">
           {miniDays.map((day, idx) => {
             const isCurrentMonth = isSameMonth(day, miniDate);
             const isSelected = isSameDay(day, selectedDate);
@@ -143,7 +143,7 @@ export default function Sidebar({
               <button
                 key={idx}
                 onClick={() => handleMiniDayClick(day)}
-                className={`w-7.5 h-7.5 mx-auto rounded-full flex items-center justify-center text-xs transition ${dayStyle}`}
+                className={`w-7 h-7 mx-auto rounded-full flex items-center justify-center text-xs transition shrink-0 ${dayStyle}`}
               >
                 {format(day, 'd')}
               </button>
