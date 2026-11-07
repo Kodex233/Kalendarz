@@ -50,11 +50,11 @@ export default function EventDetailModal({
       onClick={onClose}
     >
       <div 
-        className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[448px] overflow-hidden border border-[#303134] animate-in fade-in zoom-in-95 duration-150 p-6 space-y-5"
+        className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[490px] overflow-hidden border-0 animate-in fade-in zoom-in-95 duration-150 p-6 space-y-5"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Right Action Icons */}
-        <div className="flex items-center justify-end space-x-1 text-[#c4c7c5]">
+        {/* Top Right Action Icons: większe ikonki w-5 h-5 */}
+        <div className="flex items-center justify-end space-x-1.5 text-[#c4c7c5]">
           <button
             onClick={() => {
               onClose();
@@ -63,7 +63,7 @@ export default function EventDetailModal({
             className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition"
             title="Edytuj wydarzenie"
           >
-            <Edit3 className="w-4 h-4 text-[#c4c7c5]" />
+            <Edit3 className="w-5 h-5 text-[#c4c7c5]" />
           </button>
 
           <button
@@ -71,7 +71,7 @@ export default function EventDetailModal({
             className="p-2 hover:bg-[#35373a] hover:text-[#f28b82] rounded-full transition"
             title="Usuń wydarzenie"
           >
-            <Trash2 className="w-4 h-4 text-[#c4c7c5]" />
+            <Trash2 className="w-5 h-5 text-[#c4c7c5]" />
           </button>
 
           <button
@@ -85,7 +85,7 @@ export default function EventDetailModal({
             className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition"
             title="Wyślij e-mail do gości"
           >
-            <Mail className="w-4 h-4 text-[#c4c7c5]" />
+            <Mail className="w-5 h-5 text-[#c4c7c5]" />
           </button>
 
           <button
@@ -93,7 +93,7 @@ export default function EventDetailModal({
             className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition"
             title="Opcje"
           >
-            <MoreVertical className="w-4 h-4 text-[#c4c7c5]" />
+            <MoreVertical className="w-5 h-5 text-[#c4c7c5]" />
           </button>
 
           <button
@@ -101,14 +101,14 @@ export default function EventDetailModal({
             className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition ml-1"
             title="Zamknij"
           >
-            <X className="w-4 h-4 text-[#c4c7c5]" />
+            <X className="w-5 h-5 text-[#c4c7c5]" />
           </button>
         </div>
 
         {/* Title with colored square */}
         <div className="flex items-start space-x-3.5 pt-0.5">
           <span 
-            className="w-4 h-4 rounded-[4px] mt-1 shrink-0" 
+            className="w-4 h-4 rounded-[4px] mt-1.5 shrink-0" 
             style={{ backgroundColor: event.customBg || calendarColor }}
           />
           <div>
@@ -125,22 +125,22 @@ export default function EventDetailModal({
         <div className="pl-7">
           <button
             onClick={handleCopyLink}
-            className="flex items-center space-x-2 px-4 py-1.5 rounded-full border border-[#5f6368] hover:bg-[#282a2d] text-xs font-medium text-[#e3e3e3] transition"
+            className="flex items-center space-x-2.5 px-4 py-2 rounded-full border border-[#5f6368] hover:bg-[#282a2d] text-xs font-medium text-[#e3e3e3] transition"
           >
-            <LinkIcon className="w-3.5 h-3.5 text-[#c4c7c5]" />
+            <LinkIcon className="w-4 h-4 text-[#c4c7c5]" />
             <span>Zaproś przez link</span>
           </button>
         </div>
 
         {/* 30 minut wcześniej notification row */}
         <div className="flex items-center space-x-3 text-xs text-[#c4c7c5] pl-1">
-          <Bell className="w-4 h-4 text-[#c4c7c5] shrink-0" />
+          <Bell className="w-5 h-5 text-[#c4c7c5] shrink-0" />
           <span>30 minut wcześniej</span>
         </div>
 
         {/* Calendar row */}
         <div className="flex items-center space-x-3 text-xs text-[#c4c7c5] pl-1">
-          <CalendarIcon className="w-4 h-4 text-[#c4c7c5] shrink-0" />
+          <CalendarIcon className="w-5 h-5 text-[#c4c7c5] shrink-0" />
           <span>{calendarName}</span>
         </div>
       </div>

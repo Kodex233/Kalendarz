@@ -135,13 +135,13 @@ export default function EventModal({
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-transparent animate-in fade-in duration-100"
       onClick={onClose}
     >
-      {/* Okienko dodawania wydarzenia o optymalnym rozmiarze max-w-[448px] (zgodnie ze zdjęciem) */}
+      {/* Okienko dodawania wydarzenia: bez borderu, lekko większa szerokość max-w-[495px], mniejsza wysokość (space-y-3), mniej napisów */}
       <div 
-        className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[448px] overflow-hidden border border-[#303134] animate-in fade-in zoom-in-95 duration-150"
+        className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[495px] overflow-hidden border-0 animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header bar with drag handle and action icons */}
-        <div className="flex items-center justify-between px-6 pt-4 pb-1 bg-[#1e1f20]">
+        <div className="flex items-center justify-between px-6 pt-3.5 pb-1 bg-[#1e1f20]">
           {/* Uchwyt do przesuwania (=) */}
           <div className="flex flex-col space-y-1 py-1 cursor-grab active:cursor-grabbing text-[#c4c7c5]">
             <div className="w-4 h-0.5 bg-[#c4c7c5] rounded-full" />
@@ -168,8 +168,8 @@ export default function EventModal({
           </div>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="px-6 pb-6 pt-1 space-y-4">
+        {/* Form Body: bardziej zwarty układ (space-y-3), mniej zbędnych napisów */}
+        <form onSubmit={handleSubmit} className="px-6 pb-4 pt-0.5 space-y-3">
           {/* Title input: "Dodaj tytuł" */}
           <div className="pb-0.5">
             <input
@@ -183,12 +183,12 @@ export default function EventModal({
             />
           </div>
 
-          {/* Pill Tabs: [ Wydarzenie ] [ Zadanie ] [ Harmonogram spotkań Nowość ] */}
-          <div className="flex items-center space-x-1.5">
+          {/* Pill Tabs: Harmonogram spotkań w 1 linii (whitespace-nowrap) */}
+          <div className="flex items-center space-x-2">
             <button
               type="button"
               onClick={() => setActiveTab('Wydarzenie')}
-              className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition ${
+              className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition whitespace-nowrap shrink-0 ${
                 activeTab === 'Wydarzenie'
                   ? 'bg-[#004a77] text-[#c2e7ff]'
                   : 'text-[#c4c7c5] hover:bg-[#282a2d]'
@@ -200,7 +200,7 @@ export default function EventModal({
             <button
               type="button"
               onClick={() => setActiveTab('Zadanie')}
-              className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition ${
+              className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition whitespace-nowrap shrink-0 ${
                 activeTab === 'Zadanie'
                   ? 'bg-[#004a77] text-[#c2e7ff]'
                   : 'text-[#c4c7c5] hover:bg-[#282a2d]'
@@ -212,21 +212,21 @@ export default function EventModal({
             <button
               type="button"
               onClick={() => setActiveTab('Harmonogram spotkań')}
-              className={`px-3.5 py-1.5 rounded-md text-sm font-medium flex items-center space-x-1.5 transition ${
+              className={`px-3.5 py-1.5 rounded-md text-sm font-medium flex items-center space-x-1.5 transition whitespace-nowrap shrink-0 ${
                 activeTab === 'Harmonogram spotkań'
                   ? 'bg-[#004a77] text-[#c2e7ff]'
                   : 'text-[#c4c7c5] hover:bg-[#282a2d]'
               }`}
             >
-              <span>Harmonogram spotkań</span>
-              <span className="text-[10px] font-bold bg-[#0b57d0] text-[#c2e7ff] px-1.5 py-0.5 rounded-full">
+              <span className="whitespace-nowrap">Harmonogram spotkań</span>
+              <span className="text-[10px] font-bold bg-[#0b57d0] text-[#c2e7ff] px-1.5 py-0.5 rounded-full whitespace-nowrap">
                 Nowość
               </span>
             </button>
           </div>
 
-          {/* Row 1: Clock Icon + Date and Time Chips (zgodnie ze zdjęciem) */}
-          <div className="flex items-start space-x-3.5 pt-1">
+          {/* Row 1: Clock Icon + Date and Time Chips */}
+          <div className="flex items-start space-x-3.5 pt-0.5">
             <Clock className="w-5 h-5 text-[#c4c7c5] mt-1 shrink-0" />
             <div className="flex-1 space-y-2">
               <div className="flex items-center flex-wrap gap-2 text-sm text-[#e3e3e3]">
@@ -285,8 +285,8 @@ export default function EventModal({
                 )}
               </div>
 
-              {/* Cały dzień + Strefa czasowa */}
-              <div className="flex items-center space-x-5 pt-0.5">
+              {/* Cały dzień + Strefa czasowa + Nie powtarza się */}
+              <div className="flex items-center space-x-4 pt-0.5 flex-wrap gap-y-1 text-sm">
                 <label className="flex items-center space-x-2 text-sm text-[#e3e3e3] cursor-pointer">
                   <input
                     type="checkbox"
@@ -297,27 +297,24 @@ export default function EventModal({
                   <span>Cały dzień</span>
                 </label>
 
+                <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 bg-[#282a2d] hover:bg-[#35373a] rounded-md text-xs text-[#e3e3e3] cursor-pointer transition">
+                  <span>Nie powtarza się</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-[#9aa0a6]" />
+                </div>
+
                 <button 
                   type="button" 
                   onClick={() => alert('Strefa czasowa: GMT+01:00 Czas środkowoeuropejski')}
-                  className="text-sm text-[#8ab4f8] hover:underline font-medium"
+                  className="text-xs text-[#8ab4f8] hover:underline font-medium"
                 >
                   Strefa czasowa
                 </button>
-              </div>
-
-              {/* Nie powtarza się ▾ */}
-              <div className="pt-0.5">
-                <div className="inline-flex items-center space-x-2 px-3 py-1.5 bg-[#282a2d] hover:bg-[#35373a] rounded-md text-sm text-[#e3e3e3] cursor-pointer transition">
-                  <span>Nie powtarza się</span>
-                  <ChevronDown className="w-4 h-4 text-[#9aa0a6]" />
-                </div>
               </div>
             </div>
           </div>
 
           {/* Row 2: Users Icon -> Dodaj gości */}
-          <div className="flex items-center space-x-3.5 pt-0.5">
+          <div className="flex items-center space-x-3.5">
             <Users className="w-5 h-5 text-[#c4c7c5] shrink-0" />
             {showGuestInput ? (
               <input
@@ -339,7 +336,7 @@ export default function EventModal({
           </div>
 
           {/* Row 3: Video Icon (Meet) -> Dodaj rozmowę wideo w Google Meet */}
-          <div className="flex items-center space-x-3.5 pt-0.5">
+          <div className="flex items-center space-x-3.5">
             <Video className="w-5 h-5 text-[#fbbc04] shrink-0" />
             <button
               type="button"
@@ -352,12 +349,12 @@ export default function EventModal({
           </div>
 
           {/* Row 4: MapPin Icon -> Dodaj lokalizację */}
-          <div className="flex items-center space-x-3.5 pt-0.5">
+          <div className="flex items-center space-x-3.5">
             <MapPin className="w-5 h-5 text-[#c4c7c5] shrink-0" />
             {showLocationInput ? (
               <input
                 type="text"
-                placeholder="Wpisz lokalizację lub salę..."
+                placeholder="Wpisz lokalizację..."
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 className="w-full bg-[#282a2d] border-0 rounded-lg px-3 py-1.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
@@ -374,7 +371,7 @@ export default function EventModal({
           </div>
 
           {/* Row 5: Description Icon -> Dodaj opis */}
-          <div className="flex items-center space-x-3.5 pt-0.5">
+          <div className="flex items-center space-x-3.5">
             <AlignLeft className="w-5 h-5 text-[#c4c7c5] shrink-0" />
             {showDescInput ? (
               <textarea
@@ -390,25 +387,20 @@ export default function EventModal({
                 onClick={() => setShowDescInput(true)}
                 className="text-sm text-[#c4c7c5] hover:text-white transition text-left"
               >
-                Dodaj opis lub załącznik z Dysku Google
+                Dodaj opis lub załącznik
               </button>
             )}
           </div>
 
-          {/* Row 6: Calendar Icon + Calendar Name + Notifications */}
-          <div className="flex items-start space-x-3.5 pt-0.5">
-            <CalendarIcon className="w-5 h-5 text-[#c4c7c5] mt-0.5 shrink-0" />
-            <div className="flex-1 space-y-0.5">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-[#e3e3e3]">{currentCal.name}</span>
-                <span 
-                  className="w-3 h-3 rounded-full shrink-0" 
-                  style={{ backgroundColor: currentCal.color }}
-                />
-              </div>
-              <p className="text-xs text-[#9aa0a6]">
-                Zajęty • Widoczność domyślna • Powiadom 30 minut wcześniej
-              </p>
+          {/* Row 6: Calendar Icon + Calendar Name */}
+          <div className="flex items-center space-x-3.5">
+            <CalendarIcon className="w-5 h-5 text-[#c4c7c5] shrink-0" />
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-[#e3e3e3]">{currentCal.name}</span>
+              <span 
+                className="w-3 h-3 rounded-full shrink-0" 
+                style={{ backgroundColor: currentCal.color }}
+              />
             </div>
           </div>
 
@@ -423,12 +415,12 @@ export default function EventModal({
             />
             <label htmlFor="exchangeToggle" className="text-xs text-[#9aa0a6] cursor-pointer flex items-center space-x-1.5 hover:text-[#e3e3e3]">
               <ArrowLeftRight className="w-3.5 h-3.5 text-amber-400" />
-              <span>Udostępnij ten termin na wymianę ze znajomym</span>
+              <span>Udostępnij na wymianę</span>
             </label>
           </div>
 
           {/* Bottom Footer: Więcej opcji on left, Zapisz on right */}
-          <div className="flex items-center justify-between pt-4 border-t border-[#303134]">
+          <div className="flex items-center justify-between pt-3 border-t border-[#303134]/60">
             <button
               type="button"
               onClick={() => {
