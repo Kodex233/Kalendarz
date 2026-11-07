@@ -10,6 +10,7 @@ import {
   LogOut, 
   User as UserIcon, 
   ArrowLeft, 
+  ArrowLeftRight,
   X, 
   Check, 
   RotateCcw,
@@ -46,7 +47,9 @@ export default function Navbar({
   advancedFilters = {},
   onAdvancedFiltersChange,
   myCalendars = [],
-  otherCalendars = []
+  otherCalendars = [],
+  onOpenExchangeModal,
+  pendingExchangesCount = 0
 }) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
@@ -605,6 +608,21 @@ export default function Navbar({
           <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
             <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54A.484.484 0 0 0 14 2h-4c-.25 0-.46.18-.49.42l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.63 8.47c-.12.21-.08.47.12.61L4.78 10.66c-.04.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
           </svg>
+        </button>
+
+        {/* Przycisk Wymiana terminów ze znajomymi */}
+        <button
+          onClick={onOpenExchangeModal}
+          className="relative flex items-center space-x-1.5 px-3.5 h-10 bg-[#282a2d] hover:bg-[#35373a] text-[#e3e3e3] border border-[#3c4043] rounded-full text-sm font-medium transition focus:outline-none"
+          title="Wymiana terminów z kolegą"
+        >
+          <ArrowLeftRight className="w-4 h-4 text-[#fdd663]" />
+          <span className="hidden sm:inline">Wymiana</span>
+          {pendingExchangesCount > 0 && (
+            <span className="w-5 h-5 bg-[#f28b82] text-[#1f1f1f] text-xs font-bold rounded-full flex items-center justify-center -mr-1">
+              {pendingExchangesCount}
+            </span>
+          )}
         </button>
 
         {/* View Switcher Dropdown: border bardziej biały, wysokość h-10 */}

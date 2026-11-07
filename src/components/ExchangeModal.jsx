@@ -25,6 +25,19 @@ export default function ExchangeModal({
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  const isDemo = !user || user.uid?.startsWith('user-') || user.uid?.startsWith('friend-');
+  const [testUserRole, setTestUserRole] = useState('kodex'); // 'kodex' or 'janek'
+
+  const effectiveUserId = isDemo
+    ? (testUserRole === 'kodex' ? 'user-kodex' : 'friend-1')
+    : user?.uid;
+  const effectiveUserEmail = isDemo
+    ? (testUserRole === 'kodex' ? 'kodex233@gmail.com' : 'janek@firma.pl')
+    : user?.email;
+  const effectiveUserName = isDemo
+    ? (testUserRole === 'kodex' ? 'Kodex' : 'Kolega Janek')
+    : (user?.displayName || user?.email);
+
   React.useEffect(() => {
     if (initialTargetEvent) {
       setSelectedTargetEventId(initialTargetEvent.id);
@@ -35,11 +48,11 @@ export default function ExchangeModal({
   if (!isOpen) return null;
 
   const incomingExchanges = exchanges.filter(ex => 
-    (ex.targetUserId === user?.uid || (user?.email && ex.targetUserEmail?.toLowerCase() === user.email.toLowerCase())) &&
+    (ex.targetUserId === effectiveUserId || (effectiveUserEmail && ex.targetUserEmail?.toLowerCase() === effectiveUserEmail.toLowerCase())) &&
     ex.status === 'pending'
   );
 
-  const outgoingExchanges = exchanges.filter(ex => ex.fromUserId === user?.uid);
+  const outgoingExchanges = exchanges.filter(ex => ex.fromUserId === effectiveUserId);
 
   const handleCreateProposal = async (e) => {
     e.preventDefault();
@@ -66,9 +79,9 @@ export default function ExchangeModal({
         targetEventTime: `${targetEvent.startTime || ''} - ${targetEvent.endTime || ''}`,
         targetUserId: targetEvent.userId,
         targetUserEmail: targetEvent.userEmail || '',
-        fromUserId: user?.uid,
-        fromUserEmail: user?.email,
-        fromUserName: user?.displayName || user?.email,
+        fromUserId: effectiveUserId,
+        fromUserEmail: effectiveUserEmail,
+        fromUserName: effectiveUserName,
         message
       });
       alert('Propozycja wymiany została wysłana!');
@@ -103,6 +116,43 @@ export default function ExchangeModal({
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Przełącznik testowy ról w trybie demonstracyjnym */}
+        {isDemo && (
+          <div className="bg-[#1a1b1e] px-6 py-2.5 border-b border-[#3c4043] flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="flex items-center space-x-2 text-[#9aa0a6]">
+              <span className="w-2 h-2 rounded-full bg-[#81c995] animate-pulse" />
+              <span>Testuj symulację wymiany jako:</span>
+            </div>
+            <div className="flex items-center space-x-1.5 bg-[#282a2d] p-1 rounded-full border border-[#3c4043]">
+              <button
+                type="button"
+                onClick={() => setTestUserRole('kodex')}
+                className={`px-3 py-1 rounded-full transition text-xs font-semibold ${
+                  testUserRole === 'kodex' 
+                    ? 'bg-[#8ab4f8] text-[#041e49]' 
+                    : 'text-[#9aa0a6] hover:text-[#e3e3e3]'
+                }`}
+              >
+                Kodex (Ty)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTestUserRole('janek');
+                  setActiveTab('incoming');
+                }}
+                className={`px-3 py-1 rounded-full transition text-xs font-semibold ${
+                  testUserRole === 'janek' 
+                    ? 'bg-[#fdd663] text-[#1f1f1f]' 
+                    : 'text-[#9aa0a6] hover:text-[#e3e3e3]'
+                }`}
+              >
+                Kolega Janek (Odbiorca)
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex border-b border-[#3c4043] px-6 pt-3 space-x-6 bg-[#282a2d]">

@@ -7,7 +7,8 @@ import {
   MoreVertical, 
   Bell, 
   Calendar as CalendarIcon, 
-  Link as LinkIcon 
+  Link as LinkIcon,
+  ArrowLeftRight
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
@@ -18,6 +19,7 @@ export default function EventDetailModal({
   onClose,
   onEdit,
   onDelete,
+  onOpenExchange,
   calendarName = 'kodex',
   calendarColor = '#1a73e8'
 }) {
@@ -127,14 +129,26 @@ export default function EventDetailModal({
           </div>
         </div>
 
-        {/* Zaproś przez link button */}
-        <div className="pl-7">
+        {/* Akcje pod tytułem: Zaproś przez link oraz Wymiana terminów */}
+        <div className="pl-7 flex flex-wrap items-center gap-2">
           <button
             onClick={handleCopyLink}
-            className="flex items-center space-x-2.5 px-4 py-2 rounded-full border border-[#5f6368] hover:bg-[#282a2d] text-xs font-medium text-[#e3e3e3] transition"
+            className="flex items-center space-x-2 px-3.5 py-1.5 rounded-full border border-[#5f6368] hover:bg-[#282a2d] text-xs font-medium text-[#e3e3e3] transition"
           >
-            <LinkIcon className="w-4 h-4 text-[#c4c7c5]" />
+            <LinkIcon className="w-3.5 h-3.5 text-[#c4c7c5]" />
             <span>Zaproś przez link</span>
+          </button>
+
+          <button
+            onClick={() => {
+              onClose();
+              if (onOpenExchange) onOpenExchange(event);
+            }}
+            className="flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-[#fdd663]/15 border border-[#fdd663]/40 hover:bg-[#fdd663]/25 text-xs font-medium text-[#fdd663] transition shadow-xs"
+            title="Zaproponuj wymianę na ten termin"
+          >
+            <ArrowLeftRight className="w-3.5 h-3.5 text-[#fdd663]" />
+            <span>Wymień termin ze znajomym</span>
           </button>
         </div>
 

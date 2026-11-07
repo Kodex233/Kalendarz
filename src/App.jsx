@@ -415,32 +415,43 @@ export default function App() {
     showToast('Wysłano propozycję wymiany');
   };
 
+  const handleProposeSwapWithEvent = (targetEvent) => {
+    setInitialTargetEventForSwap(targetEvent);
+    setExchangeModalOpen(true);
+  };
+
   // Respond to slot exchange (Accept / Reject)
   const handleRespondExchange = async (exchangeId, accept, exchange) => {
     if (!user || user.uid.startsWith('user-') || user.uid.startsWith('friend-') || exchangeId.startsWith('exch-')) {
       if (accept) {
         // Swap date, startTime, and endTime between the two events
-        setMyEvents(prev => {
-          const myEv = prev.find(e => e.id === exchange.myEventId);
-          const targetEv = prev.find(e => e.id === exchange.targetEventId) || exchangeableEvents.find(e => e.id === exchange.targetEventId);
-          if (!myEv || !targetEv) return prev;
-          return prev.map(e => {
-            if (e.id === myEv.id) return { ...e, date: targetEv.date, startTime: targetEv.startTime, endTime: targetEv.endTime };
-            if (e.id === targetEv.id) return { ...e, date: myEv.date, startTime: myEv.startTime, endTime: myEv.endTime };
+        const myEv = myEvents.find(e => e.id === exchange.myEventId);
+        const targetEv = exchangeableEvents.find(e => e.id === exchange.targetEventId) || myEvents.find(e => e.id === exchange.targetEventId);
+        
+        if (myEv && targetEv) {
+          const myDate = myEv.date;
+          const myStart = myEv.startTime;
+          const myEnd = myEv.endTime;
+
+          const targetDate = targetEv.date;
+          const targetStart = targetEv.startTime;
+          const targetEnd = targetEv.endTime;
+
+          setMyEvents(prev => prev.map(e => {
+            if (e.id === myEv.id) return { ...e, date: targetDate, startTime: targetStart, endTime: targetEnd };
+            if (e.id === targetEv.id) return { ...e, date: myDate, startTime: myStart, endTime: myEnd };
             return e;
-          });
-        });
-        setExchangeableEvents(prev => {
-          const myEv = myEvents.find(e => e.id === exchange.myEventId);
-          const targetEv = prev.find(e => e.id === exchange.targetEventId);
-          if (!myEv || !targetEv) return prev;
-          return prev.map(e => {
-            if (e.id === targetEv.id) return { ...e, date: myEv.date, startTime: myEv.startTime, endTime: myEv.endTime };
+          }));
+
+          setExchangeableEvents(prev => prev.map(e => {
+            if (e.id === targetEv.id) return { ...e, date: myDate, startTime: myStart, endTime: myEnd };
+            if (e.id === myEv.id) return { ...e, date: targetDate, startTime: targetStart, endTime: targetEnd };
             return e;
-          });
-        });
+          }));
+        }
+
         setExchanges(prev => prev.map(ex => ex.id === exchangeId ? { ...ex, status: 'accepted' } : ex));
-        showToast('Wymiana zaakceptowana! Terminy zamienione.');
+        showToast('Wymiana zaakceptowana! Terminy zamienione w kalendarzu.');
       } else {
         setExchanges(prev => prev.map(ex => ex.id === exchangeId ? { ...ex, status: 'rejected' } : ex));
         showToast('Propozycja odrzucona');
@@ -545,6 +556,11 @@ export default function App() {
     myCalendars.find(c => c.id === selectedEvent.calendarId) || { name: 'kodex', color: '#1a73e8' }
   ) : { name: 'kodex', color: '#1a73e8' };
 
+  const pendingExchangesCount = exchanges.filter(ex => 
+    (ex.targetUserId === (user?.uid || 'user-kodex') || (ex.targetUserEmail && (user?.email || 'kodex233@gmail.com') && ex.targetUserEmail?.toLowerCase() === (user?.email || 'kodex233@gmail.com').toLowerCase())) &&
+    ex.status === 'pending'
+  ).length;
+
   return (
     <div className="h-screen w-screen flex flex-col bg-[#1e1f20] text-[#e3e3e3] overflow-hidden">
       {/* Top Navbar: tło #1e1f20, wyszukiwarka Google */}
@@ -569,6 +585,8 @@ export default function App() {
         onAdvancedFiltersChange={setAdvancedFilters}
         myCalendars={myCalendars}
         otherCalendars={otherCalendars}
+        onOpenExchangeModal={() => setExchangeModalOpen(true)}
+        pendingExchangesCount={pendingExchangesCount}
       />
 
       {/* Main Container: Sidebar + Rounded Borderless Calendar Canvas */}
@@ -682,6 +700,7 @@ export default function App() {
         event={selectedEvent}
         onEdit={handleEditFromDetail}
         onDelete={handleDeleteEvent}
+        onOpenExchange={handleProposeSwapWithEvent}
         calendarName={activeEventCal.name}
         calendarColor={activeEventCal.color}
       />
