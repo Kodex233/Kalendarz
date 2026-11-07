@@ -51,9 +51,9 @@ export default function CalendarMonth({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-4.5rem)] bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none m-3 ml-2 shadow-2xl">
+    <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-4 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none m-3 ml-2 shadow-2xl">
       {/* Week day headers */}
-      <div className="grid grid-cols-7 bg-[#131314] border-b border-[#282a2d]/60">
+      <div className="grid grid-cols-7 bg-[#131314] border-b border-white/10">
         {weekDayNames.map((name, i) => (
           <div 
             key={i} 
@@ -64,7 +64,7 @@ export default function CalendarMonth({
         ))}
       </div>
 
-      {/* Month Days Grid */}
+      {/* Month Days Grid with clearly visible lines */}
       <div className="flex-1 grid grid-cols-7 grid-rows-6 bg-[#131314]">
         {days.map((day, idx) => {
           const dateStr = format(day, 'yyyy-MM-dd');
@@ -73,11 +73,18 @@ export default function CalendarMonth({
           const isToday = isSameDay(day, today);
           const isSelected = isSameDay(day, currentDate);
 
+          let circleClass = 'text-[#e3e3e3] hover:bg-[#35373a]';
+          if (isToday) {
+            circleClass = 'bg-[#a8c7fa] text-[#041e49] font-medium shadow-xs';
+          } else if (isSelected) {
+            circleClass = 'bg-[#0f5223] text-[#a8c7fa] font-medium shadow-xs';
+          }
+
           return (
             <div
               key={idx}
               onClick={() => onSelectDate(day)}
-              className={`border-r border-b border-[#282a2d]/50 p-1.5 flex flex-col overflow-hidden transition ${
+              className={`border-r border-b border-white/15 p-1.5 flex flex-col overflow-hidden transition ${
                 !isCurrentMonth ? 'bg-[#131314]/50 opacity-40' : 'hover:bg-[#1a1b1e]'
               }`}
             >
@@ -89,11 +96,7 @@ export default function CalendarMonth({
                     e.stopPropagation();
                     handleDayClick(day);
                   }}
-                  className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-medium transition ${
-                    isToday || isSelected
-                      ? 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-xs'
-                      : 'text-[#e3e3e3] hover:bg-[#35373a]'
-                  }`}
+                  className={`w-7 h-7 rounded-full text-xs flex items-center justify-center transition ${circleClass}`}
                   title="Kliknij, aby przejść do widoku dnia"
                 >
                   {format(day, 'd')}

@@ -87,9 +87,6 @@ export default function Navbar({
       if (viewMenuRef.current && !viewMenuRef.current.contains(e.target)) {
         setIsViewMenuOpen(false);
       }
-      if (advancedSearchRef.current && !advancedSearchRef.current.contains(e.target)) {
-        // If clicking outside advanced search, keep open only if clicked within search container
-      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -98,7 +95,7 @@ export default function Navbar({
   // Mini picker dates
   const monthStart = startOfMonth(pickerDate);
   const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart, { weekStartsOn: 0 }); // Sunday first matching image 2
+  const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
   const pickerDays = eachDayOfInterval({ start: startDate, end: endDate });
 
@@ -118,6 +115,9 @@ export default function Navbar({
     }
     if (activeView === 'year') {
       return format(currentDate, 'yyyy');
+    }
+    if (activeView === 'agenda') {
+      return 'Lis 2026 – lis 2027';
     }
     return format(currentDate, 'LLLL yyyy', { locale: pl });
   }, [currentDate, activeView]);
@@ -155,7 +155,7 @@ export default function Navbar({
   // ==========================================
   if (isSearchOpen) {
     return (
-      <header className="h-16 px-4 flex items-center bg-[#1e1f20] text-[#e3e3e3] select-none z-50 sticky top-0 border-b border-[#303134]/40">
+      <header className="h-16 px-4 flex items-center bg-[#1e1f20] text-[#e3e3e3] select-none z-50 sticky top-0 border-0">
         {/* Left: Back Arrow and "Szukaj" label matching image 1 */}
         <div className="flex items-center space-x-3 mr-4">
           <button
@@ -216,7 +216,6 @@ export default function Navbar({
           {/* ADVANCED SEARCH POPOVER (Matching Image 2 directly) */}
           {isAdvancedSearchOpen && (
             <div className="absolute left-0 right-0 top-0 mt-0 z-50 bg-[#1e1f20] rounded-[24px] shadow-2xl p-6 border border-[#303134]/80 animate-in fade-in zoom-in-95 duration-150 text-[#e3e3e3]">
-              {/* Top search row matching image 2 */}
               <div className="flex items-center bg-[#131314] rounded-full px-4 py-2 mb-6">
                 <Search className="w-5 h-5 text-[#9aa0a6] mr-3 shrink-0" />
                 <input
@@ -235,9 +234,7 @@ export default function Navbar({
                 </button>
               </div>
 
-              {/* Form fields matching image 2 */}
               <form onSubmit={handleApplyAdvancedSearch} className="space-y-4">
-                {/* 1. Szukaj w: */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Szukaj w:</span>
                   <div className="flex-1">
@@ -252,7 +249,6 @@ export default function Navbar({
                   </div>
                 </div>
 
-                {/* 2. Co */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Co</span>
                   <input
@@ -264,7 +260,6 @@ export default function Navbar({
                   />
                 </div>
 
-                {/* 3. Kto */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Kto</span>
                   <input
@@ -276,7 +271,6 @@ export default function Navbar({
                   />
                 </div>
 
-                {/* 4. Gdzie */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Gdzie</span>
                   <input
@@ -288,7 +282,6 @@ export default function Navbar({
                   />
                 </div>
 
-                {/* 5. Nie zawiera */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Nie zawiera</span>
                   <input
@@ -300,7 +293,6 @@ export default function Navbar({
                   />
                 </div>
 
-                {/* 6. Data: Od dnia do Do dnia */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Data</span>
                   <div className="flex-1 flex items-center space-x-2">
@@ -320,7 +312,6 @@ export default function Navbar({
                   </div>
                 </div>
 
-                {/* Bottom Actions matching image 2: Resetuj and Szukaj */}
                 <div className="flex items-center justify-end space-x-3 pt-4">
                   <button
                     type="button"
@@ -348,7 +339,7 @@ export default function Navbar({
   // NORMAL NAVBAR MODE
   // ==========================================
   return (
-    <header className="h-16 px-4 flex items-center justify-between bg-[#1e1f20] text-[#e3e3e3] select-none z-20 sticky top-0 border-b border-[#303134]/30">
+    <header className="h-16 px-4 flex items-center justify-between bg-[#1e1f20] text-[#e3e3e3] select-none z-20 sticky top-0 border-0">
       {/* Left: Hamburger, Logo, Dzisiaj, Navigation, Month/Date Dropdown */}
       <div className="flex items-center space-x-3">
         <button 
@@ -407,9 +398,9 @@ export default function Navbar({
             <ChevronDown className={`w-4 h-4 text-[#9aa0a6] transition-transform ${isMonthPickerOpen ? 'rotate-180' : ''}`} />
           </button>
 
-          {/* Month & Day Picker Popover */}
+          {/* Month & Day Picker Popover: tło #1e1f20, mniejszy radius rounded-xl */}
           {isMonthPickerOpen && (
-            <div className="absolute left-0 mt-2 z-50 w-64 bg-[#282a2d] border-0 ring-1 ring-white/10 rounded-2xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute left-0 mt-2 z-50 w-64 bg-[#1e1f20] border border-[#303134] rounded-xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-100 ring-1 ring-white/5">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-semibold text-[#e3e3e3] capitalize">
                   {format(pickerDate, 'LLLL yyyy', { locale: pl })}
@@ -470,7 +461,6 @@ export default function Navbar({
 
       {/* Right: Search Icon, Help, Settings, View Switcher dropdown, User Profile */}
       <div className="flex items-center space-x-2">
-        {/* Search Icon button: opens search mode */}
         <button
           onClick={() => setIsSearchOpen(true)}
           className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
@@ -479,7 +469,6 @@ export default function Navbar({
           <Search className="w-5 h-5" />
         </button>
 
-        {/* Support Icon button */}
         <button
           onClick={() => alert('Pomoc i opinie')}
           className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
@@ -488,7 +477,6 @@ export default function Navbar({
           <HelpCircle className="w-5 h-5" />
         </button>
 
-        {/* Settings Icon button */}
         <button
           onClick={() => alert('Ustawienia kalendarza')}
           className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
@@ -507,87 +495,87 @@ export default function Navbar({
             <ChevronDown className={`w-4 h-4 text-[#9aa0a6] transition-transform ${isViewMenuOpen ? 'rotate-180' : ''}`} />
           </button>
 
-          {/* View Menu Popover */}
+          {/* View Menu Popover: ciemniejsze tło (#1e1f20), mniejszy radius (rounded-xl), zwiększona szerokość (w-72), 1 linia tekstu */}
           {isViewMenuOpen && (
-            <div className="absolute right-0 mt-2 w-60 bg-[#282a2d] border-0 ring-1 ring-white/10 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute right-0 mt-2 w-72 bg-[#1e1f20] border border-[#303134] rounded-xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-100 ring-1 ring-white/5">
               <button
                 onClick={() => { onViewChange('day'); setIsViewMenuOpen(false); }}
-                className="w-full flex items-center justify-between px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#35373a] transition"
+                className="w-full flex items-center justify-between px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#282a2d] transition"
               >
                 <span>Dzień</span>
                 <span className="text-xs text-[#9aa0a6]">D</span>
               </button>
               <button
                 onClick={() => { onViewChange('week'); setIsViewMenuOpen(false); }}
-                className="w-full flex items-center justify-between px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#35373a] transition"
+                className="w-full flex items-center justify-between px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#282a2d] transition"
               >
                 <span>Tydzień</span>
                 <span className="text-xs text-[#9aa0a6]">W</span>
               </button>
               <button
                 onClick={() => { onViewChange('month'); setIsViewMenuOpen(false); }}
-                className="w-full flex items-center justify-between px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#35373a] transition"
+                className="w-full flex items-center justify-between px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#282a2d] transition"
               >
                 <span>Miesiąc</span>
                 <span className="text-xs text-[#9aa0a6]">M</span>
               </button>
               <button
                 onClick={() => { onViewChange('year'); setIsViewMenuOpen(false); }}
-                className="w-full flex items-center justify-between px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#35373a] transition"
+                className="w-full flex items-center justify-between px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#282a2d] transition"
               >
                 <span>Rok</span>
                 <span className="text-xs text-[#9aa0a6]">Y</span>
               </button>
               <button
                 onClick={() => { onViewChange('agenda'); setIsViewMenuOpen(false); }}
-                className="w-full flex items-center justify-between px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#35373a] transition"
+                className="w-full flex items-center justify-between px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#282a2d] transition"
               >
                 <span>Harmonogram</span>
                 <span className="text-xs text-[#9aa0a6]">A</span>
               </button>
               <button
                 onClick={() => { onViewChange('fourDays'); setIsViewMenuOpen(false); }}
-                className="w-full flex items-center justify-between px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#35373a] transition"
+                className="w-full flex items-center justify-between px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#282a2d] transition"
               >
                 <span>4 dni</span>
                 <span className="text-xs text-[#9aa0a6]">X</span>
               </button>
 
-              <div className="border-t border-[#3c4043] my-2"></div>
+              <div className="border-t border-[#303134] my-2"></div>
 
-              {/* Checkboxes */}
+              {/* Checkboxes: tekst w 1 linii bez zawijania */}
               <button
                 onClick={() => setViewOptions(p => ({ ...p, showWeekends: !p.showWeekends }))}
-                className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#35373a] transition"
+                className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#282a2d] transition"
               >
-                <div className="w-4 h-4 flex items-center justify-center">
+                <div className="w-4 h-4 flex items-center justify-center shrink-0">
                   {viewOptions.showWeekends && <Check className="w-4 h-4 text-[#8ab4f8] stroke-[2.5]" />}
                 </div>
-                <span>Pokaż weekendy</span>
+                <span className="whitespace-nowrap">Pokaż weekendy</span>
               </button>
               <button
                 onClick={() => setViewOptions(p => ({ ...p, showRejected: !p.showRejected }))}
-                className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#35373a] transition"
+                className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#282a2d] transition"
               >
-                <div className="w-4 h-4 flex items-center justify-center">
+                <div className="w-4 h-4 flex items-center justify-center shrink-0">
                   {viewOptions.showRejected && <Check className="w-4 h-4 text-[#8ab4f8] stroke-[2.5]" />}
                 </div>
-                <span>Pokaż odrzucone wydarzenia</span>
+                <span className="whitespace-nowrap">Pokaż odrzucone wydarzenia</span>
               </button>
               <button
                 onClick={() => setViewOptions(p => ({ ...p, showCompleted: !p.showCompleted }))}
-                className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#35373a] transition"
+                className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#282a2d] transition"
               >
-                <div className="w-4 h-4 flex items-center justify-center">
+                <div className="w-4 h-4 flex items-center justify-center shrink-0">
                   {viewOptions.showCompleted && <Check className="w-4 h-4 text-[#8ab4f8] stroke-[2.5]" />}
                 </div>
-                <span>Pokaż ukończone zadania</span>
+                <span className="whitespace-nowrap">Pokaż ukończone zadania</span>
               </button>
             </div>
           )}
         </div>
 
-        {/* User Auth Info: Elegancki avatar / Zaloguj button */}
+        {/* User Auth Info */}
         {user ? (
           <div className="flex items-center space-x-2 pl-2">
             <div 

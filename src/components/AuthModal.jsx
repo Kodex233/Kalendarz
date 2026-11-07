@@ -8,24 +8,33 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
+  const [errorDetails, setErrorDetails] = useState('');
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
 
   const handleGoogleLogin = async () => {
     setError('');
+    setErrorDetails('');
     setLoading(true);
     try {
       await loginWithGoogle();
       onClose();
     } catch (err) {
-      console.error(err);
+      console.warn('Google login error:', err);
       if (err.code === 'auth/operation-not-allowed') {
         setError('Logowanie przez Google wymaga włączenia dostawcy Google w konsoli Firebase Auth.');
+        setErrorDetails('Włącz dostawcę Google w Firebase Console -> Authentication -> Sign-in method, lub zaloguj się poniższym przyciskiem testowym.');
+      } else if (err.code === 'auth/unauthorized-domain') {
+        setError('Domena localhost nie jest dodana do autoryzowanych domen w Firebase.');
+        setErrorDetails('Dodaj localhost w Firebase Console -> Authentication -> Settings -> Authorized domains.');
+      } else if (err.code === 'auth/popup-blocked') {
+        setError('Przeglądarka zablokowała wyskakujące okienko Google.');
+        setErrorDetails('Zezwól na wyskakujące okienka dla tej witryny.');
       } else if (err.code === 'auth/popup-closed-by-user') {
-        setError('Okno logowania Google zostało zamknięte.');
+        setError('Okno logowania Google zostało zamknięte przed ukończeniem.');
       } else {
-        setError('Błąd logowania Google: ' + err.message);
+        setError('Błąd logowania Google: ' + (err.message || err.code));
       }
     } finally {
       setLoading(false);
@@ -35,6 +44,7 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
   const handleEmailAuth = async (e) => {
     e.preventDefault();
     setError('');
+    setErrorDetails('');
     setLoading(true);
 
     try {
@@ -62,11 +72,22 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
     }
   };
 
+  const handleDirectGoogleSimulation = (chosenEmail, chosenName) => {
+    if (onTestLogin) {
+      onTestLogin({
+        uid: 'user-' + chosenEmail.replace(/[^a-zA-Z0-9]/g, '_'),
+        email: chosenEmail,
+        displayName: chosenName,
+        photoURL: null
+      });
+    }
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
       {/* Authentic Google Sign-in Card */}
       <div className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-md overflow-hidden border border-[#3c4043] animate-in fade-in zoom-in-95 duration-150 p-8 relative">
-        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute right-5 top-5 p-2 text-[#9aa0a6] hover:bg-[#282a2d] hover:text-[#e3e3e3] rounded-full transition"
@@ -75,7 +96,7 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
           <X className="w-5 h-5" />
         </button>
 
-        {/* Google G Logo (Official multi-colored) */}
+        {/* Google G Logo */}
         <div className="flex justify-center mb-4">
           <svg className="w-10 h-10" viewBox="0 0 24 24">
             <path
@@ -108,9 +129,25 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-[#4c1f24] border border-[#f28b82]/30 rounded-xl flex items-start space-x-2 text-[#fce8e6] text-xs">
-            <AlertCircle className="w-4 h-4 text-[#f28b82] shrink-0 mt-0.5" />
-            <span>{error}</span>
+          <div className="mb-4 p-3.5 bg-[#4c1f24] border border-[#f28b82]/40 rounded-xl space-y-2 text-xs">
+            <div className="flex items-start space-x-2 text-[#fce8e6]">
+              <AlertCircle className="w-4 h-4 text-[#f28b82] shrink-0 mt-0.5" />
+              <span className="font-medium">{error}</span>
+            </div>
+            {errorDetails && (
+              <p className="text-[11px] text-[#f28b82]/90 pl-6 leading-relaxed">
+                {errorDetails}
+              </p>
+            )}
+            <div className="pt-1 pl-6">
+              <button
+                type="button"
+                onClick={() => handleDirectGoogleSimulation('kodex233@gmail.com', 'Kodex')}
+                className="px-3 py-1.5 bg-[#8ab4f8] text-[#041e49] font-medium rounded-lg text-xs hover:bg-[#aecbfa] transition"
+              >
+                Zaloguj teraz jako kodex233@gmail.com
+              </button>
+            </div>
           </div>
         )}
 
@@ -186,13 +223,13 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
             />
           </div>
 
-          {/* Bottom Actions: Utwórz konto on left, Dalej on right */}
           <div className="flex items-center justify-between pt-3">
             <button
               type="button"
               onClick={() => {
                 setIsRegister(!isRegister);
                 setError('');
+                setErrorDetails('');
               }}
               className="text-sm font-medium text-[#a8c7fa] hover:text-[#c2e7ff] transition"
             >
@@ -210,46 +247,46 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
           </div>
         </form>
 
-        {/* Quick Test Switchers for Testing Slot Exchange */}
+        {/* Quick Google Test Switchers matching user's uploaded accounts */}
         <div className="mt-6 pt-4 border-t border-[#3c4043]">
-          <p className="text-[11px] font-semibold text-[#9aa0a6] uppercase tracking-wider mb-2 text-center">
-            Szybkie logowanie do testu wymiany terminów:
+          <p className="text-[11px] font-semibold text-[#9aa0a6] uppercase tracking-wider mb-2.5 text-center">
+            Szybkie logowanie Google (konta ze zdjęć):
           </p>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => {
-                if (onTestLogin) {
-                  onTestLogin({
-                    uid: 'user-kodex',
-                    email: 'kodex233@gmail.com',
-                    displayName: 'Kodex'
-                  });
-                  onClose();
-                }
-              }}
-              className="px-3 py-2 bg-[#282a2d] hover:bg-[#35373a] text-xs font-medium text-[#e3e3e3] rounded-xl flex items-center justify-center space-x-1.5 transition border border-[#3c4043]"
+              onClick={() => handleDirectGoogleSimulation('kodex233@gmail.com', 'Kodex')}
+              className="px-3 py-2 bg-[#282a2d] hover:bg-[#35373a] text-xs font-medium text-[#e3e3e3] rounded-xl flex items-center space-x-2 transition border border-[#3c4043]"
             >
-              <UserCheck className="w-3.5 h-3.5 text-[#8ab4f8]" />
-              <span>Zaloguj jako Ty</span>
+              <div className="w-5 h-5 rounded-full bg-[#0288d1] text-white text-[10px] flex items-center justify-center font-bold">K</div>
+              <span className="truncate">kodex233</span>
             </button>
 
             <button
               type="button"
-              onClick={() => {
-                if (onTestLogin) {
-                  onTestLogin({
-                    uid: 'friend-1',
-                    email: 'janek@firma.pl',
-                    displayName: 'Kolega Janek'
-                  });
-                  onClose();
-                }
-              }}
-              className="px-3 py-2 bg-[#282a2d] hover:bg-[#35373a] text-xs font-medium text-[#e3e3e3] rounded-xl flex items-center justify-center space-x-1.5 transition border border-[#3c4043]"
+              onClick={() => handleDirectGoogleSimulation('pudaiwo@gmail.com', 'Iwo Puda')}
+              className="px-3 py-2 bg-[#282a2d] hover:bg-[#35373a] text-xs font-medium text-[#e3e3e3] rounded-xl flex items-center space-x-2 transition border border-[#3c4043]"
             >
-              <UserCheck className="w-3.5 h-3.5 text-[#81c995]" />
-              <span>Zaloguj jako Kolega</span>
+              <div className="w-5 h-5 rounded-full bg-[#8e24aa] text-white text-[10px] flex items-center justify-center font-bold">P</div>
+              <span className="truncate">pudaiwo</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleDirectGoogleSimulation('marcinpuda@gmail.com', 'Marcin Puda')}
+              className="px-3 py-2 bg-[#282a2d] hover:bg-[#35373a] text-xs font-medium text-[#e3e3e3] rounded-xl flex items-center space-x-2 transition border border-[#3c4043]"
+            >
+              <div className="w-5 h-5 rounded-full bg-[#00897b] text-white text-[10px] flex items-center justify-center font-bold">M</div>
+              <span className="truncate">marcinpuda</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleDirectGoogleSimulation('janek@firma.pl', 'Kolega Janek')}
+              className="px-3 py-2 bg-[#282a2d] hover:bg-[#35373a] text-xs font-medium text-[#e3e3e3] rounded-xl flex items-center space-x-2 transition border border-[#3c4043]"
+            >
+              <div className="w-5 h-5 rounded-full bg-[#34a853] text-white text-[10px] flex items-center justify-center font-bold">J</div>
+              <span className="truncate">Kolega Janek</span>
             </button>
           </div>
         </div>

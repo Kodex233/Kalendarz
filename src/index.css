@@ -4,30 +4,35 @@
 
 @layer base {
   body {
-    @apply bg-[#131314] text-[#e3e3e3] font-sans antialiased overflow-hidden select-none;
+    @apply bg-[#1e1f20] text-[#e3e3e3] font-sans antialiased overflow-hidden select-none;
   }
 }
 
-/* Custom dark scrollbar matching Google Calendar */
+/* Custom dark scrollbar matching Google Calendar - lekko jasniejszy z odstepem */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
 }
 
 ::-webkit-scrollbar-track {
   background: transparent;
+  margin: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #303134;
-  border-radius: 4px;
+  background: #5f6368;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #444746;
+  background: #80868b;
 }
 
-/* Google-like transitions */
-.btn-google {
-  @apply transition-colors duration-150 ease-in-out font-medium text-sm;
+/* Utility to completely hide scrollbar in sidebar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

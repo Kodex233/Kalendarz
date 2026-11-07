@@ -15,6 +15,8 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import CalendarMonth from './components/CalendarMonth';
 import CalendarWeek from './components/CalendarWeek';
+import CalendarYear from './components/CalendarYear';
+import CalendarAgenda from './components/CalendarAgenda';
 import EventModal from './components/EventModal';
 import EventDetailModal from './components/EventDetailModal';
 import ExchangeModal from './components/ExchangeModal';
@@ -576,6 +578,18 @@ export default function App() {
             onSelectDate={handleSelectDate}
             onViewChange={setActiveView}
             currentUserId={user?.uid || 'user-kodex'}
+          />
+        ) : activeView === 'year' ? (
+          <CalendarYear
+            currentDate={currentDate}
+            onSelectDate={handleSelectDate}
+            onViewChange={setActiveView}
+          />
+        ) : activeView === 'agenda' ? (
+          <CalendarAgenda
+            currentDate={currentDate}
+            events={visibleEvents}
+            onSelectEvent={handleSelectEvent}
           />
         ) : (
           <CalendarWeek

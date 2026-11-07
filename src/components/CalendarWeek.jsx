@@ -10,8 +10,9 @@ import {
 import { Plus } from 'lucide-react';
 import CreateDropdown from './CreateDropdown';
 
+// Kalendarz zaczyna się od 1 AM na samej górze (zgodnie z życzeniem)
 const HOURS = [
-  'GMT+1', '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM',
+  '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM',
   '7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', 
   '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', 
   '6 PM', '7 PM', '8 PM', '9 PM', '10 PM', '11 PM'
@@ -46,28 +47,27 @@ export default function CalendarWeek({
 
   const DAY_NAMES = ['NIEDZ.', 'PON.', 'WT.', 'ŚR.', 'CZW.', 'PT.', 'SOB.'];
 
-  // Current time position indicator
+  // Current time position indicator (48px per hour starting at 1 AM)
   const now = new Date();
   const currentHour = now.getHours();
   const currentMinutes = now.getMinutes();
-  const timeProgressMinutes = currentHour * 56 + (currentMinutes / 60) * 56;
+  const timeProgressMinutes = Math.max(0, (currentHour - 1) * 48 + (currentMinutes / 60) * 48);
 
   // Separate all-day events vs timed events
   const allDayEvents = events.filter(e => e.calendarId === 'swieta' || e.isAllDay);
   const timedEvents = events.filter(e => e.calendarId !== 'swieta' && !e.isAllDay);
 
-  // Click on a day header switches directly to Day view
   const handleDayHeaderClick = (day) => {
     if (onSelectDate) onSelectDate(day);
     if (onViewChange) onViewChange('day');
   };
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-4.5rem)] bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none m-3 ml-2 shadow-2xl">
-      {/* Top Header: BEZ POZIOMEJ KRESKI POD DNIAMI (no border-b) matching user request & images */}
-      <div className="flex bg-[#131314] shrink-0 pt-1 pb-1">
-        {/* Left top box: When sidebar is collapsed, + button sits right here over GMT+1 */}
-        <div className="w-16 shrink-0 flex items-center justify-center py-2">
+    <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-4 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none m-3 ml-2 shadow-2xl">
+      {/* Top Header: BEZ POZIOMEJ KRESKI POD DNIAMI */}
+      <div className="flex bg-[#131314] shrink-0 pt-2 pb-1 pr-1.5">
+        {/* Left top box: When sidebar is collapsed, + button sits right here */}
+        <div className="w-16 shrink-0 flex items-center justify-center">
           {!isSidebarOpen ? (
             <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={true} />
           ) : (
@@ -75,31 +75,40 @@ export default function CalendarWeek({
           )}
         </div>
 
-        {/* Day columns: NO vertical borders, NO horizontal line below */}
+        {/* Day columns: liczby większe i mniej grube, nazwa na niebiesko w wybranym dniu */}
         <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
           {days.map((day, idx) => {
             const isToday = isSameDay(day, today);
             const isSelected = isSameDay(day, currentDate);
             const dayName = DAY_NAMES[day.getDay()];
 
+            // Logika stylów:
+            // 1. Dzisiejsza data: niebieskie tło koła + nazwa dnia na niebiesko
+            // 2. Wybrany inny dzień: tło ciemnozielone + liczba jasnoniebieska
+            // 3. Normalny dzień: zwykły tekst
+            let circleClass = 'text-[#e3e3e3] font-normal hover:bg-[#282a2d]';
+            let nameClass = 'text-[#9aa0a6]';
+
+            if (isToday) {
+              circleClass = 'bg-[#a8c7fa] text-[#041e49] font-medium shadow-md';
+              nameClass = 'text-[#a8c7fa] font-bold';
+            } else if (isSelected) {
+              circleClass = 'bg-[#0f5223] text-[#a8c7fa] font-medium shadow-md';
+              nameClass = 'text-[#a8c7fa] font-semibold';
+            }
+
             return (
               <div 
                 key={idx}
                 onClick={() => handleDayHeaderClick(day)}
-                className="py-2 text-center flex flex-col items-center justify-center cursor-pointer group transition border-0 select-none"
+                className="py-1 text-center flex flex-col items-center justify-center cursor-pointer group transition border-0 select-none"
                 title={`Przejdź do widoku dnia: ${format(day, 'd MMMM')}`}
               >
-                <span className="text-[11px] font-semibold tracking-wider text-[#9aa0a6] mb-1 group-hover:text-white transition">
+                <span className={`text-[11px] tracking-wider mb-1 transition ${nameClass}`}>
                   {dayName}
                 </span>
 
-                <div 
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-lg transition ${
-                    isToday || isSelected
-                      ? 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-md'
-                      : 'text-[#e3e3e3] font-normal group-hover:bg-[#282a2d]'
-                  }`}
-                >
+                <div className={`w-11 h-11 rounded-full flex items-center justify-center text-2xl transition ${circleClass}`}>
                   {format(day, 'd')}
                 </div>
               </div>
@@ -108,9 +117,9 @@ export default function CalendarWeek({
         </div>
       </div>
 
-      {/* All-Day Events row (e.g. Dzień Niepodległości matching image 1) */}
+      {/* All-Day Events row */}
       {allDayEvents.length > 0 && (
-        <div className="flex bg-[#131314] shrink-0 py-1.5 border-b border-[#282a2d]/60">
+        <div className="flex bg-[#131314] shrink-0 py-1.5 border-b border-white/10 pr-1.5">
           <div className="w-16 shrink-0 text-center text-[10px] text-[#9aa0a6] pt-1">
             GMT+1
           </div>
@@ -138,22 +147,22 @@ export default function CalendarWeek({
         </div>
       )}
 
-      {/* Scrollable Time Grid with vertical borders and horizontal lines */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto relative bg-[#131314]">
-        <div className="flex min-h-[1350px]">
-          {/* Left Hours column */}
+      {/* Scrollable Time Grid with VISIBLE WHITE/GRAY GRID LINES and 1 AM at the top */}
+      <div ref={containerRef} className="flex-1 overflow-y-auto relative bg-[#131314] pr-1.5">
+        <div className="flex min-h-[1150px]">
+          {/* Left Hours column: zaczyna się bezpośrednio od 1 AM */}
           <div className="w-16 shrink-0 bg-[#131314] select-none">
-            {HOURS.slice(1).map((hour, idx) => (
+            {HOURS.map((hour, idx) => (
               <div 
                 key={idx} 
-                className="h-14 relative text-right pr-3 text-[11px] font-medium text-[#9aa0a6] -top-2.5"
+                className="h-12 relative text-right pr-3 text-[11px] font-medium text-[#9aa0a6] -top-2.5"
               >
                 {hour}
               </div>
             ))}
           </div>
 
-          {/* Day Grid Columns */}
+          {/* Day Grid Columns: BIAŁE I BARDZIEJ WIDOCZNE LINIE (border-white/20, border-white/15) */}
           <div 
             className="flex-1 grid relative" 
             style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}
@@ -166,18 +175,21 @@ export default function CalendarWeek({
               return (
                 <div 
                   key={dIdx} 
-                  className="border-r border-[#282a2d]/60 relative h-full"
+                  className="border-r border-white/20 relative h-full"
                 >
-                  {/* Hour slots */}
-                  {HOURS.slice(1).map((_, hIdx) => (
-                    <div 
-                      key={hIdx} 
-                      onClick={() => onSelectSlot(day, `${(hIdx + 1).toString().padStart(2, '0')}:00`)}
-                      className="h-14 border-b border-[#282a2d]/40 hover:bg-[#1f2022] cursor-pointer transition"
-                    />
-                  ))}
+                  {/* Hour slots: mniejszy dystans h-12 (48px) */}
+                  {HOURS.map((_, hIdx) => {
+                    const slotHour = hIdx + 1; // 1 AM to 23 (11 PM)
+                    return (
+                      <div 
+                        key={hIdx} 
+                        onClick={() => onSelectSlot(day, `${slotHour.toString().padStart(2, '0')}:00`)}
+                        className="h-12 border-b border-white/15 hover:bg-[#1f2022] cursor-pointer transition"
+                      />
+                    );
+                  })}
 
-                  {/* Red current time indicator line matching image 1 and 2 */}
+                  {/* Red current time indicator line */}
                   {isToday && (
                     <div 
                       className="absolute left-0 right-0 z-20 flex items-center pointer-events-none"
@@ -188,21 +200,22 @@ export default function CalendarWeek({
                     </div>
                   )}
 
-                  {/* Timed Events in this day matching image 5 */}
+                  {/* Timed Events */}
                   {dayEvents.map((event) => {
-                    let topPx = 100;
-                    let heightPx = 50;
+                    let topPx = 48;
+                    let heightPx = 48;
 
                     if (event.startTime) {
                       const [h, m] = event.startTime.split(':').map(Number);
-                      const startMinutes = h * 56 + ((m || 0) / 60) * 56;
-                      topPx = Math.max(0, startMinutes);
+                      // Offset by 1 because grid starts at 1 AM
+                      const startMinutes = Math.max(0, (h - 1) * 48 + ((m || 0) / 60) * 48);
+                      topPx = startMinutes;
                     }
                     if (event.endTime && event.startTime) {
                       const [sh, sm] = event.startTime.split(':').map(Number);
                       const [eh, em] = event.endTime.split(':').map(Number);
                       const durMinutes = ((eh * 60 + em) - (sh * 60 + sm));
-                      if (durMinutes > 0) heightPx = Math.max(34, (durMinutes / 60) * 56);
+                      if (durMinutes > 0) heightPx = Math.max(28, (durMinutes / 60) * 48);
                     }
 
                     const bgCol = event.customBg || '#1a73e8';

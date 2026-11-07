@@ -30,10 +30,8 @@ export default function CreateDropdown({ onSelectType, isCollapsed = false }) {
         }`}
         title="Utwórz nowe"
       >
-        {/* Normal white plus */}
         <Plus className="w-5 h-5 text-white stroke-[2.5]" />
         
-        {/* Text and arrow (hidden when collapsed) */}
         {!isCollapsed && (
           <>
             <span className="text-sm font-['Product_Sans',sans-serif] text-[#e3e3e3] font-medium tracking-wide">
@@ -44,26 +42,26 @@ export default function CreateDropdown({ onSelectType, isCollapsed = false }) {
         )}
       </button>
 
-      {/* Dropdown list without border */}
+      {/* Dropdown list: ciemniejsze tło (#1e1f20), mniejszy radius (rounded-xl) */}
       {isOpen && (
-        <div className="absolute left-0 mt-2 w-52 bg-[#282a2d] border-0 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-100 ring-1 ring-white/10">
+        <div className="absolute left-0 mt-2 w-52 bg-[#1e1f20] border border-[#303134]/80 rounded-xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-100 ring-1 ring-white/5">
           <button
             onClick={() => handleSelect('Wydarzenie')}
-            className="w-full text-left px-4 py-2.5 text-sm text-[#e3e3e3] hover:bg-[#35373a] hover:text-white transition flex items-center justify-between"
+            className="w-full text-left px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#282a2d] hover:text-white transition flex items-center justify-between"
           >
             <span>Wydarzenie</span>
           </button>
           
           <button
             onClick={() => handleSelect('Zadanie')}
-            className="w-full text-left px-4 py-2.5 text-sm text-[#e3e3e3] hover:bg-[#35373a] hover:text-white transition flex items-center justify-between"
+            className="w-full text-left px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#282a2d] hover:text-white transition flex items-center justify-between"
           >
             <span>Zadanie</span>
           </button>
 
           <button
             onClick={() => handleSelect('Harmonogram spotkań')}
-            className="w-full text-left px-4 py-2.5 text-sm text-[#e3e3e3] hover:bg-[#35373a] hover:text-white transition flex items-center justify-between"
+            className="w-full text-left px-4 py-2 text-sm text-[#e3e3e3] hover:bg-[#282a2d] hover:text-white transition flex items-center justify-between"
           >
             <span>Harmonogram spotkań</span>
           </button>
