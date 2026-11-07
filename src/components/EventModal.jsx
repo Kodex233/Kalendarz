@@ -247,7 +247,7 @@ export default function EventModal({
         {/* Okienko dodawania wydarzenia: umieszczone obok podglądu kratki */}
         <div 
           style={modalStyle}
-          className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[495px] max-h-[calc(100vh-60px)] overflow-y-auto border-0 animate-in fade-in zoom-in-95 duration-150 fixed z-50"
+          className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[495px] overflow-visible border-0 animate-in fade-in zoom-in-95 duration-150 fixed z-50"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Top Header bar with drag handle and action icons */}
@@ -472,9 +472,45 @@ export default function EventModal({
                         </>
                       )}
                     </div>
-                    {/* Subtitle pod czasem: Nie powtarza się */}
-                    <div className="text-xs text-[#c4c7c5] pl-0.5 select-none">
-                      {repeatRule}
+                    {/* Subtitle pod czasem: Nie powtarza się (klikalne z listą opcji powtarzania) */}
+                    <div className="relative inline-block">
+                      <button
+                        type="button"
+                        onClick={() => setIsRepeatMenuOpen(!isRepeatMenuOpen)}
+                        className="text-xs text-[#c4c7c5] hover:text-white pl-0.5 select-none transition cursor-pointer flex items-center space-x-1"
+                      >
+                        <span>{repeatRule}</span>
+                        {isRepeatMenuOpen ? (
+                          <svg className="w-3.5 h-3.5 fill-[#a8c7fa] shrink-0" viewBox="0 0 24 24">
+                            <path d="M7 14l5-5 5 5z" />
+                          </svg>
+                        ) : (
+                          <svg className="w-3.5 h-3.5 fill-[#9aa0a6] shrink-0" viewBox="0 0 24 24">
+                            <path d="M7 10l5 5 5-5z" />
+                          </svg>
+                        )}
+                      </button>
+
+                      {isRepeatMenuOpen && (
+                        <div className="absolute left-0 top-full mt-1 w-80 bg-[#282a2d] rounded-md shadow-2xl py-1 z-[80] animate-in fade-in zoom-in-95 duration-100 border border-white/10">
+                          {repeatOptions.map((opt, i) => (
+                            <div
+                              key={i}
+                              onClick={() => {
+                                setRepeatRule(opt.value);
+                                setIsRepeatMenuOpen(false);
+                              }}
+                              className={`px-4 py-2.5 text-sm cursor-pointer transition select-none ${
+                                repeatRule === opt.value
+                                  ? 'bg-[#3c4043] text-white font-medium'
+                                  : 'text-[#e3e3e3] hover:bg-[#35373a]'
+                              }`}
+                            >
+                              {opt.label}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -669,11 +705,11 @@ export default function EventModal({
                         >
                           <span>{repeatRule}</span>
                           {isRepeatMenuOpen ? (
-                            <svg className="w-2.5 h-2.5 fill-[#a8c7fa]" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 fill-[#a8c7fa] shrink-0" viewBox="0 0 24 24">
                               <path d="M7 14l5-5 5 5z" />
                             </svg>
                           ) : (
-                            <svg className="w-2.5 h-2.5 fill-[#9aa0a6]" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 fill-[#9aa0a6] shrink-0" viewBox="0 0 24 24">
                               <path d="M7 10l5 5 5-5z" />
                             </svg>
                           )}
@@ -681,7 +717,7 @@ export default function EventModal({
 
                         {/* Menu opcji powtarzania (dokładnie jak na zdjęciu Image 3) */}
                         {isRepeatMenuOpen && (
-                          <div className="absolute left-0 top-full mt-0 w-80 bg-[#282a2d] rounded-b-md shadow-2xl py-1 z-50 animate-in fade-in zoom-in-95 duration-100 border border-white/5">
+                          <div className="absolute left-0 top-full mt-1 w-80 bg-[#282a2d] rounded-md shadow-2xl py-1 z-[80] animate-in fade-in zoom-in-95 duration-100 border border-white/10">
                             {repeatOptions.map((opt, i) => (
                               <div
                                 key={i}
