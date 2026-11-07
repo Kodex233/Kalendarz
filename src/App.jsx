@@ -291,24 +291,29 @@ export default function App() {
 
   // Open Create Event Modal with specific type
   const handleOpenCreateModal = (type = 'Wydarzenie') => {
-    if (type === 'Harmonogram spotkań') {
-      setExchangeModalOpen(true);
-      return;
-    }
     setEventType(type);
-    setSelectedEvent(null);
+    setSelectedEvent({
+      date: format(currentDate, 'yyyy-MM-dd'),
+      startTime: '10:30',
+      endTime: '11:30',
+      calendarId: 'kodex',
+      dayIndex: 2,
+      isNew: true
+    });
     setCreateModalOpen(true);
   };
 
   // Open Create Event Modal for a clicked slot on weekly grid
-  const handleSelectSlot = (date, timeStr) => {
+  const handleSelectSlot = (date, timeStr, dayIndex = 2) => {
     const [h] = timeStr.split(':').map(Number);
-    const endH = h + 1;
+    const endH = (h + 1) % 24;
     setSelectedEvent({
       date: format(date, 'yyyy-MM-dd'),
       startTime: `${h.toString().padStart(2, '0')}:00`,
       endTime: `${endH.toString().padStart(2, '0')}:00`,
-      calendarId: 'kodex'
+      calendarId: 'kodex',
+      dayIndex,
+      isNew: true
     });
     setEventType('Wydarzenie');
     setCreateModalOpen(true);
@@ -623,6 +628,7 @@ export default function App() {
               onOpenCreateModal={handleOpenCreateModal}
               onSelectDate={handleSelectDate}
               onViewChange={setActiveView}
+              creatingEvent={createModalOpen && selectedEvent?.isNew ? selectedEvent : null}
             />
           )}
         </div>
@@ -652,13 +658,19 @@ export default function App() {
       {/* 1. Okienko dodawania/edycji wydarzenia matching image 5 */}
       <EventModal
         isOpen={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
+        onClose={() => {
+          setCreateModalOpen(false);
+          setSelectedEvent(null);
+        }}
         onSave={handleSaveEvent}
         onDelete={handleDeleteEvent}
         initialData={selectedEvent}
         currentUserId={user?.uid || 'user-kodex'}
         eventType={eventType}
         myCalendars={myCalendars}
+        onFormChange={(formData) => {
+          setSelectedEvent(prev => prev ? ({ ...prev, ...formData }) : formData);
+        }}
       />
 
       {/* 2. Okienko szczegółów wydarzenia matching image 5 */}

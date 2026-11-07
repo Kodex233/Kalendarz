@@ -116,14 +116,14 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* Days of week header: N P W Ś C P S */}
-        <div className="grid grid-cols-7 gap-x-1 text-center text-xs font-medium text-[#9aa0a6] mb-1">
+        {/* Days of week header: N P W Ś C P S na biało */}
+        <div className="grid grid-cols-7 gap-x-1 text-center text-xs font-medium text-white mb-1">
           {['N', 'P', 'W', 'Ś', 'C', 'P', 'S'].map((d, i) => (
             <div key={i} className="py-0.5">{d}</div>
           ))}
         </div>
 
-        {/* Mini Month Grid: większy odstęp w pionie (gap-y-2), tła okrągłe w-6 h-6 (lekko mniejszy padding) */}
+        {/* Mini Month Grid: większy odstęp w pionie (gap-y-2), tła okrągłe w-6 h-6, szare dni lekko jaśniejsze */}
         <div className="grid grid-cols-7 gap-x-1 gap-y-2 text-center text-xs">
           {miniDays.map((day, idx) => {
             const isCurrentMonth = isSameMonth(day, miniDate);
@@ -132,7 +132,7 @@ export default function Sidebar({
 
             let dayStyle = 'text-[#e3e3e3] hover:bg-[#282a2d]';
             if (!isCurrentMonth) {
-              dayStyle = 'text-[#5f6368]';
+              dayStyle = 'text-[#9aa0a6]';
             }
             if (isToday) {
               dayStyle = 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-xs';
@@ -153,28 +153,25 @@ export default function Sidebar({
           })}
         </div>
 
-        {/* 3. Szukaj osób: mniejsza szerokość w-[208px], lekki radius rounded-lg */}
+        {/* 3. Szukaj osób: bez X i bez pełnego borderu na niebiesko, tylko na dole niebieska kreska */}
         <div className="pt-2">
           {isSearchingPerson ? (
-            <div className="relative flex items-center bg-[#303134] h-10 px-3.5 rounded-lg border border-[#8ab4f8]">
+            <div className="relative flex items-center bg-[#303134] h-10 px-3.5 rounded-t-md border-0 border-b-2 border-[#8ab4f8] transition">
               <User className="w-4 h-4 text-[#c4c7c5] mr-2.5 shrink-0" />
               <input
                 ref={searchInputRef}
                 type="text"
                 placeholder="Szukaj osób"
                 value={searchPersonQuery}
+                onBlur={() => {
+                  if (!searchPersonQuery) setIsSearchingPerson(false);
+                }}
                 onChange={(e) => {
                   setSearchPersonQuery(e.target.value);
                   if (onSearchPerson) onSearchPerson(e.target.value);
                 }}
                 className="w-full bg-transparent border-0 text-xs text-[#e3e3e3] placeholder-[#9aa0a6] focus:outline-none"
               />
-              <button 
-                onClick={handleClearPersonSearch}
-                className="p-1 text-[#9aa0a6] hover:text-white"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
             </div>
           ) : (
             <button
@@ -190,7 +187,7 @@ export default function Sidebar({
 
       {/* 4. Strony rezerwacji: wyrównanie tekstu do lewej na tym samym poziomie, hover tylko dla przycisku + */}
       <div className="space-y-0.5 px-1">
-        <div className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1.5 px-3">
+        <div className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1 px-3">
           <span>Strony rezerwacji</span>
           <button 
             onClick={() => onOpenCreateModal('Harmonogram spotkań')}
@@ -202,11 +199,11 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* 5. Moje kalendarze: MNIEJSZE ODSTĘPY OD SIEBIE (py-1 space-y-0.5), WIĘKSZY I JAŚNIEJSZY ZAOKRĄGLONY HOVER NAGŁÓWKA, lekko mniejsza wysokość padding */}
+      {/* 5. Moje kalendarze: bliżej siebie kalendarze (space-y-[1px]), mniejsza wysokość hover (py-0.5), tick mniejszy */}
       <div className="space-y-0.5 px-1">
         <div 
           onClick={() => setMyCalendarsOpen(!myCalendarsOpen)}
-          className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1.5 px-3 cursor-pointer hover:bg-[#35373a] rounded-full transition"
+          className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1 px-3 cursor-pointer hover:bg-[#35373a] rounded-full transition"
         >
           <span>Moje kalendarze</span>
           <div className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#4d5156] text-[#9aa0a6] hover:text-white transition -mr-1">
@@ -215,24 +212,24 @@ export default function Sidebar({
         </div>
 
         {myCalendarsOpen && (
-          <div className="space-y-0.5 pt-0.5">
+          <div className="space-y-[1px] pt-0.5">
             {myCalendars.map((cal) => (
               <div 
                 key={cal.id} 
-                className="group relative flex items-center justify-between px-3 py-1 rounded-full hover:bg-[#282a2d] transition text-sm cursor-pointer"
+                className="group relative flex items-center justify-between px-3 py-0.5 rounded-full hover:bg-[#282a2d] transition text-sm cursor-pointer"
               >
                 <div 
                   onClick={() => onToggleCalendar(cal.id)}
                   className="flex items-center space-x-3 cursor-pointer flex-1 min-w-0"
                 >
                   <div 
-                    className="w-5 h-5 rounded-[3px] flex items-center justify-center transition shadow-xs shrink-0"
+                    className="w-4 h-4 rounded-[3px] flex items-center justify-center transition shadow-xs shrink-0"
                     style={{ 
                       backgroundColor: cal.checked ? cal.color : 'transparent',
                       border: cal.checked ? 'none' : '2px solid #5f6368'
                     }}
                   >
-                    {cal.checked && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
+                    {cal.checked && <Check className="w-3 h-3 text-white stroke-[3]" />}
                   </div>
                   <span className="text-sm font-normal text-[#e3e3e3] truncate">
                     {cal.name}
@@ -314,24 +311,24 @@ export default function Sidebar({
         </div>
 
         {otherCalendarsOpen && (
-          <div className="space-y-0.5 pt-0.5">
+          <div className="space-y-[1px] pt-0.5">
             {otherCalendars.map((cal) => (
               <div 
                 key={cal.id} 
-                className="group relative flex items-center justify-between px-3 py-1 rounded-full hover:bg-[#282a2d] transition text-sm cursor-pointer"
+                className="group relative flex items-center justify-between px-3 py-0.5 rounded-full hover:bg-[#282a2d] transition text-sm cursor-pointer"
               >
                 <div 
                   onClick={() => onToggleOtherCalendar(cal.id)}
                   className="flex items-center space-x-3 cursor-pointer flex-1 min-w-0"
                 >
                   <div 
-                    className="w-5 h-5 rounded-[3px] flex items-center justify-center transition shadow-xs shrink-0"
+                    className="w-4 h-4 rounded-[3px] flex items-center justify-center transition shadow-xs shrink-0"
                     style={{ 
                       backgroundColor: cal.checked ? cal.color : 'transparent',
                       border: cal.checked ? 'none' : '2px solid #5f6368'
                     }}
                   >
-                    {cal.checked && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
+                    {cal.checked && <Check className="w-3 h-3 text-white stroke-[3]" />}
                   </div>
                   <span className="text-sm font-normal text-[#e3e3e3] truncate">
                     {cal.name}

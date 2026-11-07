@@ -48,7 +48,8 @@ export default function CalendarWeek({
   isSidebarOpen = true,
   onOpenCreateModal,
   onSelectDate,
-  onViewChange
+  onViewChange,
+  creatingEvent
 }) {
   const containerRef = useRef(null);
   const today = new Date();
@@ -230,7 +231,7 @@ export default function CalendarWeek({
                     return (
                       <div 
                         key={hIdx} 
-                        onClick={() => onSelectSlot(day, `${hIdx.toString().padStart(2, '0')}:00`)}
+                        onClick={() => onSelectSlot(day, `${hIdx.toString().padStart(2, '0')}:00`, dIdx)}
                         className={`h-12 border-t border-white/15 hover:bg-[#1f2022] cursor-pointer transition ${
                           isLast ? 'border-b border-white/15' : ''
                         }`}
@@ -248,6 +249,40 @@ export default function CalendarWeek({
                       <div className="flex-1 border-t-2 border-[#ea4335]" />
                     </div>
                   )}
+
+                  {/* Podgląd dodawanego wydarzenia (Image 4): (Bez tytułu) z godziną w kafelku obok okienka */}
+                  {creatingEvent && creatingEvent.date === dateStr && (() => {
+                    let topPx = 48;
+                    let heightPx = 48;
+                    if (creatingEvent.startTime) {
+                      const [h, m] = creatingEvent.startTime.split(':').map(Number);
+                      topPx = Math.max(0, h * 48 + ((m || 0) / 60) * 48);
+                    }
+                    if (creatingEvent.endTime && creatingEvent.startTime) {
+                      const [sh, sm] = creatingEvent.startTime.split(':').map(Number);
+                      const [eh, em] = creatingEvent.endTime.split(':').map(Number);
+                      const durMinutes = ((eh * 60 + em) - (sh * 60 + sm));
+                      if (durMinutes > 0) heightPx = Math.max(28, (durMinutes / 60) * 48);
+                    }
+
+                    const titleDisplay = creatingEvent.title?.trim() || '(Bez tytułu)';
+
+                    return (
+                      <div
+                        style={{
+                          top: `${topPx}px`,
+                          height: `${heightPx}px`,
+                          backgroundColor: creatingEvent.color || '#e8710a'
+                        }}
+                        className="absolute left-1 right-2 rounded-lg px-2.5 py-1 text-xs font-medium overflow-hidden shadow-lg z-20 text-white animate-in fade-in duration-100 pointer-events-none select-none"
+                      >
+                        <div className="font-semibold truncate leading-tight">{titleDisplay}</div>
+                        <div className="text-[10px] opacity-90 truncate leading-tight mt-0.5">
+                          {creatingEvent.startTime}–{creatingEvent.endTime}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Timed Events */}
                   {dayEvents.map((event) => {
