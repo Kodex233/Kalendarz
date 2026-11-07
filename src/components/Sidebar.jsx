@@ -186,11 +186,11 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* 4. Strony rezerwacji: wyrównanie tekstu do lewej na tym samym poziomie co inne nagłówki */}
+      {/* 4. Strony rezerwacji: wyrównanie tekstu do lewej na tym samym poziomie co inne nagłówki, lekko mniejsza wysokość padding */}
       <div className="space-y-0.5 px-1">
         <div 
           onClick={() => onOpenCreateModal('Harmonogram spotkań')}
-          className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-2 px-3 hover:bg-[#35373a] rounded-full transition cursor-pointer"
+          className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1.5 px-3 hover:bg-[#35373a] rounded-full transition cursor-pointer"
         >
           <span>Strony rezerwacji</span>
           <button 
@@ -206,11 +206,11 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* 5. Moje kalendarze: MNIEJSZE ODSTĘPY OD SIEBIE (py-1 space-y-0.5), WIĘKSZY I JAŚNIEJSZY ZAOKRĄGLONY HOVER NAGŁÓWKA */}
+      {/* 5. Moje kalendarze: MNIEJSZE ODSTĘPY OD SIEBIE (py-1 space-y-0.5), WIĘKSZY I JAŚNIEJSZY ZAOKRĄGLONY HOVER NAGŁÓWKA, lekko mniejsza wysokość padding */}
       <div className="space-y-0.5 px-1">
         <div 
           onClick={() => setMyCalendarsOpen(!myCalendarsOpen)}
-          className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-2 px-3 cursor-pointer hover:bg-[#35373a] rounded-full transition"
+          className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1.5 px-3 cursor-pointer hover:bg-[#35373a] rounded-full transition"
         >
           <span>Moje kalendarze</span>
           <div className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#3c4043] text-[#9aa0a6] hover:text-[#e3e3e3] transition -mr-1">
@@ -284,9 +284,9 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* 6. Inne kalendarze: mniejsze odstępy, spójne z moimi kalendarzami */}
+      {/* 6. Inne kalendarze: mniejsze odstępy, spójne z moimi kalendarzami, lekko mniejsza wysokość padding */}
       <div className="space-y-0.5 px-1">
-        <div className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-2 px-3 hover:bg-[#35373a] rounded-full transition">
+        <div className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1.5 px-3 hover:bg-[#35373a] rounded-full transition">
           <div 
             onClick={() => setOtherCalendarsOpen(!otherCalendarsOpen)}
             className="flex items-center space-x-1 cursor-pointer flex-1"

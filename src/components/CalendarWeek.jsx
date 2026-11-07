@@ -81,9 +81,9 @@ export default function CalendarWeek({
             const isToday = isSameDay(day, today);
             const dayName = DAY_NAMES[day.getDay()];
 
-            // W głównym kalendarzu tylko dzisiejsza data ma niebieskie tło koła i niebieską nazwę;
+            // W głównym kalendarzu skróty nazw dni tygodnia na biało (a dzisiejsza na jasnoniebiesko)
             let circleClass = 'text-[#e3e3e3] font-normal hover:bg-[#282a2d]';
-            let nameClass = 'text-[#9aa0a6]';
+            let nameClass = 'text-white font-medium';
 
             if (isToday) {
               circleClass = 'bg-[#a8c7fa] text-[#041e49] font-medium shadow-md';
@@ -128,9 +128,9 @@ export default function CalendarWeek({
         <div className="w-[9px] shrink-0" />
       </div>
 
-      {/* Row with GMT+1 and all-day events: proste pionowe kreski idealnie równe z siatką; linia pozioma tylko pod dniami i 8px znacznik w GMT */}
-      <div className="flex bg-[#131314] shrink-0 pr-1.5 min-h-[36px]">
-        <div className="w-16 shrink-0 text-center text-[11px] font-medium text-white flex items-center justify-center border-r border-white/20 py-1.5 relative">
+      {/* Row with GMT+1 and all-day events: pionowa kreska wychodzi o połowę mniej ponad 1. poziomą (min-h-[18px] py-0.5) */}
+      <div className="flex bg-[#131314] shrink-0 pr-1.5 min-h-[18px]">
+        <div className="w-16 shrink-0 text-center text-[10px] font-medium text-white flex items-center justify-center border-r border-white/20 py-0.5 relative">
           GMT+1
           {/* Poziomy znacznik 8px w lewo od pionowej linii, identycznie jak w godzinach poniżej (nie idzie za daleko w lewo) */}
           <div className="absolute right-0 bottom-0 w-2 border-b border-white/15 pointer-events-none" />
@@ -144,13 +144,13 @@ export default function CalendarWeek({
             return (
               <div 
                 key={idx} 
-                className={`px-1.5 flex flex-col justify-center py-1.5 ${isLastColumn ? 'border-r-0' : 'border-r border-white/20'}`}
+                className={`px-1.5 flex flex-col justify-center py-0.5 ${isLastColumn ? 'border-r-0' : 'border-r border-white/20'}`}
               >
                 {dayHolidays.map(hol => (
                   <div
                     key={hol.id}
                     onClick={() => onSelectEvent(hol)}
-                    className="px-3 py-1 rounded-md text-xs font-medium text-white truncate shadow-xs cursor-pointer hover:brightness-110 transition text-center"
+                    className="px-3 py-0.5 rounded-md text-xs font-medium text-white truncate shadow-xs cursor-pointer hover:brightness-110 transition text-center"
                     style={{ backgroundColor: hol.customBg || '#34a853' }}
                   >
                     {hol.title}
@@ -164,17 +164,17 @@ export default function CalendarWeek({
         <div className="w-[9px] shrink-0 border-b border-white/15" />
       </div>
 
-      {/* Scrollable Time Grid: godziny minimalnie bliżej prawej (pr-3.5), kreski poziome na TYM SAMYM poziomie co siatka */}
+      {/* Scrollable Time Grid: 1 AM nie jest ucinane (top-0.5 dla 1 AM) */}
       <div ref={containerRef} className="flex-1 overflow-y-auto relative bg-[#131314] pr-1.5 pt-0">
         <div className="flex min-h-[1150px]">
-          {/* Left Hours column: godziny minimalnie bliżej prawej (pr-3.5) */}
+          {/* Left Hours column: godziny minimalnie bliżej prawej (pr-3.5), 1 AM nie jest ucinane */}
           <div className="w-16 shrink-0 bg-[#131314] select-none border-r border-white/20 relative">
             {HOURS.map((hour, idx) => (
               <div 
                 key={idx} 
                 className="h-12 relative flex items-start justify-end pr-3.5 text-[11px] font-medium text-white"
               >
-                <span className="relative -top-2 bg-[#131314] px-1 z-10">{hour}</span>
+                <span className={`relative bg-[#131314] px-1 z-10 ${idx === 0 ? 'top-0.5' : '-top-2'}`}>{hour}</span>
                 {/* Linia pozioma wystająca 8px w lewo - na TYM SAMYM poziomie (top-0 border-t border-white/15) */}
                 <div className="absolute right-0 top-0 w-2 border-t border-white/15 pointer-events-none" />
               </div>

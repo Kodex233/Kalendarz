@@ -94,7 +94,7 @@ export default function CalendarMonth({
               {/* Header inside cell: in first row show weekday name (e.g. NIEDZ., PON.), followed by centered day number */}
               <div className="flex flex-col items-center justify-center mb-1">
                 {isFirstRow && (
-                  <span className="text-[11px] font-semibold text-[#9aa0a6] uppercase tracking-wider mb-1">
+                  <span className="text-[11px] font-medium text-white uppercase tracking-wider mb-1">
                     {weekDayNames[idx]}
                   </span>
                 )}
