@@ -295,17 +295,24 @@ export default function CalendarWeek({
                     }
 
                     const titleDisplay = creatingEvent.title?.trim() || '(Bez tytułu)';
+                    const isTask = creatingEvent.type === 'Zadanie';
+                    const bgColor = isTask ? '#1a73e8' : (creatingEvent.color || '#e8710a');
 
                     return (
                       <div
                         style={{
                           top: `${topPx}px`,
                           height: `${heightPx}px`,
-                          backgroundColor: creatingEvent.color || '#e8710a'
+                          backgroundColor: bgColor
                         }}
                         className="absolute left-1 right-2 rounded-lg px-2.5 py-1 text-xs font-medium overflow-hidden shadow-lg z-20 text-white animate-in fade-in duration-100 pointer-events-none select-none"
                       >
-                        <div className="font-semibold truncate leading-tight">{titleDisplay}</div>
+                        <div className="font-semibold truncate leading-tight flex items-center space-x-1.5">
+                          {isTask && (
+                            <span className="w-2.5 h-2.5 rounded-full border-[1.5px] border-white inline-block shrink-0 -mt-0.5" />
+                          )}
+                          <span className="truncate">{titleDisplay}</span>
+                        </div>
                         <div className="text-[10px] opacity-90 truncate leading-tight mt-0.5">
                           {formatTimeRangeCompact(creatingEvent.startTime, creatingEvent.endTime)}
                         </div>
@@ -330,7 +337,8 @@ export default function CalendarWeek({
                       if (durMinutes > 0) heightPx = Math.max(28, (durMinutes / 60) * 48);
                     }
 
-                    const bgCol = event.customBg || '#1a73e8';
+                    const isTask = event.type === 'Zadanie';
+                    const bgCol = isTask ? '#1a73e8' : (event.customBg || '#1a73e8');
 
                     return (
                       <div
@@ -346,7 +354,12 @@ export default function CalendarWeek({
                         }}
                         className="absolute left-1 right-2 rounded-lg px-2.5 py-1 text-xs font-medium overflow-hidden shadow-md cursor-pointer hover:brightness-110 transition z-10 text-white"
                       >
-                        <div className="font-semibold truncate">{event.title}</div>
+                        <div className="font-semibold truncate flex items-center space-x-1.5">
+                          {isTask && (
+                            <span className="w-2.5 h-2.5 rounded-full border-[1.5px] border-white inline-block shrink-0 -mt-0.5" />
+                          )}
+                          <span className="truncate">{event.title}</span>
+                        </div>
                         <div className="text-[10px] opacity-90 truncate">
                           {event.startTime}–{event.endTime}
                         </div>

@@ -153,54 +153,41 @@ export default function Sidebar({
           })}
         </div>
 
-        {/* 3. Szukaj osób: ikonka z lewej strony, bliżej napisu, ciemniejsze tło */}
+        {/* 3. Szukaj osób: kursor z prawej strony ikony, stabilna wysokość i brak przesunięć elementów */}
         <div className="pt-2">
-          {isSearchingPerson ? (
-            <div className="relative flex items-center space-x-2.5 bg-[#282a2d] h-10 px-3 rounded-t-md border-0 border-b-2 border-[#8ab4f8] transition">
-              {/* Ikonka osób z lewej strony ze zdjęcia */}
-              <svg className="w-5 h-5 text-[#c4c7c5] shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
-                <path d="M9 13c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4zm-6 5c.2-.71 3.3-2 6-2 2.69 0 5.78 1.28 6 2H3z" />
-                <path d="M16.5 12c1.38 0 2.5-1.12 2.5-2.5S17.88 7 16.5 7c-.3 0-.58.05-.85.15.53.7.85 1.57.85 2.52s-.32 1.82-.85 2.52c.27.1.55.15.85.15z" />
-                <path d="M18 14.5c1.86.32 4 1.35 4 2.5v3h-3v-2c0-.79-.3-1.52-.79-2.07.61-.17 1.24-.31 1.79-.43z" />
-              </svg>
-              <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Szukaj osób"
-                value={searchPersonQuery}
-                onBlur={() => {
-                  if (!searchPersonQuery) setIsSearchingPerson(false);
-                }}
-                onChange={(e) => {
-                  setSearchPersonQuery(e.target.value);
-                  if (onSearchPerson) onSearchPerson(e.target.value);
-                }}
-                className="w-full bg-transparent border-0 text-sm font-medium text-[#c4c7c5] placeholder-[#c4c7c5] focus:outline-none"
-              />
-            </div>
-          ) : (
-            <button
-              onClick={() => setIsSearchingPerson(true)}
-              className="w-full flex items-center space-x-2.5 h-10 px-3 bg-[#282a2d] hover:bg-[#323438] text-[#c4c7c5] text-sm font-medium transition duration-150 rounded-lg"
-            >
-              {/* Ikonka osób z lewej strony ze zdjęcia */}
-              <svg className="w-5 h-5 text-[#c4c7c5] shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
-                <path d="M9 13c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4zm-6 5c.2-.71 3.3-2 6-2 2.69 0 5.78 1.28 6 2H3z" />
-                <path d="M16.5 12c1.38 0 2.5-1.12 2.5-2.5S17.88 7 16.5 7c-.3 0-.58.05-.85.15.53.7.85 1.57.85 2.52s-.32 1.82-.85 2.52c.27.1.55.15.85.15z" />
-                <path d="M18 14.5c1.86.32 4 1.35 4 2.5v3h-3v-2c0-.79-.3-1.52-.79-2.07.61-.17 1.24-.31 1.79-.43z" />
-              </svg>
-              <span className="text-[#c4c7c5]">Szukaj osób</span>
-            </button>
-          )}
+          <div className={`w-full flex items-center space-x-2.5 h-10 px-3 bg-[#282a2d] text-[#c4c7c5] text-sm font-medium transition duration-150 border-b-2 ${
+            isSearchingPerson ? 'rounded-t-md border-[#8ab4f8]' : 'rounded-lg border-transparent'
+          }`}>
+            {/* Ikonka osób z lewej strony */}
+            <svg className="w-5 h-5 text-[#c4c7c5] shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+              <path d="M9 13c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4zm-6 5c.2-.71 3.3-2 6-2 2.69 0 5.78 1.28 6 2H3z" />
+              <path d="M16.5 12c1.38 0 2.5-1.12 2.5-2.5S17.88 7 16.5 7c-.3 0-.58.05-.85.15.53.7.85 1.57.85 2.52s-.32 1.82-.85 2.52c.27.1.55.15.85.15z" />
+              <path d="M18 14.5c1.86.32 4 1.35 4 2.5v3h-3v-2c0-.79-.3-1.52-.79-2.07.61-.17 1.24-.31 1.79-.43z" />
+            </svg>
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Szukaj osób"
+              value={searchPersonQuery}
+              onFocus={() => setIsSearchingPerson(true)}
+              onBlur={() => {
+                if (!searchPersonQuery) setIsSearchingPerson(false);
+              }}
+              onChange={(e) => {
+                setSearchPersonQuery(e.target.value);
+                if (onSearchPerson) onSearchPerson(e.target.value);
+              }}
+              className="w-full bg-transparent border-0 text-sm font-medium text-[#c4c7c5] placeholder-[#c4c7c5] focus:outline-none p-0"
+            />
+          </div>
         </div>
       </div>
 
-      {/* 4. Strony rezerwacji: większy napis, biały i większy plus, hover tylko dla przycisku + */}
+      {/* 4. Strony rezerwacji: + przesunięty w prawo, spójny margines */}
       <div className="space-y-0.5 px-1">
-        <div className="flex items-center justify-between py-0.5 px-2">
-          <span className="text-sm font-medium text-[#e3e3e3] px-1">Strony rezerwacji</span>
+        <div className="flex items-center justify-between py-1 px-3.5">
+          <span className="text-sm font-medium text-[#e3e3e3]">Strony rezerwacji</span>
           <button 
             onClick={() => onOpenCreateModal('Harmonogram spotkań')}
             className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#35373a] text-white transition -mr-1"
@@ -211,17 +198,21 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* 5. Moje kalendarze: większy napis, biała i większa strzałka bliżej krawędzi, hover o kolorze tła szukaj osób (#282a2d) z mniejszą wysokością (py-1), brak hovera całego wiersza przy najechaniu na strzałkę */}
+      {/* 5. Moje kalendarze: większy padding, hover na całe wiersze, a po najechaniu na strzałkę tło ma tylko strzałka */}
       <div className="space-y-0.5 px-1">
-        <div className="flex items-center justify-between py-0.5 px-1">
-          <button 
-            onClick={() => setMyCalendarsOpen(!myCalendarsOpen)}
-            className="flex-1 text-left px-2 py-1 rounded-full hover:bg-[#282a2d] transition text-sm font-medium text-[#e3e3e3]"
-          >
-            <span>Moje kalendarze</span>
-          </button>
+        <div 
+          onClick={() => setMyCalendarsOpen(!myCalendarsOpen)}
+          className="flex items-center justify-between px-3.5 py-1.5 rounded-full hover:bg-[#282a2d] transition group has-[button:hover]:bg-transparent cursor-pointer"
+        >
+          <span className="text-sm font-medium text-[#e3e3e3] select-none">
+            Moje kalendarze
+          </span>
           <button
-            onClick={() => setMyCalendarsOpen(!myCalendarsOpen)}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMyCalendarsOpen(!myCalendarsOpen);
+            }}
             className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#35373a] text-white transition -mr-1 shrink-0"
             title={myCalendarsOpen ? "Zwiń moje kalendarze" : "Rozwiń moje kalendarze"}
           >
@@ -295,17 +286,18 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* 6. Inne kalendarze: większy napis, białe i większe ikony + oraz strzałki bliżej krawędzi, hover jak tło szukaj osób (#282a2d) */}
+      {/* 6. Inne kalendarze: większy padding w każdą stronę, hover na cały wiersz łącznie z ikonkami, a przy najechaniu na ikonki tło ma tylko dana ikonka */}
       <div className="space-y-0.5 px-1">
-        <div className="flex items-center justify-between py-0.5 px-1">
-          <button 
-            onClick={() => setOtherCalendarsOpen(!otherCalendarsOpen)}
-            className="flex-1 text-left px-2 py-1 rounded-full hover:bg-[#282a2d] transition text-sm font-medium text-[#e3e3e3]"
-          >
-            <span>Inne kalendarze</span>
-          </button>
+        <div 
+          onClick={() => setOtherCalendarsOpen(!otherCalendarsOpen)}
+          className="flex items-center justify-between px-3.5 py-1.5 rounded-full hover:bg-[#282a2d] transition group has-[button:hover]:bg-transparent cursor-pointer"
+        >
+          <span className="text-sm font-medium text-[#e3e3e3] select-none">
+            Inne kalendarze
+          </span>
           <div className="flex items-center space-x-0.5 -mr-1 shrink-0">
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onAddOtherCalendar();
@@ -316,6 +308,7 @@ export default function Sidebar({
               <Plus className="w-5 h-5 text-white stroke-[2.5]" />
             </button>
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 setOtherCalendarsOpen(!otherCalendarsOpen);

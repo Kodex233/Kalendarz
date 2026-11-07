@@ -607,11 +607,11 @@ export default function Navbar({
           </svg>
         </button>
 
-        {/* View Switcher Dropdown: border bardziej biały */}
+        {/* View Switcher Dropdown: border bardziej biały, wysokość h-10 */}
         <div className="relative ml-1" ref={viewMenuRef}>
           <button
             onClick={() => setIsViewMenuOpen(!isViewMenuOpen)}
-            className="flex items-center space-x-2 px-5 py-2.5 bg-transparent hover:bg-[#282a2d] border border-[#8e918f] hover:border-white rounded-full text-sm font-medium text-[#e3e3e3] transition focus:outline-none"
+            className="flex items-center space-x-2 px-5 h-10 bg-transparent hover:bg-[#282a2d] border border-[#8e918f] hover:border-white rounded-full text-sm font-medium text-[#e3e3e3] transition focus:outline-none"
           >
             <span>{VIEW_LABELS[activeView] || 'Tydzień'}</span>
             <ChevronDown className={`w-4 h-4 text-[#e3e3e3] transition-transform ${isViewMenuOpen ? 'rotate-180' : ''}`} />
@@ -717,7 +717,7 @@ export default function Navbar({
         ) : (
           <button
             onClick={onOpenAuth}
-            className="px-6 py-2 bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#062e6f] font-medium rounded-full text-sm transition shadow-sm active:scale-95 ml-1"
+            className="px-6 h-10 flex items-center justify-center bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#062e6f] font-medium rounded-full text-sm transition shadow-sm active:scale-95 ml-1"
           >
             Zaloguj się
           </button>

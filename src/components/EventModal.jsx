@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   X, 
   Clock, 
-  Info
+  Info,
+  ChevronDown
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
@@ -115,6 +116,11 @@ export default function EventModal({
     if (onFormChange) onFormChange({ endTime: val });
   };
 
+  const handleTabChange = (val) => {
+    setActiveTab(val);
+    if (onFormChange) onFormChange({ type: val });
+  };
+
   const currentCal = myCalendars.find(c => c.id === selectedCalendarId) || { name: 'kodex', color: '#1a73e8' };
 
   // Formatted date chip text (z wielką literą jak na zdjęciu)
@@ -166,7 +172,7 @@ export default function EventModal({
 
     const { left: slotLeft, right: slotRight, top: slotTop } = initialData.slotRect;
     const modalWidth = 495;
-    const modalHeight = 490;
+    const modalHeight = 560;
     const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1400;
     const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 900;
 
@@ -182,9 +188,9 @@ export default function EventModal({
     // Ograniczenie poziome w granicach ekranu
     targetLeft = Math.max(16, Math.min(windowWidth - modalWidth - 16, targetLeft));
 
-    // Wyrównanie pionowe na poziomie wybranej godziny
-    let targetTop = slotTop - 60;
-    targetTop = Math.max(64, Math.min(windowHeight - modalHeight - 16, targetTop));
+    // Wyrównanie pionowe: przesunięte wyżej, aby dolna część okienka nie była obcięta przy kliknięciu nisko
+    let targetTop = slotTop - 110;
+    targetTop = Math.max(68, Math.min(windowHeight - modalHeight - 32, targetTop));
 
     return {
       top: `${targetTop}px`,
@@ -241,7 +247,7 @@ export default function EventModal({
         {/* Okienko dodawania wydarzenia: umieszczone obok podglądu kratki */}
         <div 
           style={modalStyle}
-          className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[495px] overflow-hidden border-0 animate-in fade-in zoom-in-95 duration-150 fixed z-50"
+          className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[495px] max-h-[calc(100vh-60px)] overflow-y-auto border-0 animate-in fade-in zoom-in-95 duration-150 fixed z-50"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Top Header bar with drag handle and action icons */}
@@ -293,7 +299,7 @@ export default function EventModal({
             <div className="flex items-center space-x-2">
               <button
                 type="button"
-                onClick={() => setActiveTab('Wydarzenie')}
+                onClick={() => handleTabChange('Wydarzenie')}
                 className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition whitespace-nowrap shrink-0 ${
                   activeTab === 'Wydarzenie'
                     ? 'bg-[#004a77] text-[#c2e7ff]'
@@ -305,7 +311,7 @@ export default function EventModal({
 
               <button
                 type="button"
-                onClick={() => setActiveTab('Zadanie')}
+                onClick={() => handleTabChange('Zadanie')}
                 className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition whitespace-nowrap shrink-0 ${
                   activeTab === 'Zadanie'
                     ? 'bg-[#004a77] text-[#c2e7ff]'
@@ -317,7 +323,7 @@ export default function EventModal({
 
               <button
                 type="button"
-                onClick={() => setActiveTab('Harmonogram spotkań')}
+                onClick={() => handleTabChange('Harmonogram spotkań')}
                 className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition whitespace-nowrap shrink-0 ${
                   activeTab === 'Harmonogram spotkań'
                     ? 'bg-[#004a77] text-[#c2e7ff]'
@@ -405,9 +411,157 @@ export default function EventModal({
                   </button>
                 </div>
               </div>
+            ) : activeTab === 'Zadanie' ? (
+              /* ======================================================== */
+              /* WIDOK: ZADANIE (Dokładnie jak na zdjęciu referencyjnym)  */
+              /* ======================================================== */
+              <div className="space-y-4 pt-1 animate-in fade-in duration-100">
+                {/* Row 1: Clock Icon + Date and Time with Subtitle "Nie powtarza się" */}
+                <div className="flex items-start space-x-4">
+                  <Clock className="w-5 h-5 text-[#c4c7c5] mt-1 shrink-0" />
+                  <div className="space-y-1">
+                    <div className="flex items-center flex-wrap gap-2 text-sm text-[#e3e3e3]">
+                      <div className="relative">
+                        <button
+                          type="button"
+                          className="px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal capitalize flex items-center transition"
+                        >
+                          {formattedDateLabel}
+                        </button>
+                        <input
+                          type="date"
+                          value={date}
+                          onChange={(e) => handleDateChange(e.target.value)}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                      </div>
+
+                      {!isAllDay && (
+                        <>
+                          <div className="relative">
+                            <button
+                              type="button"
+                              className="px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition"
+                            >
+                              {formatTime12h(startTime)}
+                            </button>
+                            <input
+                              type="time"
+                              value={startTime}
+                              onChange={(e) => handleStartTimeChange(e.target.value)}
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                            />
+                          </div>
+
+                          <span className="text-[#9aa0a6]">–</span>
+
+                          <div className="relative">
+                            <button
+                              type="button"
+                              className="px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition"
+                            >
+                              {formatTime12h(endTime)}
+                            </button>
+                            <input
+                              type="time"
+                              value={endTime}
+                              onChange={(e) => handleEndTimeChange(e.target.value)}
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    {/* Subtitle pod czasem: Nie powtarza się */}
+                    <div className="text-xs text-[#c4c7c5] pl-0.5 select-none">
+                      {repeatRule}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 2: Target / Bullseye Icon -> Dodaj termin */}
+                <div className="flex items-center space-x-4">
+                  <svg className="w-5 h-5 text-[#c4c7c5] shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.07 4.93l-1.41 1.41C19.1 7.79 20 9.79 20 12c0 4.42-3.58 8-8 8s-8-3.58-8-8c0-2.21.9-4.21 2.34-5.66L4.93 4.93C3.12 6.74 2 9.24 2 12c0 5.52 4.48 10 10 10s10-4.48 10-10c0-2.76-1.12-5.26-2.93-7.07zM12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                  </svg>
+                  <button
+                    type="button"
+                    className="text-sm text-[#c4c7c5] hover:text-white transition text-left"
+                  >
+                    Dodaj termin
+                  </button>
+                </div>
+
+                {/* Row 3: Notes / Description Icon -> Dodaj opis lub załącznik z Dysku Google */}
+                <div className="flex items-center space-x-4">
+                  <svg className="w-5 h-5 text-[#c4c7c5] shrink-0 fill-current" viewBox="0 0 24 24">
+                    <path d="M3 18h12v-2H3v2zM3 6v2h18V6H3zm0 7h18v-2H3v2z" />
+                  </svg>
+                  {showDescInput ? (
+                    <textarea
+                      rows={2}
+                      placeholder="Dodaj opis..."
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="w-full bg-[#303134] border-0 rounded-lg p-2.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowDescInput(true)}
+                      className="text-sm text-[#c4c7c5] hover:text-white transition text-left"
+                    >
+                      Dodaj opis lub załącznik z Dysku Google
+                    </button>
+                  )}
+                </div>
+
+                {/* Row 4: Bullet List Icon -> Dropdown "Moje zadania ▼" */}
+                <div className="flex items-center space-x-4">
+                  <svg className="w-5 h-5 text-[#c4c7c5] shrink-0 fill-current" viewBox="0 0 24 24">
+                    <path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z" />
+                  </svg>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      className="flex items-center space-x-2 px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-sm text-[#e3e3e3] rounded-md transition"
+                    >
+                      <span>Moje zadania</span>
+                      <ChevronDown className="w-4 h-4 text-[#c4c7c5]" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Row 5: Calendar Icon -> kodex + blue dot + subtitle "Wolny • Prywatny" */}
+                <div className="flex items-start space-x-4">
+                  <svg className="w-5 h-5 text-[#c4c7c5] mt-0.5 shrink-0 fill-current" viewBox="0 0 24 24">
+                    <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z" />
+                  </svg>
+                  <div className="flex flex-col">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium text-[#e3e3e3]">{currentCal.name}</span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#1a73e8] shrink-0" />
+                    </div>
+                    <span className="text-xs text-[#9aa0a6] mt-0.5">
+                      Wolny • Prywatny
+                    </span>
+                  </div>
+                </div>
+
+                {/* Footer dla Zadanie: Przycisk Zapisz */}
+                <div className="flex items-center justify-end pt-3">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-6 py-2 bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#041e49] font-medium rounded-full text-sm transition shadow-sm active:scale-95"
+                  >
+                    Zapisz
+                  </button>
+                </div>
+              </div>
             ) : (
               /* ======================================================== */
-              /* WIDOK: WYDARZENIE / ZADANIE (Zgodny z Image 1 i Image 4)   */
+              /* WIDOK: WYDARZENIE (Zgodny ze zdjęciami Image 1 i 2)       */
               /* ======================================================== */
               <>
                 <div className="space-y-4 pt-1">
@@ -473,15 +627,23 @@ export default function EventModal({
 
                       {/* Cały dzień + Strefa czasowa + Nie powtarza się */}
                       <div className="flex items-center space-x-4 pt-0.5 flex-wrap gap-y-2 text-sm">
-                        {/* Checkbox z lekko grubym szarym borderem (border-2 border-[#8e918f]) */}
-                        <label className="flex items-center space-x-2.5 text-sm text-[#e3e3e3] cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            checked={isAllDay}
-                            onChange={(e) => setIsAllDay(e.target.checked)}
-                            className="w-4.5 h-4.5 rounded-[3px] bg-transparent border-2 border-[#8e918f] text-[#8ab4f8] focus:ring-0 cursor-pointer"
-                          />
-                          <span>Cały dzień</span>
+                        {/* Checkbox: bez białego tła, szary grubszy border, większy checkbox */}
+                        <label className="flex items-center space-x-2.5 text-sm text-[#e3e3e3] cursor-pointer select-none group">
+                          <div 
+                            onClick={() => setIsAllDay(!isAllDay)}
+                            className={`w-5 h-5 rounded-[3px] flex items-center justify-center transition cursor-pointer ${
+                              isAllDay 
+                                ? 'bg-[#8ab4f8] border-2 border-[#8ab4f8]' 
+                                : 'bg-transparent border-2 border-[#8e918f] group-hover:border-[#c4c7c5]'
+                            }`}
+                          >
+                            {isAllDay && (
+                              <svg className="w-3.5 h-3.5 text-[#041e49] stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </div>
+                          <span onClick={() => setIsAllDay(!isAllDay)}>Cały dzień</span>
                         </label>
 
                         {/* Strefa czasowa: zaokrąglony przezroczysty hover w kolorze napisu */}
