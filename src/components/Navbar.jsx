@@ -354,48 +354,46 @@ export default function Navbar({
                   </div>
                 </div>
 
-                {/* Co: mniejszy radius, lekko większy padding, jaśniejszy szary, bez borderu */}
+                {/* Co: bez borderu, ciemnoszary input jak na zdjęciu */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#e3e3e3] shrink-0 font-normal">Co</span>
                   <input
                     type="text"
-                    placeholder="Słowa kluczowe w wydarzeniu"
                     value={formFilters.what}
                     onChange={(e) => setFormFilters({ ...formFilters, what: e.target.value })}
                     className="flex-1 bg-[#282a2d] text-[#e3e3e3] text-sm rounded-md px-4 py-2.5 border-0 focus:outline-none placeholder-[#9aa0a6]"
                   />
                 </div>
 
-                {/* Kto: mniejszy radius, lekko większy padding, jaśniejszy szary, bez borderu */}
+                {/* Kto: placeholder "Dowolna osoba lub twórcę" ze zdjęcia */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#e3e3e3] shrink-0 font-normal">Kto</span>
                   <input
                     type="text"
-                    placeholder="Wpisz uczestnika, organizatora lub twórcę"
+                    placeholder="Dowolna osoba lub twórcę"
                     value={formFilters.who}
                     onChange={(e) => setFormFilters({ ...formFilters, who: e.target.value })}
                     className="flex-1 bg-[#282a2d] text-[#e3e3e3] text-sm rounded-md px-4 py-2.5 border-0 focus:outline-none placeholder-[#9aa0a6]"
                   />
                 </div>
 
-                {/* Gdzie: mniejszy radius, lekko większy padding, jaśniejszy szary, bez borderu */}
+                {/* Gdzie */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#e3e3e3] shrink-0 font-normal">Gdzie</span>
                   <input
                     type="text"
-                    placeholder="Podaj lokalizację lub salę"
                     value={formFilters.where}
                     onChange={(e) => setFormFilters({ ...formFilters, where: e.target.value })}
                     className="flex-1 bg-[#282a2d] text-[#e3e3e3] text-sm rounded-md px-4 py-2.5 border-0 focus:outline-none placeholder-[#9aa0a6]"
                   />
                 </div>
 
-                {/* Nie zawiera: mniejszy radius, lekko większy padding, jaśniejszy szary, bez borderu */}
+                {/* Nie zawiera: placeholder "Słowa w wydarzeniu" ze zdjęcia */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#e3e3e3] shrink-0 font-normal">Nie zawiera</span>
                   <input
                     type="text"
-                    placeholder="Słowa kluczowe niezawarte w wydarzeniu"
+                    placeholder="Słowa w wydarzeniu"
                     value={formFilters.notContain}
                     onChange={(e) => setFormFilters({ ...formFilters, notContain: e.target.value })}
                     className="flex-1 bg-[#282a2d] text-[#e3e3e3] text-sm rounded-md px-4 py-2.5 border-0 focus:outline-none placeholder-[#9aa0a6]"

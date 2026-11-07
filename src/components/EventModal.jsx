@@ -8,8 +8,7 @@ import {
   MapPin, 
   AlignLeft, 
   Calendar as CalendarIcon, 
-  ChevronDown,
-  ArrowLeftRight
+  ChevronDown
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
@@ -392,35 +391,25 @@ export default function EventModal({
             )}
           </div>
 
-          {/* Row 6: Calendar Icon + Calendar Name */}
-          <div className="flex items-center space-x-3.5">
-            <CalendarIcon className="w-5 h-5 text-[#c4c7c5] shrink-0" />
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-[#e3e3e3]">{currentCal.name}</span>
-              <span 
-                className="w-3 h-3 rounded-full shrink-0" 
-                style={{ backgroundColor: currentCal.color }}
-              />
+          {/* Row 6: Calendar Icon + Calendar Name + Settings Subtitle (jak na zdjeciu) */}
+          <div className="flex items-start space-x-3.5">
+            <CalendarIcon className="w-5 h-5 text-[#c4c7c5] mt-0.5 shrink-0" />
+            <div className="flex flex-col">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-[#e3e3e3]">{currentCal.name}</span>
+                <span 
+                  className="w-3 h-3 rounded-full shrink-0" 
+                  style={{ backgroundColor: currentCal.color }}
+                />
+              </div>
+              <span className="text-xs text-[#9aa0a6] mt-0.5">
+                Zajęty • Widoczność domyślna • Powiadom 30 minut wcześniej
+              </span>
             </div>
           </div>
 
-          {/* Optional Exchange Checkbox */}
-          <div className="flex items-center space-x-2 pt-0.5 pl-8">
-            <input
-              type="checkbox"
-              id="exchangeToggle"
-              checked={isExchangeable}
-              onChange={(e) => setIsExchangeable(e.target.checked)}
-              className="w-4 h-4 rounded-[3px] bg-[#282a2d] border border-[#5f6368] text-[#8ab4f8] focus:ring-0 cursor-pointer"
-            />
-            <label htmlFor="exchangeToggle" className="text-xs text-[#9aa0a6] cursor-pointer flex items-center space-x-1.5 hover:text-[#e3e3e3]">
-              <ArrowLeftRight className="w-3.5 h-3.5 text-amber-400" />
-              <span>Udostępnij na wymianę</span>
-            </label>
-          </div>
-
-          {/* Bottom Footer: Więcej opcji on left, Zapisz on right */}
-          <div className="flex items-center justify-between pt-3 border-t border-[#303134]/60">
+          {/* Bottom Footer: Więcej opcji on left, Zapisz on right (bez border-t) */}
+          <div className="flex items-center justify-between pt-3">
             <button
               type="button"
               onClick={() => {
@@ -428,7 +417,7 @@ export default function EventModal({
                 setShowLocationInput(true);
                 setShowDescInput(true);
               }}
-              className="text-sm font-medium text-[#8ab4f8] hover:text-[#aecbfa] transition px-2 py-1"
+              className="text-sm font-medium text-[#8ab4f8] hover:text-[#aecbfa] hover:bg-[#282a2d] transition px-3 py-1.5 rounded-full"
             >
               Więcej opcji
             </button>

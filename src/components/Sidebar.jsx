@@ -84,14 +84,16 @@ export default function Sidebar({
   if (!isOpen) return null;
 
   return (
-    <aside className="w-64 bg-[#1e1f20] text-[#e3e3e3] flex flex-col px-3 py-3 space-y-3.5 select-none shrink-0 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden h-[calc(100vh-4rem)]">
+    <aside className="w-64 bg-[#1e1f20] text-[#e3e3e3] flex flex-col px-3 py-3 select-none shrink-0 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden h-[calc(100vh-4rem)]">
       {/* 1. Button + Utwórz ▾ without border */}
-      <div className="px-1">
+      <div className="px-1 mb-8">
         <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={false} />
       </div>
 
-      {/* 2. Mini Calendar: oddalony od buttona utwórz (mt-10), mniejsza szerokość (w-[208px]) */}
-      <div className="bg-transparent border-0 w-[208px] mx-auto mt-10 space-y-2.5">
+      {/* Wszystko poniżej buttona Utwórz przesunięte niżej (mb-8 powyżej + space-y-3.5 wewnątrz) */}
+      <div className="flex flex-col space-y-3.5">
+        {/* 2. Mini Calendar: mniejsza szerokość (w-[208px]) */}
+        <div className="bg-transparent border-0 w-[208px] mx-auto space-y-2.5">
         <div className="flex items-center justify-between px-1">
           <span className="text-sm font-semibold text-[#e3e3e3] capitalize">
             {format(miniDate, 'LLLL yyyy', { locale: pl })}
@@ -381,6 +383,7 @@ export default function Sidebar({
         <span className="hover:underline cursor-pointer">Warunki</span>
         <span>•</span>
         <span className="hover:underline cursor-pointer">Prywatność</span>
+      </div>
       </div>
     </aside>
   );
