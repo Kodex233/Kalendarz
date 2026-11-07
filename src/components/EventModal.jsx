@@ -534,25 +534,30 @@ export default function EventModal({
                         </>
                       )}
                     </div>
-                    {/* Subtitle pod czasem: Nie powtarza się (klikalne z listą opcji powtarzania) */}
-                    <div className="relative inline-block">
+                    {/* Dropdown "Nie powtarza się": identyczny jak w Wydarzeniu */}
+                    <div className="relative inline-block" ref={repeatMenuRef}>
                       <button
                         type="button"
                         onClick={() => setIsRepeatMenuOpen(!isRepeatMenuOpen)}
-                        className="text-xs text-[#c4c7c5] hover:text-white pl-0.5 select-none transition cursor-pointer flex items-center space-x-1"
+                        className={`flex items-center justify-between space-x-2.5 px-3.5 py-2 bg-[#303134] hover:bg-[#3c4043] text-sm text-[#e3e3e3] cursor-pointer transition ${
+                          isRepeatMenuOpen 
+                            ? 'rounded-t-md border-b-2 border-[#a8c7fa]' 
+                            : 'rounded-md'
+                        }`}
                       >
                         <span>{repeatRule}</span>
                         {isRepeatMenuOpen ? (
-                          <svg className="w-3.5 h-3.5 fill-[#a8c7fa] shrink-0" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 fill-[#a8c7fa] shrink-0" viewBox="0 0 24 24">
                             <path d="M7 14l5-5 5 5z" />
                           </svg>
                         ) : (
-                          <svg className="w-3.5 h-3.5 fill-[#9aa0a6] shrink-0" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 fill-[#9aa0a6] shrink-0" viewBox="0 0 24 24">
                             <path d="M7 10l5 5 5-5z" />
                           </svg>
                         )}
                       </button>
 
+                      {/* Menu opcji powtarzania */}
                       {isRepeatMenuOpen && (
                         <div className="absolute left-0 top-full mt-1 w-80 bg-[#282a2d] rounded-md shadow-2xl py-1 z-[80] animate-in fade-in zoom-in-95 duration-100 border border-white/10">
                           {repeatOptions.map((opt, i) => (

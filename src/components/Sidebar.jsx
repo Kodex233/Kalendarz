@@ -187,7 +187,9 @@ export default function Sidebar({
                 setSearchPersonQuery(e.target.value);
                 if (onSearchPerson) onSearchPerson(e.target.value);
               }}
-              className="w-full bg-transparent border-0 text-sm font-medium text-[#c4c7c5] placeholder-[#c4c7c5] focus:outline-none p-0 caret-[#8ab4f8]"
+              className={`w-full bg-transparent border-0 text-sm font-medium text-[#c4c7c5] placeholder-[#c4c7c5] focus:outline-none p-0 ${
+                searchPersonQuery ? 'caret-[#8ab4f8]' : 'caret-transparent'
+              }`}
             />
           </div>
         </div>
