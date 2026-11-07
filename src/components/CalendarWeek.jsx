@@ -130,7 +130,7 @@ export default function CalendarWeek({
       {/* All-Day Events row: GMT+1 w pełni widoczne */}
       {allDayEvents.length > 0 && (
         <div className="flex bg-[#131314] shrink-0 py-2 border-b border-white/10 pr-1.5">
-          <div className="w-16 shrink-0 text-center text-[11px] font-medium text-[#9aa0a6] flex items-center justify-center">
+          <div className="w-16 shrink-0 text-center text-[11px] font-medium text-[#9aa0a6] flex items-center justify-center border-r border-white/20">
             GMT+1
           </div>
           <div className="flex-1 grid relative" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
@@ -160,8 +160,8 @@ export default function CalendarWeek({
       {/* Scrollable Time Grid: 1 AM nie jest ucinane, brak pionowej kreski po prawej */}
       <div ref={containerRef} className="flex-1 overflow-y-auto relative bg-[#131314] pr-1.5 pt-2">
         <div className="flex min-h-[1150px]">
-          {/* Left Hours column: 1 AM w pełni widoczne */}
-          <div className="w-16 shrink-0 bg-[#131314] select-none">
+          {/* Left Hours column: 1 AM w pełni widoczne z pionową kreską z prawej */}
+          <div className="w-16 shrink-0 bg-[#131314] select-none border-r border-white/20">
             {HOURS.map((hour, idx) => (
               <div 
                 key={idx} 

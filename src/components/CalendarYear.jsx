@@ -59,18 +59,33 @@ export default function CalendarYear({
     });
   }, [currentYear]);
 
-  // When clicking a day in year view: show popup with events instead of switching to day view!
+  // When clicking a day in year view: show popup with events anchored near clicked day
   const handleDayClick = (day, e) => {
     e.stopPropagation();
     onSelectDate(day);
     const dateStr = format(day, 'yyyy-MM-dd');
     const dayEvents = events.filter(ev => ev.date === dateStr);
     
-    // Position popup near clicked element or centered
+    const rect = e.currentTarget.getBoundingClientRect();
+    const popoverWidth = 260;
+    const popoverHeight = 160;
+
+    let left = rect.left + rect.width / 2 - popoverWidth / 2;
+    if (left < 16) left = 16;
+    if (left + popoverWidth > window.innerWidth - 16) {
+      left = window.innerWidth - popoverWidth - 16;
+    }
+
+    let top = rect.bottom + 8;
+    if (top + popoverHeight > window.innerHeight - 16) {
+      top = rect.top - popoverHeight - 8;
+    }
+
     setSelectedDayInfo({
       day,
       dateStr,
-      events: dayEvents
+      events: dayEvents,
+      coords: { top, left }
     });
   };
 
@@ -114,8 +129,8 @@ export default function CalendarYear({
                 if (isToday) {
                   dayClass = 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-xs';
                 } else if (isSelected && isCurrent) {
-                  // W małych kalendarzach zielony pasujący do liczby
-                  dayClass = 'bg-[#0f5223] text-[#a8c7fa] font-bold shadow-xs';
+                  // Tło dnia: #004a77 (zgodnie z życzeniem)
+                  dayClass = 'bg-[#004a77] text-[#c2e7ff] font-bold shadow-xs';
                 }
 
                 return (
@@ -134,11 +149,17 @@ export default function CalendarYear({
         ))}
       </div>
 
-      {/* Small popover when day is clicked matching image 2 */}
+      {/* Small popover when day is clicked: ciemniejsze tło, bez border, anchored near day */}
       {selectedDayInfo && (
         <div 
           ref={popoverRef}
-          className="fixed z-50 bg-[#282a2d] text-[#e3e3e3] rounded-2xl shadow-2xl p-4 border border-[#3c4043] w-64 text-center animate-in fade-in zoom-in-95 duration-100 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+          style={selectedDayInfo.coords ? { 
+            top: `${selectedDayInfo.coords.top}px`, 
+            left: `${selectedDayInfo.coords.left}px` 
+          } : undefined}
+          className={`fixed z-50 bg-[#161718] text-[#e3e3e3] rounded-2xl shadow-2xl p-4 border-0 w-64 text-center animate-in fade-in zoom-in-95 duration-100 ring-1 ring-white/10 ${
+            !selectedDayInfo.coords ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' : ''
+          }`}
         >
           {/* Header with day abbreviation and close button */}
           <div className="flex items-center justify-between pb-1 text-[#9aa0a6]">

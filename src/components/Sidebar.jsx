@@ -4,12 +4,10 @@ import {
   ChevronLeft, 
   ChevronRight, 
   ChevronUp, 
-  ChevronDown, 
   Check, 
   MoreVertical, 
   X, 
-  Plus,
-  Search
+  Plus
 } from 'lucide-react';
 import CreateDropdown from './CreateDropdown';
 import CalendarColorMenu from './CalendarColorMenu';
@@ -86,14 +84,14 @@ export default function Sidebar({
   if (!isOpen) return null;
 
   return (
-    <aside className="w-64 bg-[#1e1f20] text-[#e3e3e3] flex flex-col px-4 py-3 space-y-4 select-none shrink-0 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden h-[calc(100vh-4rem)]">
+    <aside className="w-64 bg-[#1e1f20] text-[#e3e3e3] flex flex-col px-3 py-3 space-y-3.5 select-none shrink-0 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden h-[calc(100vh-4rem)]">
       {/* 1. Button + Utwórz ▾ without border */}
-      <div>
+      <div className="px-1">
         <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={false} />
       </div>
 
       {/* 2. Mini Calendar */}
-      <div className="bg-transparent border-0 p-0 space-y-2">
+      <div className="bg-transparent border-0 px-1 space-y-2">
         <div className="flex items-center justify-between px-1">
           <span className="text-sm font-semibold text-[#e3e3e3] capitalize">
             {format(miniDate, 'LLLL yyyy', { locale: pl })}
@@ -123,7 +121,7 @@ export default function Sidebar({
           ))}
         </div>
 
-        {/* Mini Month Grid: zielony dopasowany do liczby w małym kalendarzu */}
+        {/* Mini Month Grid: zaznaczony dzień ma tło #004a77 */}
         <div className="grid grid-cols-7 gap-1 text-center text-xs">
           {miniDays.map((day, idx) => {
             const isCurrentMonth = isSameMonth(day, miniDate);
@@ -137,8 +135,8 @@ export default function Sidebar({
             if (isToday) {
               dayStyle = 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-xs';
             } else if (isSelected && isCurrentMonth) {
-              // Zielony pasujący do liczby tylko w małym kalendarzu
-              dayStyle = 'bg-[#0f5223] text-[#a8c7fa] font-bold shadow-xs';
+              // Tło zaznaczonego dnia: #004a77 (zgodnie z życzeniem)
+              dayStyle = 'bg-[#004a77] text-[#c2e7ff] font-bold shadow-xs';
             }
 
             return (
@@ -153,7 +151,7 @@ export default function Sidebar({
           })}
         </div>
 
-        {/* 3. Szukaj osób: BEZ RADIUSA (bez sztucznych podpowiedzi) */}
+        {/* 3. Szukaj osób: BEZ RADIUSA */}
         <div className="pt-2">
           {isSearchingPerson ? (
             <div className="relative flex items-center bg-[#282a2d] rounded-none px-3 py-2 border-b-2 border-[#8ab4f8]">
@@ -189,7 +187,7 @@ export default function Sidebar({
       </div>
 
       {/* 4. Strony rezerwacji */}
-      <div className="pt-1">
+      <div className="pt-1 px-1">
         <div className="flex items-center justify-between text-xs font-medium text-[#c4c7c5] hover:text-[#e3e3e3] py-1 cursor-pointer">
           <span>Strony rezerwacji</span>
           <button 
@@ -202,22 +200,22 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* 5. Moje kalendarze: ZAOKRĄGLONY HOVER, WIĘKSZY HOVER PADDING */}
-      <div className="space-y-1">
+      {/* 5. Moje kalendarze: WIĘKSZY HOVER, WIĘKSZY RADIUS, BLIŻEJ SIEBIE, IKONY X I 3 KROPKI BLIŻEJ KRAWĘDZI BEZ CZERWONEGO */}
+      <div className="space-y-0.5 px-1">
         <div 
           onClick={() => setMyCalendarsOpen(!myCalendarsOpen)}
-          className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1.5 px-2 cursor-pointer hover:bg-[#282a2d]/50 rounded-lg transition"
+          className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1 px-2 cursor-pointer hover:bg-[#282a2d]/50 rounded-lg transition"
         >
           <span>Moje kalendarze</span>
           <ChevronUp className={`w-4 h-4 text-[#9aa0a6] transition-transform duration-200 ${!myCalendarsOpen ? 'rotate-180' : ''}`} />
         </div>
 
         {myCalendarsOpen && (
-          <div className="space-y-1">
+          <div className="space-y-0.5 pt-0.5">
             {myCalendars.map((cal) => (
               <div 
                 key={cal.id} 
-                className="group relative flex items-center justify-between px-3.5 py-2.5 rounded-full hover:bg-[#282a2d] transition text-sm cursor-pointer"
+                className="group relative flex items-center justify-between px-3.5 py-2 rounded-full hover:bg-[#282a2d] transition text-sm cursor-pointer"
               >
                 <div 
                   onClick={() => onToggleCalendar(cal.id)}
@@ -237,13 +235,14 @@ export default function Sidebar({
                   </span>
                 </div>
 
-                <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-0.5 transition shrink-0">
+                {/* X i 3 kropki: bliżej prawej krawędzi (-mr-1.5), większy hover (w-8 h-8), dla X bez czerwonego (hover:text-white) */}
+                <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-0.5 transition shrink-0 -mr-1.5">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteCalendar(cal.id);
                     }}
-                    className="w-7 h-7 flex items-center justify-center text-[#9aa0a6] hover:text-[#f28b82] hover:bg-[#35373a] rounded-full transition"
+                    className="w-7 h-7 flex items-center justify-center text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#35373a] rounded-full transition"
                     title="Usuń kalendarz"
                   >
                     <X className="w-4 h-4" />
@@ -266,6 +265,7 @@ export default function Sidebar({
                     calendar={cal}
                     onClose={() => setActiveMenuCalendarId(null)}
                     onColorChange={(col) => onUpdateCalendarColor(cal.id, col)}
+                    onSelectColor={(id, col) => onUpdateCalendarColor(id, col)}
                     onDelete={() => onDeleteCalendar(cal.id)}
                     onSolo={() => onSoloCalendar(cal.id)}
                   />
@@ -276,9 +276,9 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* 6. Inne kalendarze: ZAOKRĄGLONY HOVER, WIĘKSZY HOVER PADDING */}
-      <div className="space-y-1">
-        <div className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1.5 px-2">
+      {/* 6. Inne kalendarze: WIĘKSZY HOVER, WIĘKSZY RADIUS, BLIŻEJ SIEBIE */}
+      <div className="space-y-0.5 px-1">
+        <div className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1 px-2">
           <div 
             onClick={() => setOtherCalendarsOpen(!otherCalendarsOpen)}
             className="flex items-center space-x-1 cursor-pointer flex-1"
@@ -303,11 +303,11 @@ export default function Sidebar({
         </div>
 
         {otherCalendarsOpen && (
-          <div className="space-y-1">
+          <div className="space-y-0.5 pt-0.5">
             {otherCalendars.map((cal) => (
               <div 
                 key={cal.id} 
-                className="group relative flex items-center justify-between px-3.5 py-2.5 rounded-full hover:bg-[#282a2d] transition text-sm cursor-pointer"
+                className="group relative flex items-center justify-between px-3.5 py-2 rounded-full hover:bg-[#282a2d] transition text-sm cursor-pointer"
               >
                 <div 
                   onClick={() => onToggleOtherCalendar(cal.id)}
@@ -327,13 +327,13 @@ export default function Sidebar({
                   </span>
                 </div>
 
-                <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-0.5 transition shrink-0">
+                <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-0.5 transition shrink-0 -mr-1.5">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteOtherCalendar(cal.id);
                     }}
-                    className="w-7 h-7 flex items-center justify-center text-[#9aa0a6] hover:text-[#f28b82] hover:bg-[#35373a] rounded-full transition"
+                    className="w-7 h-7 flex items-center justify-center text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#35373a] rounded-full transition"
                     title="Usuń kalendarz"
                   >
                     <X className="w-4 h-4" />
@@ -356,6 +356,7 @@ export default function Sidebar({
                     calendar={cal}
                     onClose={() => setActiveMenuCalendarId(null)}
                     onColorChange={(col) => onUpdateOtherCalendarColor(cal.id, col)}
+                    onSelectColor={(id, col) => onUpdateOtherCalendarColor(id, col)}
                     onDelete={() => onDeleteOtherCalendar(cal.id)}
                     onSolo={() => {}}
                   />
@@ -367,7 +368,7 @@ export default function Sidebar({
       </div>
 
       {/* Footer Links */}
-      <div className="pt-4 text-[11px] text-[#9aa0a6] space-x-2">
+      <div className="pt-3 text-[11px] text-[#9aa0a6] space-x-2 px-2">
         <span className="hover:underline cursor-pointer">Warunki</span>
         <span>•</span>
         <span className="hover:underline cursor-pointer">Prywatność</span>

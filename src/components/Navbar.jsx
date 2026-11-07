@@ -156,8 +156,8 @@ export default function Navbar({
   if (isSearchOpen) {
     return (
       <header className="h-16 px-4 flex items-center bg-[#1e1f20] text-[#e3e3e3] select-none z-50 sticky top-0 border-0">
-        {/* Left: Back Arrow and "Szukaj" label matching image 1 */}
-        <div className="flex items-center space-x-3 mr-4">
+        {/* Left: Back Arrow and "Szukaj" label */}
+        <div className="w-64 shrink-0 flex items-center space-x-3">
           <button
             onClick={() => {
               setIsSearchOpen(false);
@@ -171,9 +171,9 @@ export default function Navbar({
           <span className="text-xl font-normal text-[#e3e3e3]">Szukaj</span>
         </div>
 
-        {/* Center: Search pill container with dropdown arrow matching image 1 & image 2 */}
-        <div className="relative flex-1 max-w-2xl" ref={advancedSearchRef}>
-          <div className="flex items-center bg-[#131314] hover:bg-[#282a2d]/70 focus-within:bg-[#282a2d] rounded-full px-4 py-2 transition shadow-inner">
+        {/* Center: Search pill container aligned with calendar, hover does NOT brighten background */}
+        <div className="relative flex-1 max-w-2xl ml-3" ref={advancedSearchRef}>
+          <div className="flex items-center bg-[#131314] rounded-full px-4 py-2 transition shadow-inner">
             <Search className="w-5 h-5 text-[#9aa0a6] mr-3 shrink-0" />
             <input
               ref={searchInputRef}
@@ -213,10 +213,10 @@ export default function Navbar({
             </button>
           </div>
 
-          {/* ADVANCED SEARCH POPOVER (Matching Image 2 directly) */}
+          {/* ADVANCED SEARCH POPOVER: tło #131314, bez border, lekki jasny cień na dole */}
           {isAdvancedSearchOpen && (
-            <div className="absolute left-0 right-0 top-0 mt-0 z-50 bg-[#1e1f20] rounded-[24px] shadow-2xl p-6 border border-[#303134]/80 animate-in fade-in zoom-in-95 duration-150 text-[#e3e3e3]">
-              <div className="flex items-center bg-[#131314] rounded-full px-4 py-2 mb-6">
+            <div className="absolute left-0 right-0 top-0 mt-0 z-50 bg-[#131314] rounded-[24px] shadow-[0_16px_40px_rgba(255,255,255,0.06)] p-6 border-0 animate-in fade-in zoom-in-95 duration-150 text-[#e3e3e3]">
+              <div className="flex items-center bg-[#131314] rounded-full px-4 py-2 mb-6 border border-[#3c4043]/40">
                 <Search className="w-5 h-5 text-[#9aa0a6] mr-3 shrink-0" />
                 <input
                   type="text"
@@ -235,20 +235,23 @@ export default function Navbar({
               </div>
 
               <form onSubmit={handleApplyAdvancedSearch} className="space-y-4">
+                {/* Szukaj w: ładna, zwarta strzałka blisko tekstu */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Szukaj w:</span>
-                  <div className="flex-1">
+                  <div className="relative inline-flex items-center">
                     <select
                       value={formFilters.searchIn}
                       onChange={(e) => setFormFilters({ ...formFilters, searchIn: e.target.value })}
-                      className="w-full bg-[#282a2d] text-[#e3e3e3] text-sm rounded-lg px-3 py-2 border-0 focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
+                      className="appearance-none bg-transparent text-[#e3e3e3] text-sm font-medium pr-7 pl-1 py-1 border-b-2 border-[#8ab4f8] focus:outline-none cursor-pointer"
                     >
-                      <option value="Aktywne kalendarze">✓ Aktywne kalendarze</option>
-                      <option value="Wszystkie kalendarze">Wszystkie kalendarze</option>
+                      <option value="Aktywne kalendarze" className="bg-[#1e1f20] text-[#e3e3e3]">Aktywne kalendarze</option>
+                      <option value="Wszystkie kalendarze" className="bg-[#1e1f20] text-[#e3e3e3]">Wszystkie kalendarze</option>
                     </select>
+                    <ChevronDown className="w-4 h-4 text-[#8ab4f8] pointer-events-none absolute right-1" />
                   </div>
                 </div>
 
+                {/* Co: mniejszy radius, kolor #1e1f20 */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Co</span>
                   <input
@@ -256,10 +259,11 @@ export default function Navbar({
                     placeholder="Słowa kluczowe w wydarzeniu"
                     value={formFilters.what}
                     onChange={(e) => setFormFilters({ ...formFilters, what: e.target.value })}
-                    className="flex-1 bg-[#282a2d] text-[#e3e3e3] text-sm rounded-lg px-3 py-2 border-0 placeholder-[#747775] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
+                    className="flex-1 bg-[#1e1f20] text-[#e3e3e3] text-sm rounded-md px-3 py-2 border border-[#3c4043] focus:border-[#8ab4f8] focus:outline-none placeholder-[#747775]"
                   />
                 </div>
 
+                {/* Kto: mniejszy radius, kolor #1e1f20 */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Kto</span>
                   <input
@@ -267,10 +271,11 @@ export default function Navbar({
                     placeholder="Wpisz uczestnika, organizatora lub twórcę"
                     value={formFilters.who}
                     onChange={(e) => setFormFilters({ ...formFilters, who: e.target.value })}
-                    className="flex-1 bg-[#282a2d] text-[#e3e3e3] text-sm rounded-lg px-3 py-2 border-0 placeholder-[#747775] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
+                    className="flex-1 bg-[#1e1f20] text-[#e3e3e3] text-sm rounded-md px-3 py-2 border border-[#3c4043] focus:border-[#8ab4f8] focus:outline-none placeholder-[#747775]"
                   />
                 </div>
 
+                {/* Gdzie: mniejszy radius, kolor #1e1f20 */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Gdzie</span>
                   <input
@@ -278,10 +283,11 @@ export default function Navbar({
                     placeholder="Podaj lokalizację lub salę"
                     value={formFilters.where}
                     onChange={(e) => setFormFilters({ ...formFilters, where: e.target.value })}
-                    className="flex-1 bg-[#282a2d] text-[#e3e3e3] text-sm rounded-lg px-3 py-2 border-0 placeholder-[#747775] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
+                    className="flex-1 bg-[#1e1f20] text-[#e3e3e3] text-sm rounded-md px-3 py-2 border border-[#3c4043] focus:border-[#8ab4f8] focus:outline-none placeholder-[#747775]"
                   />
                 </div>
 
+                {/* Nie zawiera: mniejszy radius, kolor #1e1f20 */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Nie zawiera</span>
                   <input
@@ -289,10 +295,11 @@ export default function Navbar({
                     placeholder="Słowa kluczowe niezawarte w wydarzeniu"
                     value={formFilters.notContain}
                     onChange={(e) => setFormFilters({ ...formFilters, notContain: e.target.value })}
-                    className="flex-1 bg-[#282a2d] text-[#e3e3e3] text-sm rounded-lg px-3 py-2 border-0 placeholder-[#747775] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
+                    className="flex-1 bg-[#1e1f20] text-[#e3e3e3] text-sm rounded-md px-3 py-2 border border-[#3c4043] focus:border-[#8ab4f8] focus:outline-none placeholder-[#747775]"
                   />
                 </div>
 
+                {/* Data: bez ikonek kalendarza, mniejszy radius */}
                 <div className="flex items-center">
                   <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Data</span>
                   <div className="flex-1 flex items-center space-x-2">
@@ -300,14 +307,14 @@ export default function Navbar({
                       type="date"
                       value={formFilters.dateFrom}
                       onChange={(e) => setFormFilters({ ...formFilters, dateFrom: e.target.value })}
-                      className="bg-[#282a2d] text-[#e3e3e3] text-sm rounded-lg px-3 py-1.5 border-0 focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
+                      className="bg-[#1e1f20] text-[#e3e3e3] text-sm rounded-md px-3 py-1.5 border border-[#3c4043] focus:border-[#8ab4f8] focus:outline-none [appearance:none] [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden"
                     />
                     <span className="text-[#9aa0a6] text-sm">do</span>
                     <input
                       type="date"
                       value={formFilters.dateTo}
                       onChange={(e) => setFormFilters({ ...formFilters, dateTo: e.target.value })}
-                      className="bg-[#282a2d] text-[#e3e3e3] text-sm rounded-lg px-3 py-1.5 border-0 focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
+                      className="bg-[#1e1f20] text-[#e3e3e3] text-sm rounded-md px-3 py-1.5 border border-[#3c4043] focus:border-[#8ab4f8] focus:outline-none [appearance:none] [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden"
                     />
                   </div>
                 </div>
@@ -342,7 +349,7 @@ export default function Navbar({
     <header className="h-16 px-4 flex items-center justify-between bg-[#1e1f20] text-[#e3e3e3] select-none z-20 sticky top-0 border-0">
       {/* Left: Hamburger + Logo in fixed width matching sidebar */}
       <div className="flex items-center">
-        <div className="w-60 shrink-0 flex items-center space-x-3">
+        <div className="w-64 shrink-0 flex items-center space-x-3">
           <button 
             onClick={onToggleSidebar}
             className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] transition"
@@ -364,7 +371,7 @@ export default function Navbar({
         </div>
 
         {/* Navigation starts directly aligned with the calendar canvas */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 ml-3">
           {/* Dzisiaj button: WIEKSZY RADIUS (rounded-full) */}
           <button
             onClick={onToday}

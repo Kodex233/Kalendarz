@@ -55,9 +55,9 @@ export default function CalendarAgenda({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-5 mr-4 m-3 ml-2 mt-1 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-y-auto select-none p-6 shadow-2xl">
+    <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-5 mr-4 m-3 ml-2 mt-1 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none shadow-2xl">
       {/* Red current time indicator line at the top */}
-      <div className="flex items-center space-x-3 pb-3 mb-2 px-2">
+      <div className="flex items-center space-x-3 pt-5 pb-3 px-6 shrink-0 border-b border-white/20">
         <div className="w-8 h-8 rounded-full bg-[#a8c7fa] text-[#041e49] font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
           8
         </div>
@@ -68,46 +68,48 @@ export default function CalendarAgenda({
         <div className="flex-1 border-t-2 border-[#ea4335]" />
       </div>
 
-      {/* Events list: kratki białe i widoczne do samych krawędzi */}
-      <div className="w-full">
-        {allAgendaEvents.map((event) => {
-          const { dayNum, label } = formatDateHeader(event.date);
-          const isAllDay = event.isAllDay || !event.startTime;
-          const timeText = isAllDay ? 'Cały dzień' : `${event.startTime}–${event.endTime}`;
-          const dotColor = event.customBg || '#34a853';
+      {/* Events list: kratki do końca krawędzi, scrollbar wewnątrz tła kalendarza */}
+      <div className="flex-1 overflow-y-auto pb-4 pr-1">
+        <div className="w-full">
+          {allAgendaEvents.map((event) => {
+            const { dayNum, label } = formatDateHeader(event.date);
+            const isAllDay = event.isAllDay || !event.startTime;
+            const timeText = isAllDay ? 'Cały dzień' : `${event.startTime}–${event.endTime}`;
+            const dotColor = event.customBg || '#34a853';
 
-          return (
-            <div
-              key={event.id}
-              onClick={() => onSelectEvent(event)}
-              className="w-full flex items-center py-3.5 px-4 border-b border-white/20 hover:bg-[#1a1b1e] cursor-pointer transition text-sm group"
-            >
-              {/* Column 1: Date */}
-              <div className="w-40 flex items-baseline space-x-2 shrink-0">
-                <span className="text-base font-semibold text-[#e3e3e3] w-6 text-right">
-                  {dayNum}
-                </span>
-                <span className="text-xs font-medium text-[#9aa0a6] uppercase tracking-wider group-hover:text-white transition">
-                  {label}
-                </span>
-              </div>
+            return (
+              <div
+                key={event.id}
+                onClick={() => onSelectEvent(event)}
+                className="w-full flex items-center py-3.5 px-6 border-b border-white/20 hover:bg-[#1a1b1e] cursor-pointer transition text-sm group"
+              >
+                {/* Column 1: Date */}
+                <div className="w-40 flex items-baseline space-x-2 shrink-0">
+                  <span className="text-base font-semibold text-[#e3e3e3] w-6 text-right">
+                    {dayNum}
+                  </span>
+                  <span className="text-xs font-medium text-[#9aa0a6] uppercase tracking-wider group-hover:text-white transition">
+                    {label}
+                  </span>
+                </div>
 
-              {/* Column 2: Dot + Time / Duration */}
-              <div className="w-44 flex items-center space-x-2.5 shrink-0 text-xs text-[#c4c7c5]">
-                <span
-                  className="w-2.5 h-2.5 rounded-full shrink-0"
-                  style={{ backgroundColor: dotColor }}
-                />
-                <span className="truncate">{timeText}</span>
-              </div>
+                {/* Column 2: Dot + Time / Duration */}
+                <div className="w-44 flex items-center space-x-2.5 shrink-0 text-xs text-[#c4c7c5]">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: dotColor }}
+                  />
+                  <span className="truncate">{timeText}</span>
+                </div>
 
-              {/* Column 3: Event Title */}
-              <div className="flex-1 font-normal text-[#e3e3e3] group-hover:text-white truncate">
-                {event.title}
+                {/* Column 3: Event Title */}
+                <div className="flex-1 font-normal text-[#e3e3e3] group-hover:text-white truncate">
+                  {event.title}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

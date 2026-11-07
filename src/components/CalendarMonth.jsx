@@ -21,7 +21,7 @@ export default function CalendarMonth({
 }) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
-  // Sunday first matching image 1 and 2 (NIEDZ., PON., WT., ŚR., CZW., PT., SOB.)
+  // Sunday first matching user screenshot
   const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
 
@@ -29,6 +29,9 @@ export default function CalendarMonth({
   const today = new Date();
 
   const weekDayNames = ['NIEDZ.', 'PON.', 'WT.', 'ŚR.', 'CZW.', 'PT.', 'SOB.'];
+
+  // 5 or 6 rows so that the grid expands to fill 100% of the canvas height with no empty space
+  const numRows = Math.ceil(days.length / 7);
 
   // Group events by YYYY-MM-DD
   const eventsByDate = React.useMemo(() => {
@@ -52,26 +55,24 @@ export default function CalendarMonth({
 
   return (
     <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-5 mr-4 m-3 ml-2 mt-1 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none shadow-2xl">
-      {/* Week day headers */}
-      <div className="grid grid-cols-7 bg-[#131314] border-b border-white/10">
-        {weekDayNames.map((name, i) => (
-          <div 
-            key={i} 
-            className="py-2.5 text-center text-[11px] font-semibold text-[#9aa0a6] uppercase tracking-wider"
-          >
-            {name}
-          </div>
-        ))}
-      </div>
-
-      {/* Month Days Grid with clearly visible lines, no line on right edge */}
-      <div className="flex-1 grid grid-cols-7 grid-rows-6 bg-[#131314]">
+      {/* Month Days Grid: kratki na cały tło kalendarza, brak pustego miejsca na dole */}
+      <div 
+        className="flex-1 grid grid-cols-7 h-full bg-[#131314]"
+        style={{ gridTemplateRows: `repeat(${numRows}, minmax(0, 1fr))` }}
+      >
         {days.map((day, idx) => {
           const dateStr = format(day, 'yyyy-MM-dd');
           const dayEvents = eventsByDate[dateStr] || [];
           const isCurrentMonth = isSameMonth(day, currentDate);
           const isToday = isSameDay(day, today);
+          const isFirstRow = idx < 7;
           const isLastCol = idx % 7 === 6;
+          const isLastRow = Math.floor(idx / 7) === numRows - 1;
+
+          // Pierwszy dzień miesiąca ma skrót nazwy miesiąca obok liczby (np. "1 lut", "1 mar") matching screenshot
+          const isFirstOfMonth = day.getDate() === 1;
+          const monthAbbr = format(day, 'LLL', { locale: pl });
+          const dayDisplay = isFirstOfMonth ? `1 ${monthAbbr}` : format(day, 'd');
 
           let circleClass = 'text-[#e3e3e3] hover:bg-[#35373a]';
           if (isToday) {
@@ -82,24 +83,33 @@ export default function CalendarMonth({
             <div
               key={idx}
               onClick={() => onSelectDate(day)}
-              className={`border-b border-white/15 p-1.5 flex flex-col overflow-hidden transition ${
+              className={`p-1.5 flex flex-col overflow-hidden transition relative ${
                 isLastCol ? 'border-r-0' : 'border-r border-white/15'
               } ${
-                !isCurrentMonth ? 'bg-[#131314]/50 opacity-40' : 'hover:bg-[#1a1b1e]'
+                isLastRow ? 'border-b-0' : 'border-b border-white/15'
+              } ${
+                !isCurrentMonth ? 'bg-[#131314] text-[#9aa0a6] opacity-75' : 'hover:bg-[#1a1b1e]'
               }`}
             >
-              {/* Day Number Header */}
-              <div className="flex items-center justify-between mb-1">
+              {/* Header inside cell: in first row show weekday name (e.g. NIEDZ., PON.), followed by centered day number */}
+              <div className="flex flex-col items-center justify-center mb-1">
+                {isFirstRow && (
+                  <span className="text-[11px] font-semibold text-[#9aa0a6] uppercase tracking-wider mb-1">
+                    {weekDayNames[idx]}
+                  </span>
+                )}
+                
+                {/* Liczba na środku, na tej samej wysokości, z nazwą miesiąca jeśli to 1 dzień */}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDayClick(day);
                   }}
-                  className={`w-7 h-7 rounded-full text-xs flex items-center justify-center transition ${circleClass}`}
+                  className={`h-7 px-2 rounded-full text-xs flex items-center justify-center transition ${circleClass} font-normal`}
                   title="Kliknij, aby przejść do widoku dnia"
                 >
-                  {format(day, 'd')}
+                  {dayDisplay}
                 </button>
               </div>
 
@@ -122,7 +132,7 @@ export default function CalendarMonth({
                   );
                 })}
                 {dayEvents.length > 3 && (
-                  <div className="text-[10px] text-[#9aa0a6] pl-1 font-medium">
+                  <div className="text-[10px] text-[#9aa0a6] text-center font-medium">
                     +{dayEvents.length - 3} więcej
                   </div>
                 )}
