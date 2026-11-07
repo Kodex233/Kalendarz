@@ -582,8 +582,10 @@ export default function App() {
         ) : activeView === 'year' ? (
           <CalendarYear
             currentDate={currentDate}
+            events={visibleEvents}
             onSelectDate={handleSelectDate}
             onViewChange={setActiveView}
+            onSelectEvent={handleSelectEvent}
           />
         ) : activeView === 'agenda' ? (
           <CalendarAgenda

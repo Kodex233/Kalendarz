@@ -27,14 +27,6 @@ import {
 } from 'date-fns';
 import { pl } from 'date-fns/locale';
 
-// Contacts suggestions matching user's uploaded image 3
-const PERSON_SUGGESTIONS = [
-  { id: '1', name: 'marcinpuda@gmail.com', email: 'marcinpuda@gmail.com', letter: 'm', bg: '#0288d1' },
-  { id: '2', name: 'pudaiwo@gmail.com', email: 'pudaiwo@gmail.com', letter: 'p', bg: '#8e24aa' },
-  { id: '3', name: 'Zuzanna Biel', email: 'Zuzanna.Biel@precisely.com', letter: 'z', bg: '#00897b' },
-  { id: '4', name: 'Varneel', email: 'kuba75915@gmail.com', letter: 'v', bg: '#37474f' },
-];
-
 export default function Sidebar({
   isOpen,
   onOpenCreateModal,
@@ -52,21 +44,25 @@ export default function Sidebar({
   onAddOtherCalendar,
   onSearchPerson
 }) {
-  const [miniDate, setMiniDate] = useState(new Date());
+  const [miniDate, setMiniDate] = useState(selectedDate || new Date());
   const [myCalendarsOpen, setMyCalendarsOpen] = useState(true);
   const [otherCalendarsOpen, setOtherCalendarsOpen] = useState(true);
-  const [bookingPagesOpen, setBookingPagesOpen] = useState(false);
   const [activeMenuCalendarId, setActiveMenuCalendarId] = useState(null);
   const [searchPersonQuery, setSearchPersonQuery] = useState('');
   const [isSearchingPerson, setIsSearchingPerson] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   
   const searchInputRef = useRef(null);
-  const suggestionsRef = useRef(null);
+
+  // Keep mini calendar month in sync with selectedDate
+  useEffect(() => {
+    if (selectedDate) {
+      setMiniDate(selectedDate);
+    }
+  }, [selectedDate]);
 
   const monthStart = startOfMonth(miniDate);
   const monthEnd = endOfMonth(monthStart);
-  // Sunday first matching image 1 and 2: N P W Ś C P S
+  // Sunday first: N P W Ś C P S
   const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
   const miniDays = eachDayOfInterval({ start: startDate, end: endDate });
@@ -77,28 +73,14 @@ export default function Sidebar({
     }
   }, [isSearchingPerson]);
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target)) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleSelectPerson = (person) => {
-    setSearchPersonQuery(person.email);
-    setShowSuggestions(false);
-    setIsSearchingPerson(true);
-    if (onSearchPerson) onSearchPerson(person.email);
-  };
-
   const handleClearPersonSearch = () => {
     setSearchPersonQuery('');
-    setShowSuggestions(false);
     setIsSearchingPerson(false);
     if (onSearchPerson) onSearchPerson('');
+  };
+
+  const handleMiniDayClick = (day) => {
+    onSelectDate(day);
   };
 
   if (!isOpen) return null;
@@ -110,7 +92,7 @@ export default function Sidebar({
         <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={false} />
       </div>
 
-      {/* 2. Mini Calendar without background or border, larger typography */}
+      {/* 2. Mini Calendar */}
       <div className="bg-transparent border-0 p-0 space-y-2">
         <div className="flex items-center justify-between px-1">
           <span className="text-sm font-semibold text-[#e3e3e3] capitalize">
@@ -141,26 +123,29 @@ export default function Sidebar({
           ))}
         </div>
 
-        {/* Mini Month Grid */}
+        {/* Mini Month Grid: zielony dopasowany do liczby w małym kalendarzu */}
         <div className="grid grid-cols-7 gap-1 text-center text-xs">
           {miniDays.map((day, idx) => {
             const isCurrentMonth = isSameMonth(day, miniDate);
             const isSelected = isSameDay(day, selectedDate);
             const isToday = isSameDay(day, new Date());
 
+            let dayStyle = 'text-[#e3e3e3] hover:bg-[#282a2d]';
+            if (!isCurrentMonth) {
+              dayStyle = 'text-[#5f6368]';
+            }
+            if (isToday) {
+              dayStyle = 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-xs';
+            } else if (isSelected && isCurrentMonth) {
+              // Zielony pasujący do liczby tylko w małym kalendarzu
+              dayStyle = 'bg-[#0f5223] text-[#a8c7fa] font-bold shadow-xs';
+            }
+
             return (
               <button
                 key={idx}
-                onClick={() => onSelectDate(day)}
-                className={`w-7 h-7 mx-auto rounded-full flex items-center justify-center text-xs transition ${
-                  isSelected 
-                    ? 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-xs'
-                    : isToday
-                    ? 'border border-[#8ab4f8] text-[#8ab4f8] font-bold'
-                    : isCurrentMonth 
-                    ? 'text-[#e3e3e3] hover:bg-[#282a2d]' 
-                    : 'text-[#5f6368]'
-                }`}
+                onClick={() => handleMiniDayClick(day)}
+                className={`w-7 h-7 mx-auto rounded-full flex items-center justify-center text-xs transition ${dayStyle}`}
               >
                 {format(day, 'd')}
               </button>
@@ -168,8 +153,8 @@ export default function Sidebar({
           })}
         </div>
 
-        {/* 3. Szukaj osób: BEZ RADIUSA i z podpowiedziami znajomych matching image 3 */}
-        <div className="pt-2 relative" ref={suggestionsRef}>
+        {/* 3. Szukaj osób: BEZ RADIUSA (bez sztucznych podpowiedzi) */}
+        <div className="pt-2">
           {isSearchingPerson ? (
             <div className="relative flex items-center bg-[#282a2d] rounded-none px-3 py-2 border-b-2 border-[#8ab4f8]">
               <Users className="w-4 h-4 text-[#9aa0a6] mr-2 shrink-0" />
@@ -178,10 +163,8 @@ export default function Sidebar({
                 type="text"
                 placeholder="Szukaj osób"
                 value={searchPersonQuery}
-                onFocus={() => setShowSuggestions(true)}
                 onChange={(e) => {
                   setSearchPersonQuery(e.target.value);
-                  setShowSuggestions(true);
                   if (onSearchPerson) onSearchPerson(e.target.value);
                 }}
                 className="w-full bg-transparent border-0 text-xs text-[#e3e3e3] placeholder-[#9aa0a6] focus:outline-none"
@@ -195,39 +178,12 @@ export default function Sidebar({
             </div>
           ) : (
             <button
-              onClick={() => {
-                setIsSearchingPerson(true);
-                setShowSuggestions(true);
-              }}
+              onClick={() => setIsSearchingPerson(true)}
               className="w-full flex items-center space-x-2.5 px-3 py-2 bg-[#282a2d] hover:bg-[#35373a] text-[#c4c7c5] hover:text-[#e3e3e3] rounded-none text-xs font-medium transition duration-150 border-b-2 border-transparent"
             >
               <Users className="w-4 h-4 text-[#9aa0a6]" />
               <span>Szukaj osób</span>
             </button>
-          )}
-
-          {/* Autocomplete suggestions popup matching image 3 */}
-          {showSuggestions && (
-            <div className="absolute left-0 right-0 top-full mt-1 bg-[#1e1f20] border border-[#303134] rounded-xl shadow-2xl z-50 overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-100">
-              {PERSON_SUGGESTIONS.map((person) => (
-                <div
-                  key={person.id}
-                  onClick={() => handleSelectPerson(person)}
-                  className="px-3 py-2 hover:bg-[#282a2d] cursor-pointer flex items-center space-x-3 transition"
-                >
-                  <div 
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                    style={{ backgroundColor: person.bg }}
-                  >
-                    {person.letter}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-medium text-[#e3e3e3] truncate">{person.name}</div>
-                    <div className="text-[11px] text-[#9aa0a6] truncate">{person.email}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
           )}
         </div>
       </div>
@@ -246,29 +202,29 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* 5. Moje kalendarze: Zwijana sekcja ze strzałką */}
+      {/* 5. Moje kalendarze: ZAOKRĄGLONY HOVER, WIĘKSZY HOVER PADDING */}
       <div className="space-y-1">
         <div 
           onClick={() => setMyCalendarsOpen(!myCalendarsOpen)}
-          className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1 px-1 cursor-pointer hover:bg-[#282a2d]/50 rounded-lg transition"
+          className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1.5 px-2 cursor-pointer hover:bg-[#282a2d]/50 rounded-lg transition"
         >
           <span>Moje kalendarze</span>
           <ChevronUp className={`w-4 h-4 text-[#9aa0a6] transition-transform duration-200 ${!myCalendarsOpen ? 'rotate-180' : ''}`} />
         </div>
 
         {myCalendarsOpen && (
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             {myCalendars.map((cal) => (
               <div 
                 key={cal.id} 
-                className="group relative flex items-center justify-between py-1 px-1 rounded-xl hover:bg-[#282a2d] transition text-sm"
+                className="group relative flex items-center justify-between px-3.5 py-2.5 rounded-full hover:bg-[#282a2d] transition text-sm cursor-pointer"
               >
                 <div 
                   onClick={() => onToggleCalendar(cal.id)}
                   className="flex items-center space-x-3 cursor-pointer flex-1 min-w-0"
                 >
                   <div 
-                    className="w-5 h-5 rounded-[5px] flex items-center justify-center transition shadow-xs"
+                    className="w-5 h-5 rounded-[5px] flex items-center justify-center transition shadow-xs shrink-0"
                     style={{ 
                       backgroundColor: cal.checked ? cal.color : 'transparent',
                       border: cal.checked ? 'none' : '2px solid #5f6368'
@@ -281,7 +237,7 @@ export default function Sidebar({
                   </span>
                 </div>
 
-                <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-0.5 transition">
+                <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-0.5 transition shrink-0">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -320,9 +276,9 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* 6. Inne kalendarze: Zwijana sekcja ze strzałką i + */}
+      {/* 6. Inne kalendarze: ZAOKRĄGLONY HOVER, WIĘKSZY HOVER PADDING */}
       <div className="space-y-1">
-        <div className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1 px-1">
+        <div className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1.5 px-2">
           <div 
             onClick={() => setOtherCalendarsOpen(!otherCalendarsOpen)}
             className="flex items-center space-x-1 cursor-pointer flex-1"
@@ -347,18 +303,18 @@ export default function Sidebar({
         </div>
 
         {otherCalendarsOpen && (
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             {otherCalendars.map((cal) => (
               <div 
                 key={cal.id} 
-                className="group relative flex items-center justify-between py-1 px-1 rounded-xl hover:bg-[#282a2d] transition text-sm"
+                className="group relative flex items-center justify-between px-3.5 py-2.5 rounded-full hover:bg-[#282a2d] transition text-sm cursor-pointer"
               >
                 <div 
                   onClick={() => onToggleOtherCalendar(cal.id)}
                   className="flex items-center space-x-3 cursor-pointer flex-1 min-w-0"
                 >
                   <div 
-                    className="w-5 h-5 rounded-[5px] flex items-center justify-center transition shadow-xs"
+                    className="w-5 h-5 rounded-[5px] flex items-center justify-center transition shadow-xs shrink-0"
                     style={{ 
                       backgroundColor: cal.checked ? cal.color : 'transparent',
                       border: cal.checked ? 'none' : '2px solid #5f6368'
@@ -371,7 +327,7 @@ export default function Sidebar({
                   </span>
                 </div>
 
-                <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-0.5 transition">
+                <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-0.5 transition shrink-0">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

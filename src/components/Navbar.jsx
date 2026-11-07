@@ -340,122 +340,129 @@ export default function Navbar({
   // ==========================================
   return (
     <header className="h-16 px-4 flex items-center justify-between bg-[#1e1f20] text-[#e3e3e3] select-none z-20 sticky top-0 border-0">
-      {/* Left: Hamburger, Logo, Dzisiaj, Navigation, Month/Date Dropdown */}
-      <div className="flex items-center space-x-3">
-        <button 
-          onClick={onToggleSidebar}
-          className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] transition"
-          title="Menu główne"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
+      {/* Left: Hamburger + Logo in fixed width matching sidebar */}
+      <div className="flex items-center">
+        <div className="w-60 shrink-0 flex items-center space-x-3">
+          <button 
+            onClick={onToggleSidebar}
+            className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] transition"
+            title="Menu główne"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
 
-        <div className="flex items-center space-x-2 mr-3 cursor-pointer">
-          <div className="w-10 h-10 bg-[#1a73e8] text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-sm">
-            {format(new Date(), 'd')}
+          <div className="flex items-center space-x-2.5 cursor-pointer">
+            <img 
+              src="/calendar-logo.png" 
+              alt="Kalendarz" 
+              className="w-10 h-10 object-contain rounded-xl drop-shadow-md" 
+            />
+            <span className="text-xl font-normal text-[#e3e3e3] tracking-tight font-['Product_Sans',sans-serif]">
+              Kalendarz
+            </span>
           </div>
-          <span className="text-xl font-normal text-[#e3e3e3] tracking-tight font-['Product_Sans',sans-serif]">
-            Kalendarz
-          </span>
         </div>
 
-        {/* Dzisiaj button: WIEKSZY RADIUS (rounded-full) */}
-        <button
-          onClick={onToday}
-          className="px-5 py-2 border border-[#5f6368] hover:bg-[#282a2d] rounded-full text-sm font-medium text-[#e3e3e3] transition active:scale-95"
-        >
-          Dzisiaj
-        </button>
-
-        {/* < > arrows: advance by current view mode */}
-        <div className="flex items-center space-x-1">
+        {/* Navigation starts directly aligned with the calendar canvas */}
+        <div className="flex items-center space-x-3">
+          {/* Dzisiaj button: WIEKSZY RADIUS (rounded-full) */}
           <button
-            onClick={onPrevDate}
-            className="p-2 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] transition"
-            title="Poprzedni"
+            onClick={onToday}
+            className="px-5 py-2 border border-[#5f6368] hover:bg-[#282a2d] rounded-full text-sm font-medium text-[#e3e3e3] transition active:scale-95"
           >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={onNextDate}
-            className="p-2 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] transition"
-            title="Następny"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Month/Date Dropdown Button matching image 2 */}
-        <div className="relative" ref={monthPickerRef}>
-          <button
-            onClick={() => {
-              setPickerDate(currentDate);
-              setIsMonthPickerOpen(!isMonthPickerOpen);
-            }}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg hover:bg-[#282a2d] text-xl font-medium text-[#e3e3e3] capitalize transition"
-          >
-            <span>{headerDateLabel}</span>
-            <ChevronDown className={`w-4 h-4 text-[#9aa0a6] transition-transform ${isMonthPickerOpen ? 'rotate-180' : ''}`} />
+            Dzisiaj
           </button>
 
-          {/* Month & Day Picker Popover: tło #1e1f20, mniejszy radius rounded-xl */}
-          {isMonthPickerOpen && (
-            <div className="absolute left-0 mt-2 z-50 w-64 bg-[#1e1f20] border border-[#303134] rounded-xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-100 ring-1 ring-white/5">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-semibold text-[#e3e3e3] capitalize">
-                  {format(pickerDate, 'LLLL yyyy', { locale: pl })}
-                </span>
-                <div className="flex items-center space-x-1">
-                  <button 
-                    onClick={() => setPickerDate(subMonths(pickerDate, 1))}
-                    className="p-1 hover:bg-[#35373a] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] transition"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button 
-                    onClick={() => setPickerDate(addMonths(pickerDate, 1))}
-                    className="p-1 hover:bg-[#35373a] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] transition"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+          {/* < > arrows: advance by current view mode */}
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={onPrevDate}
+              className="p-2 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] transition"
+              title="Poprzedni"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={onNextDate}
+              className="p-2 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] transition"
+              title="Następny"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Month/Date Dropdown Button matching image 2 */}
+          <div className="relative" ref={monthPickerRef}>
+            <button
+              onClick={() => {
+                setPickerDate(currentDate);
+                setIsMonthPickerOpen(!isMonthPickerOpen);
+              }}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg hover:bg-[#282a2d] text-xl font-medium text-[#e3e3e3] capitalize transition"
+            >
+              <span>{headerDateLabel}</span>
+              <ChevronDown className={`w-4 h-4 text-[#9aa0a6] transition-transform ${isMonthPickerOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Month & Day Picker Popover: tło #1e1f20, mniejszy radius rounded-xl */}
+            {isMonthPickerOpen && (
+              <div className="absolute left-0 mt-2 z-50 w-64 bg-[#1e1f20] border border-[#303134] rounded-xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-100 ring-1 ring-white/5">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-semibold text-[#e3e3e3] capitalize">
+                    {format(pickerDate, 'LLLL yyyy', { locale: pl })}
+                  </span>
+                  <div className="flex items-center space-x-1">
+                    <button 
+                      onClick={() => setPickerDate(subMonths(pickerDate, 1))}
+                      className="p-1 hover:bg-[#35373a] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] transition"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => setPickerDate(addMonths(pickerDate, 1))}
+                      className="p-1 hover:bg-[#35373a] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] transition"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Days header: N P W Ś C P S */}
+                <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-[#9aa0a6] mb-1.5">
+                  {['N', 'P', 'W', 'Ś', 'C', 'P', 'S'].map((d, i) => (
+                    <div key={i}>{d}</div>
+                  ))}
+                </div>
+
+                {/* Days grid */}
+                <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                  {pickerDays.map((day, idx) => {
+                    const isCurrentMonth = isSameMonth(day, pickerDate);
+                    const isSelected = isSameDay(day, currentDate);
+
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          onSelectDate(day);
+                          setIsMonthPickerOpen(false);
+                        }}
+                        className={`w-7 h-7 mx-auto rounded-full flex items-center justify-center text-xs transition ${
+                          isSelected 
+                            ? 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-xs'
+                            : isCurrentMonth 
+                            ? 'text-[#e3e3e3] hover:bg-[#35373a]' 
+                            : 'text-[#5f6368]'
+                        }`}
+                      >
+                        {format(day, 'd')}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-
-              {/* Days header: N P W Ś C P S */}
-              <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-[#9aa0a6] mb-1.5">
-                {['N', 'P', 'W', 'Ś', 'C', 'P', 'S'].map((d, i) => (
-                  <div key={i}>{d}</div>
-                ))}
-              </div>
-
-              {/* Days grid */}
-              <div className="grid grid-cols-7 gap-1 text-center text-xs">
-                {pickerDays.map((day, idx) => {
-                  const isCurrentMonth = isSameMonth(day, pickerDate);
-                  const isSelected = isSameDay(day, currentDate);
-
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        onSelectDate(day);
-                        setIsMonthPickerOpen(false);
-                      }}
-                      className={`w-7 h-7 mx-auto rounded-full flex items-center justify-center text-xs transition ${
-                        isSelected 
-                          ? 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-xs'
-                          : isCurrentMonth 
-                          ? 'text-[#e3e3e3] hover:bg-[#35373a]' 
-                          : 'text-[#5f6368]'
-                      }`}
-                    >
-                      {format(day, 'd')}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 

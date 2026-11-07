@@ -51,7 +51,7 @@ export default function CalendarMonth({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-4 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none m-3 ml-2 shadow-2xl">
+    <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-5 mr-4 m-3 ml-2 mt-1 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none shadow-2xl">
       {/* Week day headers */}
       <div className="grid grid-cols-7 bg-[#131314] border-b border-white/10">
         {weekDayNames.map((name, i) => (
@@ -64,27 +64,27 @@ export default function CalendarMonth({
         ))}
       </div>
 
-      {/* Month Days Grid with clearly visible lines */}
+      {/* Month Days Grid with clearly visible lines, no line on right edge */}
       <div className="flex-1 grid grid-cols-7 grid-rows-6 bg-[#131314]">
         {days.map((day, idx) => {
           const dateStr = format(day, 'yyyy-MM-dd');
           const dayEvents = eventsByDate[dateStr] || [];
           const isCurrentMonth = isSameMonth(day, currentDate);
           const isToday = isSameDay(day, today);
-          const isSelected = isSameDay(day, currentDate);
+          const isLastCol = idx % 7 === 6;
 
           let circleClass = 'text-[#e3e3e3] hover:bg-[#35373a]';
           if (isToday) {
             circleClass = 'bg-[#a8c7fa] text-[#041e49] font-medium shadow-xs';
-          } else if (isSelected) {
-            circleClass = 'bg-[#0f5223] text-[#a8c7fa] font-medium shadow-xs';
           }
 
           return (
             <div
               key={idx}
               onClick={() => onSelectDate(day)}
-              className={`border-r border-b border-white/15 p-1.5 flex flex-col overflow-hidden transition ${
+              className={`border-b border-white/15 p-1.5 flex flex-col overflow-hidden transition ${
+                isLastCol ? 'border-r-0' : 'border-r border-white/15'
+              } ${
                 !isCurrentMonth ? 'bg-[#131314]/50 opacity-40' : 'hover:bg-[#1a1b1e]'
               }`}
             >

@@ -2,7 +2,6 @@ import React from 'react';
 import { format, isSameDay } from 'date-fns';
 import { pl } from 'date-fns/locale';
 
-// Standard Polish holidays matching user's uploaded image 2 and 5
 const STANDARD_HOLIDAYS_2026_2027 = [
   { id: 'hol-1', title: 'Dzień Niepodległości', date: '2026-11-11', startTime: '', endTime: '', isAllDay: true, customBg: '#34a853', calendarId: 'swieta' },
   { id: 'hol-2', title: 'Wigilia Bożego Narodzenia', date: '2026-12-24', startTime: '', endTime: '', isAllDay: true, customBg: '#34a853', calendarId: 'swieta' },
@@ -24,12 +23,9 @@ const STANDARD_HOLIDAYS_2026_2027 = [
 
 export default function CalendarAgenda({
   currentDate,
-  events,
+  events = [],
   onSelectEvent
 }) {
-  const today = new Date(2026, 10, 8); // 8 Nov 2026
-
-  // Merge events with holidays, ensuring no duplicates by id or title+date
   const allAgendaEvents = React.useMemo(() => {
     const list = [...events];
     STANDARD_HOLIDAYS_2026_2027.forEach(hol => {
@@ -59,9 +55,9 @@ export default function CalendarAgenda({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-4 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-y-auto select-none m-3 ml-2 p-6 shadow-2xl">
-      {/* Red current time indicator line at the top with today's date badge matching image 2 and 5 */}
-      <div className="flex items-center space-x-3 pb-3 mb-2">
+    <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-5 mr-4 m-3 ml-2 mt-1 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-y-auto select-none p-6 shadow-2xl">
+      {/* Red current time indicator line at the top */}
+      <div className="flex items-center space-x-3 pb-3 mb-2 px-2">
         <div className="w-8 h-8 rounded-full bg-[#a8c7fa] text-[#041e49] font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
           8
         </div>
@@ -72,8 +68,8 @@ export default function CalendarAgenda({
         <div className="flex-1 border-t-2 border-[#ea4335]" />
       </div>
 
-      {/* Events list matching image 2 & 5 */}
-      <div className="divide-y divide-[#282a2d]/60">
+      {/* Events list: kratki białe i widoczne do samych krawędzi */}
+      <div className="w-full">
         {allAgendaEvents.map((event) => {
           const { dayNum, label } = formatDateHeader(event.date);
           const isAllDay = event.isAllDay || !event.startTime;
@@ -84,9 +80,9 @@ export default function CalendarAgenda({
             <div
               key={event.id}
               onClick={() => onSelectEvent(event)}
-              className="flex items-center py-3.5 px-3 hover:bg-[#1a1b1e] rounded-xl cursor-pointer transition text-sm group"
+              className="w-full flex items-center py-3.5 px-4 border-b border-white/20 hover:bg-[#1a1b1e] cursor-pointer transition text-sm group"
             >
-              {/* Column 1: Date (e.g. 11  LIS, ŚR.) */}
+              {/* Column 1: Date */}
               <div className="w-40 flex items-baseline space-x-2 shrink-0">
                 <span className="text-base font-semibold text-[#e3e3e3] w-6 text-right">
                   {dayNum}

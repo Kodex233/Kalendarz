@@ -10,7 +10,7 @@ import {
 import { Plus } from 'lucide-react';
 import CreateDropdown from './CreateDropdown';
 
-// Kalendarz zaczyna się od 1 AM na samej górze (zgodnie z życzeniem)
+// Kalendarz zaczyna się od 1 AM na samej górze
 const HOURS = [
   '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM',
   '7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', 
@@ -63,7 +63,7 @@ export default function CalendarWeek({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-4 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none m-3 ml-2 shadow-2xl">
+    <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-5 mr-4 m-3 ml-2 mt-1 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none shadow-2xl">
       {/* Top Header: BEZ POZIOMEJ KRESKI POD DNIAMI */}
       <div className="flex bg-[#131314] shrink-0 pt-2 pb-1 pr-1.5">
         {/* Left top box: When sidebar is collapsed, + button sits right here */}
@@ -75,52 +75,62 @@ export default function CalendarWeek({
           )}
         </div>
 
-        {/* Day columns: liczby większe i mniej grube, nazwa na niebiesko w wybranym dniu */}
+        {/* Day columns: W widoku dnia wyrównanie DO LEWEJ, zielony kolor usunięty z głównego kalendarza */}
         <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
           {days.map((day, idx) => {
             const isToday = isSameDay(day, today);
-            const isSelected = isSameDay(day, currentDate);
             const dayName = DAY_NAMES[day.getDay()];
 
-            // Logika stylów:
-            // 1. Dzisiejsza data: niebieskie tło koła + nazwa dnia na niebiesko
-            // 2. Wybrany inny dzień: tło ciemnozielone + liczba jasnoniebieska
-            // 3. Normalny dzień: zwykły tekst
+            // W głównym kalendarzu tylko dzisiejsza data ma niebieskie tło koła i niebieską nazwę;
+            // Pozostałe dni mają zwykły tekst (bez zielonego tła)
             let circleClass = 'text-[#e3e3e3] font-normal hover:bg-[#282a2d]';
             let nameClass = 'text-[#9aa0a6]';
 
             if (isToday) {
               circleClass = 'bg-[#a8c7fa] text-[#041e49] font-medium shadow-md';
               nameClass = 'text-[#a8c7fa] font-bold';
-            } else if (isSelected) {
-              circleClass = 'bg-[#0f5223] text-[#a8c7fa] font-medium shadow-md';
-              nameClass = 'text-[#a8c7fa] font-semibold';
             }
 
             return (
               <div 
                 key={idx}
                 onClick={() => handleDayHeaderClick(day)}
-                className="py-1 text-center flex flex-col items-center justify-center cursor-pointer group transition border-0 select-none"
+                className={`py-1 transition border-0 select-none cursor-pointer group ${
+                  viewMode === 'day' 
+                    ? 'flex flex-row items-center space-x-3.5 pl-4 text-left justify-start' 
+                    : 'flex flex-col items-center justify-center text-center'
+                }`}
                 title={`Przejdź do widoku dnia: ${format(day, 'd MMMM')}`}
               >
-                <span className={`text-[11px] tracking-wider mb-1 transition ${nameClass}`}>
-                  {dayName}
-                </span>
-
-                <div className={`w-11 h-11 rounded-full flex items-center justify-center text-2xl transition ${circleClass}`}>
-                  {format(day, 'd')}
-                </div>
+                {viewMode === 'day' ? (
+                  <>
+                    <div className={`w-11 h-11 rounded-full flex items-center justify-center text-2xl transition shrink-0 ${circleClass}`}>
+                      {format(day, 'd')}
+                    </div>
+                    <span className={`text-sm tracking-wider uppercase transition ${nameClass}`}>
+                      {dayName}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className={`text-[11px] tracking-wider mb-1 transition ${nameClass}`}>
+                      {dayName}
+                    </span>
+                    <div className={`w-11 h-11 rounded-full flex items-center justify-center text-2xl transition ${circleClass}`}>
+                      {format(day, 'd')}
+                    </div>
+                  </>
+                )}
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* All-Day Events row */}
+      {/* All-Day Events row: GMT+1 w pełni widoczne */}
       {allDayEvents.length > 0 && (
-        <div className="flex bg-[#131314] shrink-0 py-1.5 border-b border-white/10 pr-1.5">
-          <div className="w-16 shrink-0 text-center text-[10px] text-[#9aa0a6] pt-1">
+        <div className="flex bg-[#131314] shrink-0 py-2 border-b border-white/10 pr-1.5">
+          <div className="w-16 shrink-0 text-center text-[11px] font-medium text-[#9aa0a6] flex items-center justify-center">
             GMT+1
           </div>
           <div className="flex-1 grid relative" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
@@ -147,22 +157,22 @@ export default function CalendarWeek({
         </div>
       )}
 
-      {/* Scrollable Time Grid with VISIBLE WHITE/GRAY GRID LINES and 1 AM at the top */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto relative bg-[#131314] pr-1.5">
+      {/* Scrollable Time Grid: 1 AM nie jest ucinane, brak pionowej kreski po prawej */}
+      <div ref={containerRef} className="flex-1 overflow-y-auto relative bg-[#131314] pr-1.5 pt-2">
         <div className="flex min-h-[1150px]">
-          {/* Left Hours column: zaczyna się bezpośrednio od 1 AM */}
+          {/* Left Hours column: 1 AM w pełni widoczne */}
           <div className="w-16 shrink-0 bg-[#131314] select-none">
             {HOURS.map((hour, idx) => (
               <div 
                 key={idx} 
-                className="h-12 relative text-right pr-3 text-[11px] font-medium text-[#9aa0a6] -top-2.5"
+                className="h-12 relative text-right pr-3 text-[11px] font-medium text-[#9aa0a6] flex items-start justify-end"
               >
                 {hour}
               </div>
             ))}
           </div>
 
-          {/* Day Grid Columns: BIAŁE I BARDZIEJ WIDOCZNE LINIE (border-white/20, border-white/15) */}
+          {/* Day Grid Columns: białe linie siatki, brak prawej kreski na ostatniej kolumnie */}
           <div 
             className="flex-1 grid relative" 
             style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}
@@ -171,15 +181,16 @@ export default function CalendarWeek({
               const dateStr = format(day, 'yyyy-MM-dd');
               const dayEvents = timedEvents.filter(e => e.date === dateStr);
               const isToday = isSameDay(day, today);
+              const isLastColumn = dIdx === days.length - 1;
 
               return (
                 <div 
                   key={dIdx} 
-                  className="border-r border-white/20 relative h-full"
+                  className={`relative h-full ${isLastColumn ? 'border-r-0' : 'border-r border-white/20'}`}
                 >
-                  {/* Hour slots: mniejszy dystans h-12 (48px) */}
+                  {/* Hour slots: mniejszy dystans h-12 */}
                   {HOURS.map((_, hIdx) => {
-                    const slotHour = hIdx + 1; // 1 AM to 23 (11 PM)
+                    const slotHour = hIdx + 1;
                     return (
                       <div 
                         key={hIdx} 
@@ -207,7 +218,6 @@ export default function CalendarWeek({
 
                     if (event.startTime) {
                       const [h, m] = event.startTime.split(':').map(Number);
-                      // Offset by 1 because grid starts at 1 AM
                       const startMinutes = Math.max(0, (h - 1) * 48 + ((m || 0) / 60) * 48);
                       topPx = startMinutes;
                     }

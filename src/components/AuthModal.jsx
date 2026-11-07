@@ -246,50 +246,6 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
             </button>
           </div>
         </form>
-
-        {/* Quick Google Test Switchers matching user's uploaded accounts */}
-        <div className="mt-6 pt-4 border-t border-[#3c4043]">
-          <p className="text-[11px] font-semibold text-[#9aa0a6] uppercase tracking-wider mb-2.5 text-center">
-            Szybkie logowanie Google (konta ze zdjęć):
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => handleDirectGoogleSimulation('kodex233@gmail.com', 'Kodex')}
-              className="px-3 py-2 bg-[#282a2d] hover:bg-[#35373a] text-xs font-medium text-[#e3e3e3] rounded-xl flex items-center space-x-2 transition border border-[#3c4043]"
-            >
-              <div className="w-5 h-5 rounded-full bg-[#0288d1] text-white text-[10px] flex items-center justify-center font-bold">K</div>
-              <span className="truncate">kodex233</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleDirectGoogleSimulation('pudaiwo@gmail.com', 'Iwo Puda')}
-              className="px-3 py-2 bg-[#282a2d] hover:bg-[#35373a] text-xs font-medium text-[#e3e3e3] rounded-xl flex items-center space-x-2 transition border border-[#3c4043]"
-            >
-              <div className="w-5 h-5 rounded-full bg-[#8e24aa] text-white text-[10px] flex items-center justify-center font-bold">P</div>
-              <span className="truncate">pudaiwo</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleDirectGoogleSimulation('marcinpuda@gmail.com', 'Marcin Puda')}
-              className="px-3 py-2 bg-[#282a2d] hover:bg-[#35373a] text-xs font-medium text-[#e3e3e3] rounded-xl flex items-center space-x-2 transition border border-[#3c4043]"
-            >
-              <div className="w-5 h-5 rounded-full bg-[#00897b] text-white text-[10px] flex items-center justify-center font-bold">M</div>
-              <span className="truncate">marcinpuda</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleDirectGoogleSimulation('janek@firma.pl', 'Kolega Janek')}
-              className="px-3 py-2 bg-[#282a2d] hover:bg-[#35373a] text-xs font-medium text-[#e3e3e3] rounded-xl flex items-center space-x-2 transition border border-[#3c4043]"
-            >
-              <div className="w-5 h-5 rounded-full bg-[#34a853] text-white text-[10px] flex items-center justify-center font-bold">J</div>
-              <span className="truncate">Kolega Janek</span>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
