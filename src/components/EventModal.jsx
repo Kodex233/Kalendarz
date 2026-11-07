@@ -20,10 +20,10 @@ export default function EventModal({
   onFormChange
 }) {
   const [activeTab, setActiveTab] = useState(eventType || 'Wydarzenie');
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [startTime, setStartTime] = useState('10:30');
-  const [endTime, setEndTime] = useState('11:30');
+  const [title, setTitle] = useState(initialData?.title || '');
+  const [date, setDate] = useState(initialData?.date || '');
+  const [startTime, setStartTime] = useState(initialData?.startTime || '10:30');
+  const [endTime, setEndTime] = useState(initialData?.endTime || '11:30');
   const [isAllDay, setIsAllDay] = useState(false);
   const [guests, setGuests] = useState('');
   const [showGuestInput, setShowGuestInput] = useState(false);
@@ -154,6 +154,44 @@ export default function EventModal({
     }
   }, [date]);
 
+  // Dynamiczne pozycjonowanie okienka bezpośrednio obok podglądu klikniętej kratki
+  // (Musi być wywołane przed jakimkolwiek wczesnym return null, zgodnie z Rules of Hooks)
+  const modalStyle = useMemo(() => {
+    if (!initialData?.slotRect) {
+      return {
+        top: '80px',
+        left: '280px'
+      };
+    }
+
+    const { left: slotLeft, right: slotRight, top: slotTop } = initialData.slotRect;
+    const modalWidth = 495;
+    const modalHeight = 490;
+    const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1400;
+    const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 900;
+
+    let targetLeft = 0;
+    // Jeśli po lewej stronie kratki mieści się okienko: umieść je z lewej od kratki/podglądu
+    if (slotLeft - modalWidth - 10 >= 40) {
+      targetLeft = slotLeft - modalWidth - 12;
+    } else {
+      // W przeciwnym razie umieść je z prawej strony kratki/podglądu
+      targetLeft = slotRight + 12;
+    }
+
+    // Ograniczenie poziome w granicach ekranu
+    targetLeft = Math.max(16, Math.min(windowWidth - modalWidth - 16, targetLeft));
+
+    // Wyrównanie pionowe na poziomie wybranej godziny
+    let targetTop = slotTop - 60;
+    targetTop = Math.max(64, Math.min(windowHeight - modalHeight - 16, targetTop));
+
+    return {
+      top: `${targetTop}px`,
+      left: `${targetLeft}px`
+    };
+  }, [initialData?.slotRect]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
@@ -193,43 +231,6 @@ export default function EventModal({
       onClose();
     }
   };
-
-  // Dynamiczne pozycjonowanie okienka bezpośrednio obok podglądu klikniętej kratki
-  const modalStyle = useMemo(() => {
-    if (!initialData?.slotRect) {
-      return {
-        top: '80px',
-        left: '280px'
-      };
-    }
-
-    const { left: slotLeft, right: slotRight, top: slotTop } = initialData.slotRect;
-    const modalWidth = 495;
-    const modalHeight = 490;
-    const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1400;
-    const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 900;
-
-    let targetLeft = 0;
-    // Jeśli po lewej stronie kratki mieści się okienko: umieść je z lewej od kratki/podglądu
-    if (slotLeft - modalWidth - 10 >= 40) {
-      targetLeft = slotLeft - modalWidth - 12;
-    } else {
-      // W przeciwnym razie umieść je z prawej strony kratki/podglądu
-      targetLeft = slotRight + 12;
-    }
-
-    // Ograniczenie poziome w granicach ekranu
-    targetLeft = Math.max(16, Math.min(windowWidth - modalWidth - 16, targetLeft));
-
-    // Wyrównanie pionowe na poziomie wybranej godziny
-    let targetTop = slotTop - 60;
-    targetTop = Math.max(64, Math.min(windowHeight - modalHeight - 16, targetTop));
-
-    return {
-      top: `${targetTop}px`,
-      left: `${targetLeft}px`
-    };
-  }, [initialData?.slotRect]);
 
   return (
     <>

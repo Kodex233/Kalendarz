@@ -53,8 +53,8 @@ export default function EventDetailModal({
         className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[490px] overflow-hidden border-0 animate-in fade-in zoom-in-95 duration-150 p-6 space-y-5"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Right Action Icons: większe ikonki w-5 h-5 */}
-        <div className="flex items-center justify-end space-x-1.5 text-[#c4c7c5]">
+        {/* Top Right Action Icons: precyzyjne ułożenie i poprawiona ikonka ołówka ze szczeliną */}
+        <div className="flex items-center justify-end space-x-1 text-[#c4c7c5] -mr-1">
           <button
             onClick={() => {
               onClose();
@@ -63,9 +63,9 @@ export default function EventDetailModal({
             className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition"
             title="Edytuj wydarzenie"
           >
-            {/* Ołówek edycji ze zdjęcia Google Material */}
+            {/* Ołówek edycji z wewnętrzną szczeliną zgodny ze zdjęciem Google Material */}
             <svg className="w-5 h-5 fill-current text-[#c4c7c5] hover:text-white" viewBox="0 0 24 24">
-              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
             </svg>
           </button>
 
@@ -91,7 +91,7 @@ export default function EventDetailModal({
             className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition"
             title="Wyślij e-mail do gości"
           >
-            <Mail className="w-5 h-5 text-[#c4c7c5]" />
+            <Mail className="w-5 h-5 text-[#c4c7c5] hover:text-white" />
           </button>
 
           <button
@@ -99,15 +99,15 @@ export default function EventDetailModal({
             className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition"
             title="Opcje"
           >
-            <MoreVertical className="w-5 h-5 text-[#c4c7c5]" />
+            <MoreVertical className="w-5 h-5 text-[#c4c7c5] hover:text-white" />
           </button>
 
           <button
             onClick={onClose}
-            className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition ml-1"
+            className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition"
             title="Zamknij"
           >
-            <X className="w-5 h-5 text-[#c4c7c5]" />
+            <X className="w-5 h-5 text-[#c4c7c5] hover:text-white" />
           </button>
         </div>
 

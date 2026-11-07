@@ -119,9 +119,9 @@ export default function CalendarWeek({
             const isToday = isSameDay(day, today);
             const dayName = DAY_NAMES[day.getDay()];
 
-            // W głównym kalendarzu skróty nazw dni tygodnia na biało (a dzisiejsza na jasnoniebiesko)
+            // W głównym kalendarzu skróty nazw dni tygodnia minimalnie mniej białe (a dzisiejsza na jasnoniebiesko)
             let circleClass = 'text-[#e3e3e3] font-normal hover:bg-[#282a2d]';
-            let nameClass = 'text-white font-medium';
+            let nameClass = 'text-[#c4c7c5] font-medium';
 
             if (isToday) {
               circleClass = 'bg-[#a8c7fa] text-[#041e49] font-medium shadow-md';
@@ -153,7 +153,7 @@ export default function CalendarWeek({
                     <span className={`text-[11px] tracking-wider mb-0.5 transition ${nameClass}`}>
                       {dayName}
                     </span>
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl transition ${circleClass}`}>
+                    <div className={`w-11 h-11 rounded-full flex items-center justify-center text-2xl transition ${circleClass}`}>
                       {format(day, 'd')}
                     </div>
                   </>

@@ -101,17 +101,17 @@ export default function Sidebar({
           <div className="flex items-center space-x-1">
             <button 
               onClick={() => setMiniDate(subMonths(miniDate, 1))}
-              className="p-1 hover:bg-[#282a2d] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] transition"
+              className="p-1 hover:bg-[#282a2d] rounded-full text-white hover:text-white transition"
               title="Poprzedni miesiąc"
             >
-              <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
+              <ChevronLeft className="w-4 h-4 text-white stroke-[2.5]" />
             </button>
             <button 
               onClick={() => setMiniDate(addMonths(miniDate, 1))}
-              className="p-1 hover:bg-[#282a2d] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] transition"
+              className="p-1 hover:bg-[#282a2d] rounded-full text-white hover:text-white transition"
               title="Następny miesiąc"
             >
-              <ChevronRight className="w-4 h-4 stroke-[2.5]" />
+              <ChevronRight className="w-4 h-4 text-white stroke-[2.5]" />
             </button>
           </div>
         </div>
@@ -153,10 +153,17 @@ export default function Sidebar({
           })}
         </div>
 
-        {/* 3. Szukaj osób: większy napis (text-sm), ikonka ze zdjęcia Image 1, kursor z lewej od ikonki, napis nie zmienia koloru, ciemniejsze tło */}
+        {/* 3. Szukaj osób: ikonka z lewej strony, bliżej napisu, ciemniejsze tło */}
         <div className="pt-2">
           {isSearchingPerson ? (
-            <div className="relative flex items-center justify-between bg-[#282a2d] h-10 px-3.5 rounded-t-md border-0 border-b-2 border-[#8ab4f8] transition">
+            <div className="relative flex items-center space-x-2.5 bg-[#282a2d] h-10 px-3 rounded-t-md border-0 border-b-2 border-[#8ab4f8] transition">
+              {/* Ikonka osób z lewej strony ze zdjęcia */}
+              <svg className="w-5 h-5 text-[#c4c7c5] shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                <path d="M9 13c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4zm-6 5c.2-.71 3.3-2 6-2 2.69 0 5.78 1.28 6 2H3z" />
+                <path d="M16.5 12c1.38 0 2.5-1.12 2.5-2.5S17.88 7 16.5 7c-.3 0-.58.05-.85.15.53.7.85 1.57.85 2.52s-.32 1.82-.85 2.52c.27.1.55.15.85.15z" />
+                <path d="M18 14.5c1.86.32 4 1.35 4 2.5v3h-3v-2c0-.79-.3-1.52-.79-2.07.61-.17 1.24-.31 1.79-.43z" />
+              </svg>
               <input
                 ref={searchInputRef}
                 type="text"
@@ -171,56 +178,55 @@ export default function Sidebar({
                 }}
                 className="w-full bg-transparent border-0 text-sm font-medium text-[#c4c7c5] placeholder-[#c4c7c5] focus:outline-none"
               />
-              {/* Ikonka osób ze zdjęcia Google Material */}
-              <svg className="w-5 h-5 text-[#c4c7c5] shrink-0 ml-2" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
-                <path d="M9 13c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4zm-6 5c.2-.71 3.3-2 6-2 2.69 0 5.78 1.28 6 2H3z" />
-                <path d="M16.5 12c1.38 0 2.5-1.12 2.5-2.5S17.88 7 16.5 7c-.3 0-.58.05-.85.15.53.7.85 1.57.85 2.52s-.32 1.82-.85 2.52c.27.1.55.15.85.15z" />
-                <path d="M18 14.5c1.86.32 4 1.35 4 2.5v3h-3v-2c0-.79-.3-1.52-.79-2.07.61-.17 1.24-.31 1.79-.43z" />
-              </svg>
             </div>
           ) : (
             <button
               onClick={() => setIsSearchingPerson(true)}
-              className="w-full flex items-center justify-between h-10 px-3.5 bg-[#282a2d] hover:bg-[#323438] text-[#c4c7c5] hover:text-[#c4c7c5] text-sm font-medium transition duration-150 rounded-lg"
+              className="w-full flex items-center space-x-2.5 h-10 px-3 bg-[#282a2d] hover:bg-[#323438] text-[#c4c7c5] text-sm font-medium transition duration-150 rounded-lg"
             >
-              <span className="text-[#c4c7c5]">Szukaj osób</span>
-              {/* Ikonka osób ze zdjęcia Google Material */}
+              {/* Ikonka osób z lewej strony ze zdjęcia */}
               <svg className="w-5 h-5 text-[#c4c7c5] shrink-0" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M9 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
                 <path d="M9 13c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4zm-6 5c.2-.71 3.3-2 6-2 2.69 0 5.78 1.28 6 2H3z" />
                 <path d="M16.5 12c1.38 0 2.5-1.12 2.5-2.5S17.88 7 16.5 7c-.3 0-.58.05-.85.15.53.7.85 1.57.85 2.52s-.32 1.82-.85 2.52c.27.1.55.15.85.15z" />
                 <path d="M18 14.5c1.86.32 4 1.35 4 2.5v3h-3v-2c0-.79-.3-1.52-.79-2.07.61-.17 1.24-.31 1.79-.43z" />
               </svg>
+              <span className="text-[#c4c7c5]">Szukaj osób</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* 4. Strony rezerwacji: wyrównanie tekstu do lewej na tym samym poziomie, hover tylko dla przycisku + */}
+      {/* 4. Strony rezerwacji: większy napis, biały i większy plus, hover tylko dla przycisku + */}
       <div className="space-y-0.5 px-1">
-        <div className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1 px-3">
-          <span>Strony rezerwacji</span>
+        <div className="flex items-center justify-between py-0.5 px-2">
+          <span className="text-sm font-medium text-[#e3e3e3] px-1">Strony rezerwacji</span>
           <button 
             onClick={() => onOpenCreateModal('Harmonogram spotkań')}
-            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#35373a] text-[#9aa0a6] hover:text-[#e3e3e3] transition -mr-1"
+            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#35373a] text-white transition -mr-1"
             title="Dodaj harmonogram"
           >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <Plus className="w-5 h-5 text-white stroke-[2.5]" />
           </button>
         </div>
       </div>
 
-      {/* 5. Moje kalendarze: bliżej siebie kalendarze (space-y-[1px]), mniejsza wysokość hover (py-0.5), tick mniejszy */}
+      {/* 5. Moje kalendarze: większy napis, biała i większa strzałka bliżej krawędzi, hover o kolorze tła szukaj osób (#282a2d) z mniejszą wysokością (py-1), brak hovera całego wiersza przy najechaniu na strzałkę */}
       <div className="space-y-0.5 px-1">
-        <div 
-          onClick={() => setMyCalendarsOpen(!myCalendarsOpen)}
-          className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1 px-3 cursor-pointer hover:bg-[#35373a] rounded-full transition"
-        >
-          <span>Moje kalendarze</span>
-          <div className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#4d5156] text-[#9aa0a6] hover:text-white transition -mr-1">
-            <ChevronUp className={`w-4 h-4 text-[#9aa0a6] hover:text-white transition-transform duration-200 ${!myCalendarsOpen ? 'rotate-180' : ''}`} />
-          </div>
+        <div className="flex items-center justify-between py-0.5 px-1">
+          <button 
+            onClick={() => setMyCalendarsOpen(!myCalendarsOpen)}
+            className="flex-1 text-left px-2 py-1 rounded-full hover:bg-[#282a2d] transition text-sm font-medium text-[#e3e3e3]"
+          >
+            <span>Moje kalendarze</span>
+          </button>
+          <button
+            onClick={() => setMyCalendarsOpen(!myCalendarsOpen)}
+            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#35373a] text-white transition -mr-1 shrink-0"
+            title={myCalendarsOpen ? "Zwiń moje kalendarze" : "Rozwiń moje kalendarze"}
+          >
+            <ChevronUp className={`w-5 h-5 text-white stroke-[2.5] transition-transform duration-200 ${!myCalendarsOpen ? 'rotate-180' : ''}`} />
+          </button>
         </div>
 
         {myCalendarsOpen && (
@@ -289,35 +295,35 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* 6. Inne kalendarze: mniejsze odstępy, spójne z moimi kalendarzami, lekko mniejsza wysokość padding */}
+      {/* 6. Inne kalendarze: większy napis, białe i większe ikony + oraz strzałki bliżej krawędzi, hover jak tło szukaj osób (#282a2d) */}
       <div className="space-y-0.5 px-1">
-        <div className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1.5 px-3 hover:bg-[#35373a] rounded-full transition">
-          <div 
+        <div className="flex items-center justify-between py-0.5 px-1">
+          <button 
             onClick={() => setOtherCalendarsOpen(!otherCalendarsOpen)}
-            className="flex items-center space-x-1 cursor-pointer flex-1"
+            className="flex-1 text-left px-2 py-1 rounded-full hover:bg-[#282a2d] transition text-sm font-medium text-[#e3e3e3]"
           >
             <span>Inne kalendarze</span>
-          </div>
-          <div className="flex items-center space-x-0.5 -mr-1">
+          </button>
+          <div className="flex items-center space-x-0.5 -mr-1 shrink-0">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onAddOtherCalendar();
               }}
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#4d5156] text-[#9aa0a6] hover:text-white transition"
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#35373a] text-white transition"
               title="Dodaj inny kalendarz"
             >
-              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <Plus className="w-5 h-5 text-white stroke-[2.5]" />
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setOtherCalendarsOpen(!otherCalendarsOpen);
               }}
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#4d5156] text-[#9aa0a6] hover:text-white transition"
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#35373a] text-white transition"
               title={otherCalendarsOpen ? "Zwiń inne kalendarze" : "Rozwiń inne kalendarze"}
             >
-              <ChevronUp className={`w-4 h-4 text-[#9aa0a6] hover:text-white transition-transform duration-200 ${!otherCalendarsOpen ? 'rotate-180' : ''}`} />
+              <ChevronUp className={`w-5 h-5 text-white stroke-[2.5] transition-transform duration-200 ${!otherCalendarsOpen ? 'rotate-180' : ''}`} />
             </button>
           </div>
         </div>
