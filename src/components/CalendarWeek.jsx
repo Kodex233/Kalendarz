@@ -64,9 +64,9 @@ export default function CalendarWeek({
 
   return (
     <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-5 mr-4 m-3 ml-2 mt-1 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none shadow-2xl">
-      {/* Top Header: kreski pionowe ponad pierwszą poziomą, mniejszy odstęp */}
-      <div className="flex bg-[#131314] shrink-0 pt-1 pb-1 pr-1.5 border-b border-white/15">
-        {/* Left top box: When sidebar is collapsed, + button sits right here, pionowa kreska z prawej */}
+      {/* Top Header: bez kratek między liczbami dni */}
+      <div className="flex bg-[#131314] shrink-0 pt-2 pb-1 pr-1.5 border-b border-white/15">
+        {/* Left top box: When sidebar is collapsed, + button sits right here */}
         <div className="w-16 shrink-0 flex items-center justify-center border-r border-white/20">
           {!isSidebarOpen ? (
             <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={true} />
@@ -75,11 +75,10 @@ export default function CalendarWeek({
           )}
         </div>
 
-        {/* Day columns: W widoku dnia wyrównanie DO LEWEJ, kreski pionowe ponad poziomą */}
+        {/* Day columns: W widoku dnia wyrównanie DO LEWEJ, bez kratek między liczbami dni */}
         <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
           {days.map((day, idx) => {
             const isToday = isSameDay(day, today);
-            const isLastColumn = idx === days.length - 1;
             const dayName = DAY_NAMES[day.getDay()];
 
             // W głównym kalendarzu tylko dzisiejsza data ma niebieskie tło koła i niebieską nazwę;
@@ -96,8 +95,6 @@ export default function CalendarWeek({
                 key={idx}
                 onClick={() => handleDayHeaderClick(day)}
                 className={`py-0.5 transition select-none cursor-pointer group ${
-                  isLastColumn ? 'border-r-0' : 'border-r border-white/20'
-                } ${
                   viewMode === 'day' 
                     ? 'flex flex-row items-center space-x-3.5 pl-4 text-left justify-start' 
                     : 'flex flex-col items-center justify-center text-center'
@@ -127,10 +124,12 @@ export default function CalendarWeek({
             );
           })}
         </div>
+        {/* Spacer wyrównujący szerokość do scrollbara */}
+        <div className="w-[9px] shrink-0" />
       </div>
 
-      {/* Row with GMT+1 and all-day events: linia pozioma taka jak inne (border-white/15), ciągłość pionowej kreski */}
-      <div className="flex bg-[#131314] shrink-0 border-b border-white/15 pr-1.5 min-h-[32px]">
+      {/* Row with GMT+1 and all-day events: proste pionowe kreski idealnie równe z siatką (w-[9px] spacer) */}
+      <div className="flex bg-[#131314] shrink-0 border-b border-white/15 pr-1.5 min-h-[36px]">
         <div className="w-16 shrink-0 text-center text-[11px] font-medium text-white flex items-center justify-center border-r border-white/20 py-1.5">
           GMT+1
         </div>
@@ -143,7 +142,7 @@ export default function CalendarWeek({
             return (
               <div 
                 key={idx} 
-                className={`px-1.5 flex flex-col justify-center py-1 ${isLastColumn ? 'border-r-0' : 'border-r border-white/20'}`}
+                className={`px-1.5 flex flex-col justify-center py-1.5 ${isLastColumn ? 'border-r-0' : 'border-r border-white/20'}`}
               >
                 {dayHolidays.map(hol => (
                   <div
@@ -159,21 +158,23 @@ export default function CalendarWeek({
             );
           })}
         </div>
+        {/* Spacer wyrównujący szerokość do scrollbara, aby kratki były idealnie równe */}
+        <div className="w-[9px] shrink-0" />
       </div>
 
-      {/* Scrollable Time Grid: godziny na biało, kreski wystające w lewo na TYM SAMYM poziomie co linia pozioma siatki */}
+      {/* Scrollable Time Grid: godziny lekko w lewo (pr-5), kreski poziome na TYM SAMYM poziomie co siatka */}
       <div ref={containerRef} className="flex-1 overflow-y-auto relative bg-[#131314] pr-1.5 pt-0">
         <div className="flex min-h-[1150px]">
-          {/* Left Hours column: pozioma kreska wystająca w lewo na dokładnym poziomie linii siatki */}
+          {/* Left Hours column: godziny lekko w lewo, linie poziome na dokładnym poziomie siatki */}
           <div className="w-16 shrink-0 bg-[#131314] select-none border-r border-white/20 relative">
             {HOURS.map((hour, idx) => (
               <div 
                 key={idx} 
-                className="h-12 relative text-right pr-3 text-[11px] font-medium text-white flex items-start justify-end"
+                className="h-12 relative flex items-start justify-end pr-5 text-[11px] font-medium text-white"
               >
-                <span className="-mt-2">{hour}</span>
-                {/* Linia pozioma wystająca minimalnie w lewo - na TYM SAMYM poziomie (bottom-0 border-b border-white/15) */}
-                <div className="absolute right-0 bottom-0 w-2 border-b border-white/15 pointer-events-none" />
+                <span className="relative -top-2 bg-[#131314] px-1 z-10">{hour}</span>
+                {/* Linia pozioma wystająca 8px w lewo - na TYM SAMYM poziomie (top-0 border-t border-white/15) */}
+                <div className="absolute right-0 top-0 w-2 border-t border-white/15 pointer-events-none" />
               </div>
             ))}
           </div>
@@ -194,14 +195,17 @@ export default function CalendarWeek({
                   key={dIdx} 
                   className={`relative h-full ${isLastColumn ? 'border-r-0' : 'border-r border-white/20'}`}
                 >
-                  {/* Hour slots: mniejszy dystans h-12 */}
+                  {/* Hour slots: linie poziome border-t dopasowane idealnie do znaczników */}
                   {HOURS.map((_, hIdx) => {
                     const slotHour = hIdx + 1;
+                    const isLastRow = hIdx === HOURS.length - 1;
                     return (
                       <div 
                         key={hIdx} 
                         onClick={() => onSelectSlot(day, `${slotHour.toString().padStart(2, '0')}:00`)}
-                        className="h-12 border-b border-white/15 hover:bg-[#1f2022] cursor-pointer transition"
+                        className={`h-12 border-t border-white/15 hover:bg-[#1f2022] cursor-pointer transition ${
+                          isLastRow ? 'border-b border-white/15' : ''
+                        }`}
                       />
                     );
                   })}
