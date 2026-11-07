@@ -64,8 +64,8 @@ export default function CalendarWeek({
 
   return (
     <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-5 mr-4 m-3 ml-2 mt-1 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none shadow-2xl">
-      {/* Top Header: BEZ POZIOMEJ KRESKI POD DNIAMI */}
-      <div className="flex bg-[#131314] shrink-0 pt-2 pb-1 pr-1.5">
+      {/* Top Header: BEZ POZIOMEJ KRESKI POD DNIAMI, mniejszy odstep */}
+      <div className="flex bg-[#131314] shrink-0 pt-1 pb-0 pr-1.5">
         {/* Left top box: When sidebar is collapsed, + button sits right here */}
         <div className="w-16 shrink-0 flex items-center justify-center">
           {!isSidebarOpen ? (
@@ -95,7 +95,7 @@ export default function CalendarWeek({
               <div 
                 key={idx}
                 onClick={() => handleDayHeaderClick(day)}
-                className={`py-1 transition border-0 select-none cursor-pointer group ${
+                className={`py-0.5 transition border-0 select-none cursor-pointer group ${
                   viewMode === 'day' 
                     ? 'flex flex-row items-center space-x-3.5 pl-4 text-left justify-start' 
                     : 'flex flex-col items-center justify-center text-center'
@@ -113,10 +113,10 @@ export default function CalendarWeek({
                   </>
                 ) : (
                   <>
-                    <span className={`text-[11px] tracking-wider mb-1 transition ${nameClass}`}>
+                    <span className={`text-[11px] tracking-wider mb-0.5 transition ${nameClass}`}>
                       {dayName}
                     </span>
-                    <div className={`w-11 h-11 rounded-full flex items-center justify-center text-2xl transition ${circleClass}`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl transition ${circleClass}`}>
                       {format(day, 'd')}
                     </div>
                   </>
@@ -127,11 +127,13 @@ export default function CalendarWeek({
         </div>
       </div>
 
-      {/* All-Day Events row: GMT+1 w pełni widoczne */}
+      {/* All-Day Events row: GMT+1 na biało, bez zbędnych odstępów */}
       {allDayEvents.length > 0 && (
-        <div className="flex bg-[#131314] shrink-0 py-2 border-b border-white/10 pr-1.5">
-          <div className="w-16 shrink-0 text-center text-[11px] font-medium text-[#9aa0a6] flex items-center justify-center border-r border-white/20">
+        <div className="flex bg-[#131314] shrink-0 py-1 border-b border-white/10 pr-1.5">
+          <div className="w-16 shrink-0 text-center text-[11px] font-medium text-white flex items-center justify-center border-r border-white/20 relative">
             GMT+1
+            {/* Linia pozioma wystająca 8px w lewo */}
+            <div className="absolute right-0 bottom-0 w-2 border-t border-white/20 pointer-events-none" />
           </div>
           <div className="flex-1 grid relative" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
             {days.map((day, idx) => {
@@ -157,17 +159,19 @@ export default function CalendarWeek({
         </div>
       )}
 
-      {/* Scrollable Time Grid: 1 AM nie jest ucinane, brak pionowej kreski po prawej */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto relative bg-[#131314] pr-1.5 pt-2">
+      {/* Scrollable Time Grid: godziny na biało, linie poziome wystają 8px w lewo poza pionową kreskę */}
+      <div ref={containerRef} className="flex-1 overflow-y-auto relative bg-[#131314] pr-1.5 pt-0">
         <div className="flex min-h-[1150px]">
-          {/* Left Hours column: 1 AM w pełni widoczne z pionową kreską z prawej */}
-          <div className="w-16 shrink-0 bg-[#131314] select-none border-r border-white/20">
+          {/* Left Hours column: godziny na biało, poziome linie wystające minimalnie w lewo */}
+          <div className="w-16 shrink-0 bg-[#131314] select-none border-r border-white/20 relative">
             {HOURS.map((hour, idx) => (
               <div 
                 key={idx} 
-                className="h-12 relative text-right pr-3 text-[11px] font-medium text-[#9aa0a6] flex items-start justify-end"
+                className="h-12 relative text-right pr-3 text-[11px] font-medium text-white flex items-start justify-end"
               >
-                {hour}
+                <span>{hour}</span>
+                {/* Linia pozioma wystająca minimalnie (8px) w lewo poza pionową kreskę godzin */}
+                <div className="absolute right-0 top-0 w-2 border-t border-white/20 pointer-events-none" />
               </div>
             ))}
           </div>

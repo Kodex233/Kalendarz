@@ -548,6 +548,8 @@ export default function App() {
         onViewChange={setActiveView}
         advancedFilters={advancedFilters}
         onAdvancedFiltersChange={setAdvancedFilters}
+        myCalendars={myCalendars}
+        otherCalendars={otherCalendars}
       />
 
       {/* Main Container: Sidebar + Rounded Borderless Calendar Canvas */}
@@ -570,42 +572,48 @@ export default function App() {
           onSearchPerson={setPersonSearchQuery}
         />
 
-        {activeView === 'month' ? (
-          <CalendarMonth
-            currentDate={currentDate}
-            events={visibleEvents}
-            onSelectEvent={handleSelectEvent}
-            onSelectDate={handleSelectDate}
-            onViewChange={setActiveView}
-            currentUserId={user?.uid || 'user-kodex'}
-          />
-        ) : activeView === 'year' ? (
-          <CalendarYear
-            currentDate={currentDate}
-            events={visibleEvents}
-            onSelectDate={handleSelectDate}
-            onViewChange={setActiveView}
-            onSelectEvent={handleSelectEvent}
-          />
-        ) : activeView === 'agenda' ? (
-          <CalendarAgenda
-            currentDate={currentDate}
-            events={visibleEvents}
-            onSelectEvent={handleSelectEvent}
-          />
-        ) : (
-          <CalendarWeek
-            currentDate={currentDate}
-            events={visibleEvents}
-            onSelectEvent={handleSelectEvent}
-            onSelectSlot={handleSelectSlot}
-            viewMode={activeView}
-            isSidebarOpen={sidebarOpen}
-            onOpenCreateModal={handleOpenCreateModal}
-            onSelectDate={handleSelectDate}
-            onViewChange={setActiveView}
-          />
-        )}
+        {/* Animated Calendar Container: płynna animacja przy zmianie daty i widoku */}
+        <div 
+          key={`${format(currentDate, 'yyyy-MM-dd')}-${activeView}`}
+          className="flex-1 flex overflow-hidden animate-in fade-in zoom-in-[0.99] duration-200"
+        >
+          {activeView === 'month' ? (
+            <CalendarMonth
+              currentDate={currentDate}
+              events={visibleEvents}
+              onSelectEvent={handleSelectEvent}
+              onSelectDate={handleSelectDate}
+              onViewChange={setActiveView}
+              currentUserId={user?.uid || 'user-kodex'}
+            />
+          ) : activeView === 'year' ? (
+            <CalendarYear
+              currentDate={currentDate}
+              events={visibleEvents}
+              onSelectDate={handleSelectDate}
+              onViewChange={setActiveView}
+              onSelectEvent={handleSelectEvent}
+            />
+          ) : activeView === 'agenda' ? (
+            <CalendarAgenda
+              currentDate={currentDate}
+              events={visibleEvents}
+              onSelectEvent={handleSelectEvent}
+            />
+          ) : (
+            <CalendarWeek
+              currentDate={currentDate}
+              events={visibleEvents}
+              onSelectEvent={handleSelectEvent}
+              onSelectSlot={handleSelectSlot}
+              viewMode={activeView}
+              isSidebarOpen={sidebarOpen}
+              onOpenCreateModal={handleOpenCreateModal}
+              onSelectDate={handleSelectDate}
+              onViewChange={setActiveView}
+            />
+          )}
+        </div>
       </div>
 
       {/* Toast Notification matching image 5 at the bottom */}

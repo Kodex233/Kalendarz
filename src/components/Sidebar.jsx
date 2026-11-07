@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Users,
+  User,
   ChevronLeft, 
   ChevronRight, 
   ChevronUp, 
@@ -90,8 +90,8 @@ export default function Sidebar({
         <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={false} />
       </div>
 
-      {/* 2. Mini Calendar */}
-      <div className="bg-transparent border-0 px-1 space-y-2">
+      {/* 2. Mini Calendar: lekko nizej, lekko wieksza wysokosc, mniejsza szerokosc */}
+      <div className="bg-transparent border-0 w-[222px] mx-auto mt-2 space-y-2.5">
         <div className="flex items-center justify-between px-1">
           <span className="text-sm font-semibold text-[#e3e3e3] capitalize">
             {format(miniDate, 'LLLL yyyy', { locale: pl })}
@@ -143,7 +143,7 @@ export default function Sidebar({
               <button
                 key={idx}
                 onClick={() => handleMiniDayClick(day)}
-                className={`w-7 h-7 mx-auto rounded-full flex items-center justify-center text-xs transition ${dayStyle}`}
+                className={`w-7.5 h-7.5 mx-auto rounded-full flex items-center justify-center text-xs transition ${dayStyle}`}
               >
                 {format(day, 'd')}
               </button>
@@ -151,11 +151,11 @@ export default function Sidebar({
           })}
         </div>
 
-        {/* 3. Szukaj osób: BEZ RADIUSA */}
+        {/* 3. Szukaj osób: ładna ikonka User, mniejsza szerokość, większa wysokość, jaśniejsze tło */}
         <div className="pt-2">
           {isSearchingPerson ? (
-            <div className="relative flex items-center bg-[#282a2d] rounded-none px-3 py-2 border-b-2 border-[#8ab4f8]">
-              <Users className="w-4 h-4 text-[#9aa0a6] mr-2 shrink-0" />
+            <div className="relative flex items-center bg-[#303134] h-10 px-3.5 border-b-2 border-[#8ab4f8]">
+              <User className="w-4 h-4 text-[#c4c7c5] mr-2.5 shrink-0" />
               <input
                 ref={searchInputRef}
                 type="text"
@@ -169,7 +169,7 @@ export default function Sidebar({
               />
               <button 
                 onClick={handleClearPersonSearch}
-                className="p-0.5 text-[#9aa0a6] hover:text-white"
+                className="p-1 text-[#9aa0a6] hover:text-white"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -177,9 +177,9 @@ export default function Sidebar({
           ) : (
             <button
               onClick={() => setIsSearchingPerson(true)}
-              className="w-full flex items-center space-x-2.5 px-3 py-2 bg-[#282a2d] hover:bg-[#35373a] text-[#c4c7c5] hover:text-[#e3e3e3] rounded-none text-xs font-medium transition duration-150 border-b-2 border-transparent"
+              className="w-full flex items-center space-x-2.5 h-10 px-3.5 bg-[#303134] hover:bg-[#3c4043] text-[#c4c7c5] hover:text-white text-xs font-medium transition duration-150 border-b-2 border-transparent"
             >
-              <Users className="w-4 h-4 text-[#9aa0a6]" />
+              <User className="w-4 h-4 text-[#c4c7c5]" />
               <span>Szukaj osób</span>
             </button>
           )}
@@ -200,11 +200,11 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* 5. Moje kalendarze: WIĘKSZY HOVER, WIĘKSZY RADIUS, BLIŻEJ SIEBIE, IKONY X I 3 KROPKI BLIŻEJ KRAWĘDZI BEZ CZERWONEGO */}
+      {/* 5. Moje kalendarze: WIĘKSZY I JAŚNIEJSZY ZAOKRĄGLONY HOVER NAGŁÓWKA, MNIEJ ZAOKRĄGLONE TICKI, WIĘKSZY HOVER X I 3 KROPEK */}
       <div className="space-y-0.5 px-1">
         <div 
           onClick={() => setMyCalendarsOpen(!myCalendarsOpen)}
-          className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1 px-2 cursor-pointer hover:bg-[#282a2d]/50 rounded-lg transition"
+          className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-2 px-3.5 cursor-pointer hover:bg-[#35373a] rounded-full transition"
         >
           <span>Moje kalendarze</span>
           <ChevronUp className={`w-4 h-4 text-[#9aa0a6] transition-transform duration-200 ${!myCalendarsOpen ? 'rotate-180' : ''}`} />
@@ -215,14 +215,14 @@ export default function Sidebar({
             {myCalendars.map((cal) => (
               <div 
                 key={cal.id} 
-                className="group relative flex items-center justify-between px-3.5 py-2 rounded-full hover:bg-[#282a2d] transition text-sm cursor-pointer"
+                className="group relative flex items-center justify-between px-3.5 py-1.5 rounded-full hover:bg-[#282a2d] transition text-sm cursor-pointer"
               >
                 <div 
                   onClick={() => onToggleCalendar(cal.id)}
                   className="flex items-center space-x-3 cursor-pointer flex-1 min-w-0"
                 >
                   <div 
-                    className="w-5 h-5 rounded-[5px] flex items-center justify-center transition shadow-xs shrink-0"
+                    className="w-5 h-5 rounded-[3px] flex items-center justify-center transition shadow-xs shrink-0"
                     style={{ 
                       backgroundColor: cal.checked ? cal.color : 'transparent',
                       border: cal.checked ? 'none' : '2px solid #5f6368'
@@ -235,14 +235,14 @@ export default function Sidebar({
                   </span>
                 </div>
 
-                {/* X i 3 kropki: bliżej prawej krawędzi (-mr-1.5), większy hover (w-8 h-8), dla X bez czerwonego (hover:text-white) */}
-                <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-0.5 transition shrink-0 -mr-1.5">
+                {/* X i 3 kropki: bliżej prawej krawędzi (-mr-2), większy hover (w-8 h-8), bez czerwonego */}
+                <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-0.5 transition shrink-0 -mr-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteCalendar(cal.id);
                     }}
-                    className="w-7 h-7 flex items-center justify-center text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#35373a] rounded-full transition"
+                    className="w-8 h-8 flex items-center justify-center text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#3c4043] rounded-full transition"
                     title="Usuń kalendarz"
                   >
                     <X className="w-4 h-4" />
@@ -253,7 +253,7 @@ export default function Sidebar({
                       e.stopPropagation();
                       setActiveMenuCalendarId(activeMenuCalendarId === cal.id ? null : cal.id);
                     }}
-                    className="w-7 h-7 flex items-center justify-center text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#35373a] rounded-full transition"
+                    className="w-8 h-8 flex items-center justify-center text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#3c4043] rounded-full transition"
                     title="Opcje kalendarza"
                   >
                     <MoreVertical className="w-4 h-4" />
@@ -276,9 +276,9 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* 6. Inne kalendarze: WIĘKSZY HOVER, WIĘKSZY RADIUS, BLIŻEJ SIEBIE */}
+      {/* 6. Inne kalendarze: WIĘKSZY HOVER NAGŁÓWKA, MNIEJ ZAOKRĄGLONE TICKI */}
       <div className="space-y-0.5 px-1">
-        <div className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1 px-2">
+        <div className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-2 px-3.5 hover:bg-[#35373a] rounded-full transition">
           <div 
             onClick={() => setOtherCalendarsOpen(!otherCalendarsOpen)}
             className="flex items-center space-x-1 cursor-pointer flex-1"
@@ -307,14 +307,14 @@ export default function Sidebar({
             {otherCalendars.map((cal) => (
               <div 
                 key={cal.id} 
-                className="group relative flex items-center justify-between px-3.5 py-2 rounded-full hover:bg-[#282a2d] transition text-sm cursor-pointer"
+                className="group relative flex items-center justify-between px-3.5 py-1.5 rounded-full hover:bg-[#282a2d] transition text-sm cursor-pointer"
               >
                 <div 
                   onClick={() => onToggleOtherCalendar(cal.id)}
                   className="flex items-center space-x-3 cursor-pointer flex-1 min-w-0"
                 >
                   <div 
-                    className="w-5 h-5 rounded-[5px] flex items-center justify-center transition shadow-xs shrink-0"
+                    className="w-5 h-5 rounded-[3px] flex items-center justify-center transition shadow-xs shrink-0"
                     style={{ 
                       backgroundColor: cal.checked ? cal.color : 'transparent',
                       border: cal.checked ? 'none' : '2px solid #5f6368'
@@ -327,13 +327,13 @@ export default function Sidebar({
                   </span>
                 </div>
 
-                <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-0.5 transition shrink-0 -mr-1.5">
+                <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-0.5 transition shrink-0 -mr-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteOtherCalendar(cal.id);
                     }}
-                    className="w-7 h-7 flex items-center justify-center text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#35373a] rounded-full transition"
+                    className="w-8 h-8 flex items-center justify-center text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#3c4043] rounded-full transition"
                     title="Usuń kalendarz"
                   >
                     <X className="w-4 h-4" />
@@ -344,7 +344,7 @@ export default function Sidebar({
                       e.stopPropagation();
                       setActiveMenuCalendarId(activeMenuCalendarId === cal.id ? null : cal.id);
                     }}
-                    className="w-7 h-7 flex items-center justify-center text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#35373a] rounded-full transition"
+                    className="w-8 h-8 flex items-center justify-center text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#3c4043] rounded-full transition"
                     title="Opcje kalendarza"
                   >
                     <MoreVertical className="w-4 h-4" />

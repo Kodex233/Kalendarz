@@ -12,7 +12,8 @@ import {
   ArrowLeft, 
   X, 
   Check, 
-  RotateCcw 
+  RotateCcw,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { 
   format, 
@@ -43,12 +44,15 @@ export default function Navbar({
   activeView,
   onViewChange,
   advancedFilters = {},
-  onAdvancedFiltersChange
+  onAdvancedFiltersChange,
+  myCalendars = [],
+  otherCalendars = []
 }) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
   const [isViewMenuOpen, setIsViewMenuOpen] = useState(false);
+  const [isSearchInMenuOpen, setIsSearchInMenuOpen] = useState(false);
   const [pickerDate, setPickerDate] = useState(currentDate);
 
   // Advanced search form state matching image 2
@@ -72,6 +76,7 @@ export default function Navbar({
   const monthPickerRef = useRef(null);
   const viewMenuRef = useRef(null);
   const advancedSearchRef = useRef(null);
+  const searchInRef = useRef(null);
 
   useEffect(() => {
     if (isSearchOpen && searchInputRef.current) {
@@ -86,6 +91,9 @@ export default function Navbar({
       }
       if (viewMenuRef.current && !viewMenuRef.current.contains(e.target)) {
         setIsViewMenuOpen(false);
+      }
+      if (searchInRef.current && !searchInRef.current.contains(e.target)) {
+        setIsSearchInMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -235,91 +243,186 @@ export default function Navbar({
               </div>
 
               <form onSubmit={handleApplyAdvancedSearch} className="space-y-4">
-                {/* Szukaj w: ładna, zwarta strzałka blisko tekstu */}
-                <div className="flex items-center">
-                  <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Szukaj w:</span>
-                  <div className="relative inline-flex items-center">
-                    <select
-                      value={formFilters.searchIn}
-                      onChange={(e) => setFormFilters({ ...formFilters, searchIn: e.target.value })}
-                      className="appearance-none bg-transparent text-[#e3e3e3] text-sm font-medium pr-7 pl-1 py-1 border-b-2 border-[#8ab4f8] focus:outline-none cursor-pointer"
+                {/* Szukaj w: custom dropdown matching user photo media_1794165585967_1e9f7bff.png */}
+                <div className="flex items-center relative" ref={searchInRef}>
+                  <span className="w-28 text-sm text-[#e3e3e3] shrink-0 font-normal">Szukaj w:</span>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsSearchInMenuOpen(!isSearchInMenuOpen)}
+                      className="bg-[#282a2d] hover:bg-[#323438] text-[#e3e3e3] px-3.5 py-2 rounded-t-md border-b-2 border-[#8ab4f8] flex items-center space-x-2 text-sm cursor-pointer select-none min-w-[210px] justify-between transition"
                     >
-                      <option value="Aktywne kalendarze" className="bg-[#1e1f20] text-[#e3e3e3]">Aktywne kalendarze</option>
-                      <option value="Wszystkie kalendarze" className="bg-[#1e1f20] text-[#e3e3e3]">Wszystkie kalendarze</option>
-                    </select>
-                    <ChevronDown className="w-4 h-4 text-[#8ab4f8] pointer-events-none absolute right-1" />
+                      <div className="flex items-center space-x-2 truncate">
+                        <Check className="w-4 h-4 text-[#e3e3e3] shrink-0" />
+                        <span className="truncate">{formFilters.searchIn}</span>
+                      </div>
+                      <ChevronDown className={`w-4 h-4 text-[#9aa0a6] transition-transform ${isSearchInMenuOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {/* Dropdown list matching user photo */}
+                    {isSearchInMenuOpen && (
+                      <div className="absolute left-0 top-full mt-0 w-64 bg-[#282a2d] rounded-b-xl shadow-2xl py-1.5 border border-white/5 z-50 animate-in fade-in zoom-in-95 duration-100 text-[#e3e3e3]">
+                        {/* 1. Aktywne kalendarze */}
+                        <div
+                          onClick={() => {
+                            setFormFilters(prev => ({ ...prev, searchIn: 'Aktywne kalendarze' }));
+                            setIsSearchInMenuOpen(false);
+                          }}
+                          className="flex items-center px-4 py-2 hover:bg-[#35373a] cursor-pointer text-sm"
+                        >
+                          <Check className="w-4 h-4 mr-2.5 text-[#e3e3e3] shrink-0" />
+                          <span>Aktywne kalendarze</span>
+                        </div>
+
+                        {/* 2. Wszystkie kalendarze */}
+                        <div
+                          onClick={() => {
+                            setFormFilters(prev => ({ ...prev, searchIn: 'Wszystkie kalendarze' }));
+                            setIsSearchInMenuOpen(false);
+                          }}
+                          className="flex items-center px-4 py-2 hover:bg-[#35373a] cursor-pointer text-sm"
+                        >
+                          <CalendarIcon className="w-4 h-4 mr-2.5 text-[#9aa0a6] shrink-0" />
+                          <span>Wszystkie kalendarze</span>
+                        </div>
+
+                        <div className="border-t border-[#3c4043] my-1"></div>
+
+                        {/* 3. Wszystkie moje kalendarze */}
+                        <div
+                          onClick={() => {
+                            setFormFilters(prev => ({ ...prev, searchIn: 'Wszystkie moje kalendarze' }));
+                            setIsSearchInMenuOpen(false);
+                          }}
+                          className="flex items-center px-4 py-2 hover:bg-[#35373a] cursor-pointer text-sm"
+                        >
+                          <CalendarIcon className="w-4 h-4 mr-2.5 text-[#9aa0a6] shrink-0" />
+                          <span>Wszystkie moje kalendarze</span>
+                        </div>
+
+                        {/* Moje kalendarze list with color dots */}
+                        {myCalendars.map(cal => (
+                          <div
+                            key={cal.id}
+                            onClick={() => {
+                              setFormFilters(prev => ({ ...prev, searchIn: cal.name }));
+                              setIsSearchInMenuOpen(false);
+                            }}
+                            className="flex items-center px-4 py-2 hover:bg-[#35373a] cursor-pointer text-sm pl-6"
+                          >
+                            <span 
+                              className="w-3 h-3 rounded-full mr-2.5 shrink-0" 
+                              style={{ backgroundColor: cal.color }}
+                            />
+                            <span className="truncate">{cal.name}</span>
+                          </div>
+                        ))}
+
+                        <div className="border-t border-[#3c4043] my-1"></div>
+
+                        {/* 4. Wszystkie inne kalendarze */}
+                        <div
+                          onClick={() => {
+                            setFormFilters(prev => ({ ...prev, searchIn: 'Wszystkie inne kalendarze' }));
+                            setIsSearchInMenuOpen(false);
+                          }}
+                          className="flex items-center px-4 py-2 hover:bg-[#35373a] cursor-pointer text-sm"
+                        >
+                          <CalendarIcon className="w-4 h-4 mr-2.5 text-[#9aa0a6] shrink-0" />
+                          <span>Wszystkie inne kalendarze</span>
+                        </div>
+
+                        {/* Inne kalendarze list with color dots */}
+                        {otherCalendars.map(cal => (
+                          <div
+                            key={cal.id}
+                            onClick={() => {
+                              setFormFilters(prev => ({ ...prev, searchIn: cal.name }));
+                              setIsSearchInMenuOpen(false);
+                            }}
+                            className="flex items-center px-4 py-2 hover:bg-[#35373a] cursor-pointer text-sm pl-6"
+                          >
+                            <span 
+                              className="w-3 h-3 rounded-full mr-2.5 shrink-0" 
+                              style={{ backgroundColor: cal.color }}
+                            />
+                            <span className="truncate">{cal.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Co: mniejszy radius, kolor #1e1f20 */}
+                {/* Co: mniejszy radius, lekko większy padding, jaśniejszy szary, bez borderu */}
                 <div className="flex items-center">
-                  <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Co</span>
+                  <span className="w-28 text-sm text-[#e3e3e3] shrink-0 font-normal">Co</span>
                   <input
                     type="text"
                     placeholder="Słowa kluczowe w wydarzeniu"
                     value={formFilters.what}
                     onChange={(e) => setFormFilters({ ...formFilters, what: e.target.value })}
-                    className="flex-1 bg-[#1e1f20] text-[#e3e3e3] text-sm rounded-md px-3 py-2 border border-[#3c4043] focus:border-[#8ab4f8] focus:outline-none placeholder-[#747775]"
+                    className="flex-1 bg-[#282a2d] text-[#e3e3e3] text-sm rounded-md px-4 py-2.5 border-0 focus:outline-none placeholder-[#9aa0a6]"
                   />
                 </div>
 
-                {/* Kto: mniejszy radius, kolor #1e1f20 */}
+                {/* Kto: mniejszy radius, lekko większy padding, jaśniejszy szary, bez borderu */}
                 <div className="flex items-center">
-                  <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Kto</span>
+                  <span className="w-28 text-sm text-[#e3e3e3] shrink-0 font-normal">Kto</span>
                   <input
                     type="text"
                     placeholder="Wpisz uczestnika, organizatora lub twórcę"
                     value={formFilters.who}
                     onChange={(e) => setFormFilters({ ...formFilters, who: e.target.value })}
-                    className="flex-1 bg-[#1e1f20] text-[#e3e3e3] text-sm rounded-md px-3 py-2 border border-[#3c4043] focus:border-[#8ab4f8] focus:outline-none placeholder-[#747775]"
+                    className="flex-1 bg-[#282a2d] text-[#e3e3e3] text-sm rounded-md px-4 py-2.5 border-0 focus:outline-none placeholder-[#9aa0a6]"
                   />
                 </div>
 
-                {/* Gdzie: mniejszy radius, kolor #1e1f20 */}
+                {/* Gdzie: mniejszy radius, lekko większy padding, jaśniejszy szary, bez borderu */}
                 <div className="flex items-center">
-                  <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Gdzie</span>
+                  <span className="w-28 text-sm text-[#e3e3e3] shrink-0 font-normal">Gdzie</span>
                   <input
                     type="text"
                     placeholder="Podaj lokalizację lub salę"
                     value={formFilters.where}
                     onChange={(e) => setFormFilters({ ...formFilters, where: e.target.value })}
-                    className="flex-1 bg-[#1e1f20] text-[#e3e3e3] text-sm rounded-md px-3 py-2 border border-[#3c4043] focus:border-[#8ab4f8] focus:outline-none placeholder-[#747775]"
+                    className="flex-1 bg-[#282a2d] text-[#e3e3e3] text-sm rounded-md px-4 py-2.5 border-0 focus:outline-none placeholder-[#9aa0a6]"
                   />
                 </div>
 
-                {/* Nie zawiera: mniejszy radius, kolor #1e1f20 */}
+                {/* Nie zawiera: mniejszy radius, lekko większy padding, jaśniejszy szary, bez borderu */}
                 <div className="flex items-center">
-                  <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Nie zawiera</span>
+                  <span className="w-28 text-sm text-[#e3e3e3] shrink-0 font-normal">Nie zawiera</span>
                   <input
                     type="text"
                     placeholder="Słowa kluczowe niezawarte w wydarzeniu"
                     value={formFilters.notContain}
                     onChange={(e) => setFormFilters({ ...formFilters, notContain: e.target.value })}
-                    className="flex-1 bg-[#1e1f20] text-[#e3e3e3] text-sm rounded-md px-3 py-2 border border-[#3c4043] focus:border-[#8ab4f8] focus:outline-none placeholder-[#747775]"
+                    className="flex-1 bg-[#282a2d] text-[#e3e3e3] text-sm rounded-md px-4 py-2.5 border-0 focus:outline-none placeholder-[#9aa0a6]"
                   />
                 </div>
 
-                {/* Data: bez ikonek kalendarza, mniejszy radius */}
+                {/* Data: bez ikonek kalendarza, mniejszy radius, jaśniejszy szary, bez borderu */}
                 <div className="flex items-center">
-                  <span className="w-28 text-sm text-[#9aa0a6] shrink-0">Data</span>
+                  <span className="w-28 text-sm text-[#e3e3e3] shrink-0 font-normal">Data</span>
                   <div className="flex-1 flex items-center space-x-2">
                     <input
                       type="date"
                       value={formFilters.dateFrom}
                       onChange={(e) => setFormFilters({ ...formFilters, dateFrom: e.target.value })}
-                      className="bg-[#1e1f20] text-[#e3e3e3] text-sm rounded-md px-3 py-1.5 border border-[#3c4043] focus:border-[#8ab4f8] focus:outline-none [appearance:none] [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden"
+                      className="bg-[#282a2d] text-[#e3e3e3] text-sm rounded-md px-4 py-2 border-0 focus:outline-none [appearance:none] [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden"
                     />
-                    <span className="text-[#9aa0a6] text-sm">do</span>
+                    <span className="text-[#9aa0a6] text-sm px-1">do</span>
                     <input
                       type="date"
                       value={formFilters.dateTo}
                       onChange={(e) => setFormFilters({ ...formFilters, dateTo: e.target.value })}
-                      className="bg-[#1e1f20] text-[#e3e3e3] text-sm rounded-md px-3 py-1.5 border border-[#3c4043] focus:border-[#8ab4f8] focus:outline-none [appearance:none] [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden"
+                      className="bg-[#282a2d] text-[#e3e3e3] text-sm rounded-md px-4 py-2 border-0 focus:outline-none [appearance:none] [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end space-x-3 pt-4">
+                <div className="flex items-center justify-end space-x-4 pt-4">
                   <button
                     type="button"
                     onClick={handleResetAdvancedSearch}
@@ -346,36 +449,36 @@ export default function Navbar({
   // NORMAL NAVBAR MODE
   // ==========================================
   return (
-    <header className="h-16 px-4 flex items-center justify-between bg-[#1e1f20] text-[#e3e3e3] select-none z-20 sticky top-0 border-0">
-      {/* Left: Hamburger + Logo in fixed width matching sidebar */}
+    <header className="h-[68px] px-4 flex items-center justify-between bg-[#1e1f20] text-[#e3e3e3] select-none z-20 sticky top-0 border-0">
+      {/* Left: Hamburger + Logo in fixed width matching sidebar, slightly shifted left */}
       <div className="flex items-center">
-        <div className="w-64 shrink-0 flex items-center space-x-3">
+        <div className="w-60 shrink-0 flex items-center space-x-3">
           <button 
             onClick={onToggleSidebar}
-            className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] transition"
+            className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
             title="Menu główne"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="w-6 h-6" />
           </button>
 
           <div className="flex items-center space-x-2.5 cursor-pointer">
             <img 
               src="/calendar-logo.png" 
               alt="Kalendarz" 
-              className="w-10 h-10 object-contain rounded-xl drop-shadow-md" 
+              className="w-11 h-11 object-contain rounded-xl drop-shadow-md" 
             />
-            <span className="text-xl font-normal text-[#e3e3e3] tracking-tight font-['Product_Sans',sans-serif]">
+            <span className="text-[22px] font-normal text-[#e3e3e3] tracking-tight font-['Product_Sans',sans-serif]">
               Kalendarz
             </span>
           </div>
         </div>
 
-        {/* Navigation starts directly aligned with the calendar canvas */}
-        <div className="flex items-center space-x-3 ml-3">
-          {/* Dzisiaj button: WIEKSZY RADIUS (rounded-full) */}
+        {/* Navigation starts directly aligned with calendar: shifted slightly left (ml-1.5), Dzisiaj border whiter */}
+        <div className="flex items-center space-x-3 ml-1.5">
+          {/* Dzisiaj button: border bardziej biały */}
           <button
             onClick={onToday}
-            className="px-5 py-2 border border-[#5f6368] hover:bg-[#282a2d] rounded-full text-sm font-medium text-[#e3e3e3] transition active:scale-95"
+            className="px-6 py-2.5 border border-[#8e918f] hover:border-white hover:bg-[#282a2d] rounded-full text-sm font-medium text-[#e3e3e3] transition active:scale-95"
           >
             Dzisiaj
           </button>
@@ -384,34 +487,34 @@ export default function Navbar({
           <div className="flex items-center space-x-1">
             <button
               onClick={onPrevDate}
-              className="p-2 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] transition"
+              className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
               title="Poprzedni"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={onNextDate}
-              className="p-2 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] transition"
+              className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
               title="Następny"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Month/Date Dropdown Button matching image 2 */}
+          {/* Month/Date Dropdown Button: większa strzałka i kolor jak miesiąc */}
           <div className="relative" ref={monthPickerRef}>
             <button
               onClick={() => {
                 setPickerDate(currentDate);
                 setIsMonthPickerOpen(!isMonthPickerOpen);
               }}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg hover:bg-[#282a2d] text-xl font-medium text-[#e3e3e3] capitalize transition"
+              className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-[#282a2d] text-2xl font-normal text-[#e3e3e3] capitalize transition"
             >
               <span>{headerDateLabel}</span>
-              <ChevronDown className={`w-4 h-4 text-[#9aa0a6] transition-transform ${isMonthPickerOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-5 h-5 text-[#e3e3e3] transition-transform ${isMonthPickerOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Month & Day Picker Popover: tło #1e1f20, mniejszy radius rounded-xl */}
+            {/* Month & Day Picker Popover */}
             {isMonthPickerOpen && (
               <div className="absolute left-0 mt-2 z-50 w-64 bg-[#1e1f20] border border-[#303134] rounded-xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-100 ring-1 ring-white/5">
                 <div className="flex items-center justify-between mb-3">
@@ -473,14 +576,14 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Right: Search Icon, Help, Settings, View Switcher dropdown, User Profile */}
+      {/* Right: Search Icon, Help, Settings, View Switcher dropdown, User Profile - większe ikonki */}
       <div className="flex items-center space-x-2">
         <button
           onClick={() => setIsSearchOpen(true)}
           className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
           title="Szukaj w kalendarzu"
         >
-          <Search className="w-5 h-5" />
+          <Search className="w-6 h-6" />
         </button>
 
         <button
@@ -488,7 +591,7 @@ export default function Navbar({
           className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
           title="Pomoc"
         >
-          <HelpCircle className="w-5 h-5" />
+          <HelpCircle className="w-6 h-6" />
         </button>
 
         <button
@@ -496,17 +599,17 @@ export default function Navbar({
           className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
           title="Ustawienia"
         >
-          <Settings className="w-5 h-5" />
+          <Settings className="w-6 h-6" />
         </button>
 
-        {/* View Switcher Dropdown: WIĘKSZY RADIUS (rounded-full) */}
+        {/* View Switcher Dropdown: border bardziej biały */}
         <div className="relative ml-1" ref={viewMenuRef}>
           <button
             onClick={() => setIsViewMenuOpen(!isViewMenuOpen)}
-            className="flex items-center space-x-2 px-5 py-2 bg-transparent hover:bg-[#282a2d] border border-[#5f6368] rounded-full text-sm font-medium text-[#e3e3e3] transition focus:outline-none"
+            className="flex items-center space-x-2 px-5 py-2.5 bg-transparent hover:bg-[#282a2d] border border-[#8e918f] hover:border-white rounded-full text-sm font-medium text-[#e3e3e3] transition focus:outline-none"
           >
             <span>{VIEW_LABELS[activeView] || 'Tydzień'}</span>
-            <ChevronDown className={`w-4 h-4 text-[#9aa0a6] transition-transform ${isViewMenuOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 text-[#e3e3e3] transition-transform ${isViewMenuOpen ? 'rotate-180' : ''}`} />
           </button>
 
           {/* View Menu Popover: ciemniejsze tło (#1e1f20), mniejszy radius (rounded-xl), zwiększona szerokość (w-72), 1 linia tekstu */}

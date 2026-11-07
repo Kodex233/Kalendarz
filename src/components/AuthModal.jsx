@@ -87,7 +87,7 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
       {/* Authentic Google Sign-in Card */}
-      <div className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-md overflow-hidden border border-[#3c4043] animate-in fade-in zoom-in-95 duration-150 p-8 relative">
+      <div className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[460px] overflow-hidden border border-[#3c4043] animate-in fade-in zoom-in-95 duration-150 p-9 relative">
         <button
           onClick={onClose}
           className="absolute right-5 top-5 p-2 text-[#9aa0a6] hover:bg-[#282a2d] hover:text-[#e3e3e3] rounded-full transition"
@@ -97,8 +97,8 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
         </button>
 
         {/* Google G Logo */}
-        <div className="flex justify-center mb-4">
-          <svg className="w-10 h-10" viewBox="0 0 24 24">
+        <div className="flex justify-start mb-4">
+          <svg className="w-8 h-8" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -118,18 +118,18 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
           </svg>
         </div>
 
-        {/* Headings */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-normal text-[#e3e3e3] font-['Product_Sans',sans-serif]">
+        {/* Headings matching Google Sign-in */}
+        <div className="text-left mb-6">
+          <h2 className="text-[26px] font-normal text-[#e3e3e3] font-['Google_Sans','Product_Sans',sans-serif]">
             {isRegister ? 'Utwórz konto Google' : 'Zaloguj się'}
           </h2>
-          <p className="text-sm text-[#9aa0a6] mt-1.5">
-            {isRegister ? 'Przejdź do Kalendarza Google' : 'Użyj konta Google, aby korzystać z Kalendarza'}
+          <p className="text-base text-[#e3e3e3] mt-1.5 font-normal">
+            Przejdź do: <span className="font-medium">Kalendarz</span>
           </p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3.5 bg-[#4c1f24] border border-[#f28b82]/40 rounded-xl space-y-2 text-xs">
+          <div className="mb-5 p-3.5 bg-[#4c1f24] border border-[#f28b82]/40 rounded-xl space-y-2 text-xs">
             <div className="flex items-start space-x-2 text-[#fce8e6]">
               <AlertCircle className="w-4 h-4 text-[#f28b82] shrink-0 mt-0.5" />
               <span className="font-medium">{error}</span>
@@ -155,7 +155,7 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
-          className="w-full flex items-center justify-center space-x-3 py-3 px-4 bg-[#131314] hover:bg-[#282a2d] border border-[#747775] rounded-full text-[#e3e3e3] font-medium text-sm transition shadow-sm disabled:opacity-50 active:scale-[0.99] mb-4"
+          className="w-full flex items-center justify-center space-x-3 py-3 px-4 bg-[#131314] hover:bg-[#282a2d] border border-[#747775] rounded-full text-[#e3e3e3] font-medium text-sm transition shadow-sm disabled:opacity-50 active:scale-[0.99] mb-5"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
@@ -179,13 +179,13 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
         </button>
 
         {/* Divider */}
-        <div className="flex items-center my-4">
+        <div className="flex items-center my-5">
           <div className="flex-1 border-t border-[#3c4043]"></div>
           <span className="px-3 text-[11px] text-[#9aa0a6] font-medium tracking-wider uppercase">lub e-mail</span>
           <div className="flex-1 border-t border-[#3c4043]"></div>
         </div>
 
-        {/* Email & Password Form */}
+        {/* Email & Password Form: Google Outlined Fields */}
         <form onSubmit={handleEmailAuth} className="space-y-4">
           {isRegister && (
             <div>
@@ -195,7 +195,7 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required={isRegister}
-                className="w-full bg-[#131314] border border-[#747775] focus:border-[#a8c7fa] rounded-lg px-4 py-3 text-sm text-[#e3e3e3] placeholder-[#747775] focus:outline-none transition"
+                className="w-full bg-transparent border border-[#747775] focus:border-[#a8c7fa] focus:ring-1 focus:ring-[#a8c7fa] rounded-md px-4 py-3.5 text-base text-[#e3e3e3] placeholder-[#9aa0a6] focus:outline-none transition"
               />
             </div>
           )}
@@ -207,8 +207,15 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-[#131314] border border-[#747775] focus:border-[#a8c7fa] rounded-lg px-4 py-3 text-sm text-[#e3e3e3] placeholder-[#747775] focus:outline-none transition"
+              className="w-full bg-transparent border border-[#747775] focus:border-[#a8c7fa] focus:ring-1 focus:ring-[#a8c7fa] rounded-md px-4 py-3.5 text-base text-[#e3e3e3] placeholder-[#9aa0a6] focus:outline-none transition"
             />
+            <button
+              type="button"
+              onClick={() => alert('Wpisz swój adres e-mail powyżej lub skorzystaj z logowania Google.')}
+              className="text-sm font-medium text-[#a8c7fa] hover:text-[#c2e7ff] text-left block mt-1.5"
+            >
+              Nie pamiętasz adresu e-mail?
+            </button>
           </div>
 
           <div>
@@ -219,11 +226,19 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full bg-[#131314] border border-[#747775] focus:border-[#a8c7fa] rounded-lg px-4 py-3 text-sm text-[#e3e3e3] placeholder-[#747775] focus:outline-none transition"
+              className="w-full bg-transparent border border-[#747775] focus:border-[#a8c7fa] focus:ring-1 focus:ring-[#a8c7fa] rounded-md px-4 py-3.5 text-base text-[#e3e3e3] placeholder-[#9aa0a6] focus:outline-none transition"
             />
           </div>
 
-          <div className="flex items-center justify-between pt-3">
+          {/* Google Guest Mode Info */}
+          <div className="text-xs text-[#9aa0a6] leading-relaxed pt-2">
+            To nie Twój komputer? Użyj trybu gościa, aby zalogować się prywatnie.{' '}
+            <span className="text-[#a8c7fa] hover:underline cursor-pointer">
+              Więcej informacji o korzystaniu z trybu gościa
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between pt-6">
             <button
               type="button"
               onClick={() => {
@@ -231,7 +246,7 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
                 setError('');
                 setErrorDetails('');
               }}
-              className="text-sm font-medium text-[#a8c7fa] hover:text-[#c2e7ff] transition"
+              className="text-sm font-medium text-[#a8c7fa] hover:bg-[#a8c7fa]/10 px-4 py-2.5 rounded-full transition"
             >
               {isRegister ? 'Zaloguj się zamiast tego' : 'Utwórz konto'}
             </button>

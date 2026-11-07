@@ -22,10 +22,10 @@ export default function CreateDropdown({ onSelectType, isCollapsed = false }) {
 
   return (
     <div className="relative inline-block" ref={dropdownRef}>
-      {/* Button: border-none, smaller rounding (rounded-2xl), normal white +, text Utwórz, arrow */}
+      {/* Button: border-none, slightly lighter background, normal white +, text Utwórz, arrow */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center bg-[#303134] hover:bg-[#3c4043] shadow-md hover:shadow-xl rounded-2xl text-white font-medium transition duration-150 active:scale-[0.98] border-0 focus:outline-none ${
+        className={`flex items-center bg-[#3c4043] hover:bg-[#484b50] shadow-md hover:shadow-lg rounded-2xl text-white font-medium transition duration-150 active:scale-[0.98] border-0 focus:outline-none ${
           isCollapsed ? 'w-12 h-12 justify-center p-0' : 'space-x-3 px-5 py-3.5'
         }`}
         title="Utwórz nowe"
