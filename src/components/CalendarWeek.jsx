@@ -10,8 +10,9 @@ import {
 import { Plus } from 'lucide-react';
 import CreateDropdown from './CreateDropdown';
 
-// Kalendarz zaczyna się od 1 AM na samej górze
-const HOURS = [
+// 24 godziny w dobie: 1 AM ma odstęp 1 kratki od GMT (kratka 00:00 - 01:00)
+const HOURS_COUNT = 24;
+const HOUR_LABELS = [
   '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM',
   '7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', 
   '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', 
@@ -47,11 +48,11 @@ export default function CalendarWeek({
 
   const DAY_NAMES = ['NIEDZ.', 'PON.', 'WT.', 'ŚR.', 'CZW.', 'PT.', 'SOB.'];
 
-  // Current time position indicator (48px per hour starting at 1 AM)
+  // Current time position indicator (48px per hour, 1 AM starts after 1 kratka at 48px)
   const now = new Date();
   const currentHour = now.getHours();
   const currentMinutes = now.getMinutes();
-  const timeProgressMinutes = Math.max(0, (currentHour - 1) * 48 + (currentMinutes / 60) * 48);
+  const timeProgressMinutes = Math.max(0, currentHour * 48 + (currentMinutes / 60) * 48);
 
   // Separate all-day events vs timed events
   const allDayEvents = events.filter(e => e.calendarId === 'swieta' || e.isAllDay);
@@ -164,21 +165,26 @@ export default function CalendarWeek({
         <div className="w-[9px] shrink-0 border-b border-white/15" />
       </div>
 
-      {/* Scrollable Time Grid: 1 AM nie jest ucinane (top-0.5 dla 1 AM) */}
+      {/* Scrollable Time Grid: 1 AM ma odstęp 1 kratki od GMT, jednolite linie border-b (brak podwójnej linii pod GMT) */}
       <div ref={containerRef} className="flex-1 overflow-y-auto relative bg-[#131314] pr-1.5 pt-0">
-        <div className="flex min-h-[1150px]">
-          {/* Left Hours column: godziny minimalnie bliżej prawej (pr-3.5), 1 AM nie jest ucinane */}
+        <div className="flex min-h-[1152px]">
+          {/* Left Hours column: godziny minimalnie bliżej prawej (pr-3.5), 1 AM na linii 1 kratkę pod GMT */}
           <div className="w-16 shrink-0 bg-[#131314] select-none border-r border-white/20 relative">
-            {HOURS.map((hour, idx) => (
-              <div 
-                key={idx} 
-                className="h-12 relative flex items-start justify-end pr-3.5 text-[11px] font-medium text-white"
-              >
-                <span className={`relative bg-[#131314] px-1 z-10 ${idx === 0 ? 'top-0.5' : '-top-2'}`}>{hour}</span>
-                {/* Linia pozioma wystająca 8px w lewo - na TYM SAMYM poziomie (top-0 border-t border-white/15) */}
-                <div className="absolute right-0 top-0 w-2 border-t border-white/15 pointer-events-none" />
-              </div>
-            ))}
+            {Array.from({ length: HOURS_COUNT }).map((_, idx) => {
+              const label = HOUR_LABELS[idx];
+              return (
+                <div 
+                  key={idx} 
+                  className="h-12 relative flex items-end justify-end pr-3.5 text-[11px] font-medium text-white border-b border-white/15"
+                >
+                  {label && (
+                    <span className="relative top-2 bg-[#131314] px-1 z-10 leading-none">{label}</span>
+                  )}
+                  {/* Linia pozioma wystająca 8px w lewo - na dolnej krawędzi kratki */}
+                  <div className="absolute right-0 bottom-0 w-2 border-b border-white/15 pointer-events-none" />
+                </div>
+              );
+            })}
           </div>
 
           {/* Day Grid Columns: białe linie siatki, brak prawej kreski na ostatniej kolumnie */}
@@ -197,20 +203,14 @@ export default function CalendarWeek({
                   key={dIdx} 
                   className={`relative h-full ${isLastColumn ? 'border-r-0' : 'border-r border-white/20'}`}
                 >
-                  {/* Hour slots: linie poziome border-t dopasowane idealnie do znaczników */}
-                  {HOURS.map((_, hIdx) => {
-                    const slotHour = hIdx + 1;
-                    const isLastRow = hIdx === HOURS.length - 1;
-                    return (
-                      <div 
-                        key={hIdx} 
-                        onClick={() => onSelectSlot(day, `${slotHour.toString().padStart(2, '0')}:00`)}
-                        className={`h-12 border-t border-white/15 hover:bg-[#1f2022] cursor-pointer transition ${
-                          isLastRow ? 'border-b border-white/15' : ''
-                        }`}
-                      />
-                    );
-                  })}
+                  {/* 24 Hour slots: pojedyncza linia border-b na każdej kratce, brak podwójnej kreski pod GMT */}
+                  {Array.from({ length: HOURS_COUNT }).map((_, hIdx) => (
+                    <div 
+                      key={hIdx} 
+                      onClick={() => onSelectSlot(day, `${hIdx.toString().padStart(2, '0')}:00`)}
+                      className="h-12 border-b border-white/15 hover:bg-[#1f2022] cursor-pointer transition"
+                    />
+                  ))}
 
                   {/* Red current time indicator line */}
                   {isToday && (
@@ -230,7 +230,7 @@ export default function CalendarWeek({
 
                     if (event.startTime) {
                       const [h, m] = event.startTime.split(':').map(Number);
-                      const startMinutes = Math.max(0, (h - 1) * 48 + ((m || 0) / 60) * 48);
+                      const startMinutes = Math.max(0, h * 48 + ((m || 0) / 60) * 48);
                       topPx = startMinutes;
                     }
                     if (event.endTime && event.startTime) {

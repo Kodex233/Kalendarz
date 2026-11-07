@@ -712,9 +712,8 @@ export default function Navbar({
         ) : (
           <button
             onClick={onOpenAuth}
-            className="flex items-center space-x-2 px-5 py-2 border border-[#5f6368] hover:border-[#8ab4f8] hover:bg-[#282a2d] text-[#8ab4f8] rounded-full text-sm font-semibold transition shadow-xs ml-1"
+            className="flex items-center justify-center px-5 py-2.5 bg-transparent hover:bg-[#282a2d] border border-[#8e918f] hover:border-white text-[#a8c7fa] hover:text-white rounded-full text-sm font-medium transition focus:outline-none shadow-xs ml-1"
           >
-            <UserIcon className="w-4 h-4" />
             <span>Zaloguj się</span>
           </button>
         )}
