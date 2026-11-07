@@ -90,8 +90,8 @@ export default function Sidebar({
         <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={false} />
       </div>
 
-      {/* 2. Mini Calendar: oddalony od buttona utwórz (mt-8), mniejsza szerokość (w-[208px]) */}
-      <div className="bg-transparent border-0 w-[208px] mx-auto mt-8 space-y-2.5">
+      {/* 2. Mini Calendar: oddalony od buttona utwórz (mt-10), mniejsza szerokość (w-[208px]) */}
+      <div className="bg-transparent border-0 w-[208px] mx-auto mt-10 space-y-2.5">
         <div className="flex items-center justify-between px-1">
           <span className="text-sm font-semibold text-[#e3e3e3] capitalize">
             {format(miniDate, 'LLLL yyyy', { locale: pl })}
@@ -121,7 +121,7 @@ export default function Sidebar({
           ))}
         </div>
 
-        {/* Mini Month Grid: większy odstęp w pionie (gap-y-2), idealne koła w-7 h-7 */}
+        {/* Mini Month Grid: większy odstęp w pionie (gap-y-2), tła okrągłe w-6 h-6 (lekko mniejszy padding) */}
         <div className="grid grid-cols-7 gap-x-1 gap-y-2 text-center text-xs">
           {miniDays.map((day, idx) => {
             const isCurrentMonth = isSameMonth(day, miniDate);
@@ -143,7 +143,7 @@ export default function Sidebar({
               <button
                 key={idx}
                 onClick={() => handleMiniDayClick(day)}
-                className={`w-7 h-7 mx-auto rounded-full flex items-center justify-center text-xs transition shrink-0 ${dayStyle}`}
+                className={`w-6 h-6 mx-auto rounded-full flex items-center justify-center text-xs transition shrink-0 ${dayStyle}`}
               >
                 {format(day, 'd')}
               </button>
@@ -186,19 +186,13 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* 4. Strony rezerwacji: wyrównanie tekstu do lewej na tym samym poziomie co inne nagłówki, lekko mniejsza wysokość padding */}
+      {/* 4. Strony rezerwacji: wyrównanie tekstu do lewej na tym samym poziomie, hover tylko dla przycisku + */}
       <div className="space-y-0.5 px-1">
-        <div 
-          onClick={() => onOpenCreateModal('Harmonogram spotkań')}
-          className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1.5 px-3 hover:bg-[#35373a] rounded-full transition cursor-pointer"
-        >
+        <div className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1.5 px-3">
           <span>Strony rezerwacji</span>
           <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenCreateModal('Harmonogram spotkań');
-            }}
-            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#3c4043] text-[#9aa0a6] hover:text-[#e3e3e3] transition -mr-1"
+            onClick={() => onOpenCreateModal('Harmonogram spotkań')}
+            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#35373a] text-[#9aa0a6] hover:text-[#e3e3e3] transition -mr-1"
             title="Dodaj harmonogram"
           >
             <Plus className="w-4 h-4" />

@@ -10,13 +10,33 @@ import {
 import { Plus } from 'lucide-react';
 import CreateDropdown from './CreateDropdown';
 
-// 24 godziny w dobie: 1 AM ma odstęp 1 kratki od GMT (kratka 00:00 - 01:00)
+// 24 godziny w dobie: indeks 0 (00:00) to odstęp 1 kratki pod GMT (bez etykiety), indeks 1 (01:00) to 1 AM
 const HOURS_COUNT = 24;
 const HOUR_LABELS = [
-  '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM',
-  '7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', 
-  '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', 
-  '6 PM', '7 PM', '8 PM', '9 PM', '10 PM', '11 PM'
+  null,    // 00:00 - odstęp 1 kratki od GMT
+  '1 AM',  // 01:00
+  '2 AM',  // 02:00
+  '3 AM',  // 03:00
+  '4 AM',  // 04:00
+  '5 AM',  // 05:00
+  '6 AM',  // 06:00
+  '7 AM',  // 07:00
+  '8 AM',  // 08:00
+  '9 AM',  // 09:00
+  '10 AM', // 10:00
+  '11 AM', // 11:00
+  '12 PM', // 12:00
+  '1 PM',  // 13:00
+  '2 PM',  // 14:00
+  '3 PM',  // 15:00
+  '4 PM',  // 16:00
+  '5 PM',  // 17:00
+  '6 PM',  // 18:00
+  '7 PM',  // 19:00
+  '8 PM',  // 20:00
+  '9 PM',  // 21:00
+  '10 PM', // 22:00
+  '11 PM'  // 23:00
 ];
 
 export default function CalendarWeek({
@@ -129,14 +149,12 @@ export default function CalendarWeek({
         <div className="w-[9px] shrink-0" />
       </div>
 
-      {/* Row with GMT+1 and all-day events: pionowa kreska wychodzi o połowę mniej ponad 1. poziomą (min-h-[18px] py-0.5) */}
+      {/* Row with GMT+1 and all-day events: pionowa kreska wychodzi o połowę mniej ponad 1. poziomą, brak border-b zapobiega podwójnej linii */}
       <div className="flex bg-[#131314] shrink-0 pr-1.5 min-h-[18px]">
         <div className="w-16 shrink-0 text-center text-[10px] font-medium text-white flex items-center justify-center border-r border-white/20 py-0.5 relative">
           GMT+1
-          {/* Poziomy znacznik 8px w lewo od pionowej linii, identycznie jak w godzinach poniżej (nie idzie za daleko w lewo) */}
-          <div className="absolute right-0 bottom-0 w-2 border-b border-white/15 pointer-events-none" />
         </div>
-        <div className="flex-1 grid relative border-b border-white/15" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
+        <div className="flex-1 grid relative" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
           {days.map((day, idx) => {
             const isLastColumn = idx === days.length - 1;
             const dateStr = format(day, 'yyyy-MM-dd');
@@ -161,27 +179,30 @@ export default function CalendarWeek({
             );
           })}
         </div>
-        {/* Spacer wyrównujący szerokość do scrollbara, aby kratki były idealnie równe */}
-        <div className="w-[9px] shrink-0 border-b border-white/15" />
+        {/* Spacer wyrównujący szerokość do scrollbara */}
+        <div className="w-[9px] shrink-0" />
       </div>
 
-      {/* Scrollable Time Grid: 1 AM ma odstęp 1 kratki od GMT, jednolite linie border-b (brak podwójnej linii pod GMT) */}
+      {/* Scrollable Time Grid: 1 AM ma odstęp 1 kratki od GMT, kreski tylko z prawej (brak kresek po lewej stronie godzin, brak podwójnych kresek) */}
       <div ref={containerRef} className="flex-1 overflow-y-auto relative bg-[#131314] pr-1.5 pt-0">
         <div className="flex min-h-[1152px]">
-          {/* Left Hours column: godziny minimalnie bliżej prawej (pr-3.5), 1 AM na linii 1 kratkę pod GMT */}
+          {/* Left Hours column: godziny minimalnie bliżej prawej (pr-3.5), kreski 8px tylko z prawej (brak kresek po lewej) */}
           <div className="w-16 shrink-0 bg-[#131314] select-none border-r border-white/20 relative">
             {Array.from({ length: HOURS_COUNT }).map((_, idx) => {
               const label = HOUR_LABELS[idx];
+              const isLast = idx === HOURS_COUNT - 1;
               return (
                 <div 
                   key={idx} 
-                  className="h-12 relative flex items-end justify-end pr-3.5 text-[11px] font-medium text-white border-b border-white/15"
+                  className={`h-12 relative flex items-start justify-end pr-3.5 text-[11px] font-medium text-white ${
+                    isLast ? 'border-b border-white/15' : ''
+                  }`}
                 >
                   {label && (
-                    <span className="relative top-2 bg-[#131314] px-1 z-10 leading-none">{label}</span>
+                    <span className="relative -top-2 bg-[#131314] px-1 z-10 leading-none">{label}</span>
                   )}
-                  {/* Linia pozioma wystająca 8px w lewo - na dolnej krawędzi kratki */}
-                  <div className="absolute right-0 bottom-0 w-2 border-b border-white/15 pointer-events-none" />
+                  {/* Linia pozioma wystająca 8px w lewo od pionowej linii (nigdy po lewej stronie godziny) */}
+                  <div className="absolute right-0 top-0 w-2 border-t border-white/15 pointer-events-none" />
                 </div>
               );
             })}
@@ -203,14 +224,19 @@ export default function CalendarWeek({
                   key={dIdx} 
                   className={`relative h-full ${isLastColumn ? 'border-r-0' : 'border-r border-white/20'}`}
                 >
-                  {/* 24 Hour slots: pojedyncza linia border-b na każdej kratce, brak podwójnej kreski pod GMT */}
-                  {Array.from({ length: HOURS_COUNT }).map((_, hIdx) => (
-                    <div 
-                      key={hIdx} 
-                      onClick={() => onSelectSlot(day, `${hIdx.toString().padStart(2, '0')}:00`)}
-                      className="h-12 border-b border-white/15 hover:bg-[#1f2022] cursor-pointer transition"
-                    />
-                  ))}
+                  {/* 24 Hour slots: border-t na każdej kratce, brak podwójnej kreski pod GMT */}
+                  {Array.from({ length: HOURS_COUNT }).map((_, hIdx) => {
+                    const isLast = hIdx === HOURS_COUNT - 1;
+                    return (
+                      <div 
+                        key={hIdx} 
+                        onClick={() => onSelectSlot(day, `${hIdx.toString().padStart(2, '0')}:00`)}
+                        className={`h-12 border-t border-white/15 hover:bg-[#1f2022] cursor-pointer transition ${
+                          isLast ? 'border-b border-white/15' : ''
+                        }`}
+                      />
+                    );
+                  })}
 
                   {/* Red current time indicator line */}
                   {isToday && (
