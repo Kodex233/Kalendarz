@@ -64,10 +64,10 @@ export default function CalendarWeek({
 
   return (
     <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-5 mr-4 m-3 ml-2 mt-1 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none shadow-2xl">
-      {/* Top Header: bez kratek między liczbami dni */}
-      <div className="flex bg-[#131314] shrink-0 pt-2 pb-1 pr-1.5 border-b border-white/15">
-        {/* Left top box: When sidebar is collapsed, + button sits right here */}
-        <div className="w-16 shrink-0 flex items-center justify-center border-r border-white/20">
+      {/* Top Header: bez kratek między liczbami dni, bez kreski pionowej obok dnia, bez 1. poziomej */}
+      <div className="flex bg-[#131314] shrink-0 pt-2 pb-1 pr-1.5">
+        {/* Left top box: When sidebar is collapsed, + button sits right here (bez kreski pionowej) */}
+        <div className="w-16 shrink-0 flex items-center justify-center">
           {!isSidebarOpen ? (
             <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={true} />
           ) : (
@@ -128,12 +128,14 @@ export default function CalendarWeek({
         <div className="w-[9px] shrink-0" />
       </div>
 
-      {/* Row with GMT+1 and all-day events: proste pionowe kreski idealnie równe z siatką (w-[9px] spacer) */}
-      <div className="flex bg-[#131314] shrink-0 border-b border-white/15 pr-1.5 min-h-[36px]">
-        <div className="w-16 shrink-0 text-center text-[11px] font-medium text-white flex items-center justify-center border-r border-white/20 py-1.5">
+      {/* Row with GMT+1 and all-day events: proste pionowe kreski idealnie równe z siatką; linia pozioma tylko pod dniami i 8px znacznik w GMT */}
+      <div className="flex bg-[#131314] shrink-0 pr-1.5 min-h-[36px]">
+        <div className="w-16 shrink-0 text-center text-[11px] font-medium text-white flex items-center justify-center border-r border-white/20 py-1.5 relative">
           GMT+1
+          {/* Poziomy znacznik 8px w lewo od pionowej linii, identycznie jak w godzinach poniżej (nie idzie za daleko w lewo) */}
+          <div className="absolute right-0 bottom-0 w-2 border-b border-white/15 pointer-events-none" />
         </div>
-        <div className="flex-1 grid relative" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
+        <div className="flex-1 grid relative border-b border-white/15" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
           {days.map((day, idx) => {
             const isLastColumn = idx === days.length - 1;
             const dateStr = format(day, 'yyyy-MM-dd');
@@ -159,18 +161,18 @@ export default function CalendarWeek({
           })}
         </div>
         {/* Spacer wyrównujący szerokość do scrollbara, aby kratki były idealnie równe */}
-        <div className="w-[9px] shrink-0" />
+        <div className="w-[9px] shrink-0 border-b border-white/15" />
       </div>
 
-      {/* Scrollable Time Grid: godziny lekko w lewo (pr-5), kreski poziome na TYM SAMYM poziomie co siatka */}
+      {/* Scrollable Time Grid: godziny minimalnie bliżej prawej (pr-3.5), kreski poziome na TYM SAMYM poziomie co siatka */}
       <div ref={containerRef} className="flex-1 overflow-y-auto relative bg-[#131314] pr-1.5 pt-0">
         <div className="flex min-h-[1150px]">
-          {/* Left Hours column: godziny lekko w lewo, linie poziome na dokładnym poziomie siatki */}
+          {/* Left Hours column: godziny minimalnie bliżej prawej (pr-3.5) */}
           <div className="w-16 shrink-0 bg-[#131314] select-none border-r border-white/20 relative">
             {HOURS.map((hour, idx) => (
               <div 
                 key={idx} 
-                className="h-12 relative flex items-start justify-end pr-5 text-[11px] font-medium text-white"
+                className="h-12 relative flex items-start justify-end pr-3.5 text-[11px] font-medium text-white"
               >
                 <span className="relative -top-2 bg-[#131314] px-1 z-10">{hour}</span>
                 {/* Linia pozioma wystająca 8px w lewo - na TYM SAMYM poziomie (top-0 border-t border-white/15) */}

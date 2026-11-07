@@ -90,8 +90,8 @@ export default function Sidebar({
         <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={false} />
       </div>
 
-      {/* 2. Mini Calendar: oddalony od buttona utwórz (mt-5), mniejsza szerokość (w-[208px]) */}
-      <div className="bg-transparent border-0 w-[208px] mx-auto mt-5 space-y-2.5">
+      {/* 2. Mini Calendar: oddalony od buttona utwórz (mt-8), mniejsza szerokość (w-[208px]) */}
+      <div className="bg-transparent border-0 w-[208px] mx-auto mt-8 space-y-2.5">
         <div className="flex items-center justify-between px-1">
           <span className="text-sm font-semibold text-[#e3e3e3] capitalize">
             {format(miniDate, 'LLLL yyyy', { locale: pl })}
@@ -186,13 +186,19 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* 4. Strony rezerwacji */}
-      <div className="pt-1 px-1">
-        <div className="flex items-center justify-between text-xs font-medium text-[#c4c7c5] hover:text-[#e3e3e3] py-1 cursor-pointer">
+      {/* 4. Strony rezerwacji: wyrównanie tekstu do lewej na tym samym poziomie co inne nagłówki */}
+      <div className="space-y-0.5 px-1">
+        <div 
+          onClick={() => onOpenCreateModal('Harmonogram spotkań')}
+          className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-2 px-3 hover:bg-[#35373a] rounded-full transition cursor-pointer"
+        >
           <span>Strony rezerwacji</span>
           <button 
-            onClick={() => onOpenCreateModal('Harmonogram spotkań')}
-            className="p-1 hover:bg-[#282a2d] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3]"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenCreateModal('Harmonogram spotkań');
+            }}
+            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#3c4043] text-[#9aa0a6] hover:text-[#e3e3e3] transition -mr-1"
             title="Dodaj harmonogram"
           >
             <Plus className="w-4 h-4" />
@@ -207,7 +213,9 @@ export default function Sidebar({
           className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-2 px-3 cursor-pointer hover:bg-[#35373a] rounded-full transition"
         >
           <span>Moje kalendarze</span>
-          <ChevronUp className={`w-4 h-4 text-[#9aa0a6] transition-transform duration-200 ${!myCalendarsOpen ? 'rotate-180' : ''}`} />
+          <div className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#3c4043] text-[#9aa0a6] hover:text-[#e3e3e3] transition -mr-1">
+            <ChevronUp className={`w-4 h-4 text-[#9aa0a6] hover:text-[#e3e3e3] transition-transform duration-200 ${!myCalendarsOpen ? 'rotate-180' : ''}`} />
+          </div>
         </div>
 
         {myCalendarsOpen && (
@@ -285,19 +293,26 @@ export default function Sidebar({
           >
             <span>Inne kalendarze</span>
           </div>
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-0.5 -mr-1">
             <button
-              onClick={onAddOtherCalendar}
-              className="p-1 hover:bg-[#282a2d] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3]"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddOtherCalendar();
+              }}
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#3c4043] text-[#9aa0a6] hover:text-[#e3e3e3] transition"
               title="Dodaj inny kalendarz"
             >
               <Plus className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setOtherCalendarsOpen(!otherCalendarsOpen)}
-              className="p-1 hover:bg-[#282a2d] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3]"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOtherCalendarsOpen(!otherCalendarsOpen);
+              }}
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#3c4043] text-[#9aa0a6] hover:text-[#e3e3e3] transition"
+              title={otherCalendarsOpen ? "Zwiń inne kalendarze" : "Rozwiń inne kalendarze"}
             >
-              <ChevronUp className={`w-4 h-4 text-[#9aa0a6] transition-transform duration-200 ${!otherCalendarsOpen ? 'rotate-180' : ''}`} />
+              <ChevronUp className={`w-4 h-4 text-[#9aa0a6] hover:text-[#e3e3e3] transition-transform duration-200 ${!otherCalendarsOpen ? 'rotate-180' : ''}`} />
             </button>
           </div>
         </div>
