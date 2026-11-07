@@ -45,30 +45,33 @@ export default function EventDetailModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-transparent animate-in fade-in duration-100"
+      onClick={onClose}
+    >
       <div 
-        className="bg-[#1e1f20] text-[#e3e3e3] rounded-[24px] shadow-2xl w-full max-w-sm overflow-hidden border border-[#303134]/80 animate-in fade-in zoom-in-95 duration-150 p-5 space-y-4"
+        className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[448px] overflow-hidden border border-[#303134] animate-in fade-in zoom-in-95 duration-150 p-6 space-y-5"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Right Action Icons matching image 5 */}
-        <div className="flex items-center justify-end space-x-1 text-[#9aa0a6]">
+        {/* Top Right Action Icons */}
+        <div className="flex items-center justify-end space-x-1 text-[#c4c7c5]">
           <button
             onClick={() => {
               onClose();
               onEdit(event);
             }}
-            className="p-1.5 hover:bg-[#282a2d] hover:text-[#e3e3e3] rounded-full transition"
+            className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition"
             title="Edytuj wydarzenie"
           >
-            <Edit3 className="w-4 h-4 text-[#9aa0a6]" />
+            <Edit3 className="w-4 h-4 text-[#c4c7c5]" />
           </button>
 
           <button
             onClick={handleDelete}
-            className="p-1.5 hover:bg-[#282a2d] hover:text-[#f28b82] rounded-full transition"
+            className="p-2 hover:bg-[#35373a] hover:text-[#f28b82] rounded-full transition"
             title="Usuń wydarzenie"
           >
-            <Trash2 className="w-4 h-4 text-[#9aa0a6]" />
+            <Trash2 className="w-4 h-4 text-[#c4c7c5]" />
           </button>
 
           <button
@@ -79,37 +82,37 @@ export default function EventDetailModal({
                 alert('Brak zaproszonych gości do wysłania e-maila');
               }
             }}
-            className="p-1.5 hover:bg-[#282a2d] hover:text-[#e3e3e3] rounded-full transition"
+            className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition"
             title="Wyślij e-mail do gości"
           >
-            <Mail className="w-4 h-4 text-[#9aa0a6]" />
+            <Mail className="w-4 h-4 text-[#c4c7c5]" />
           </button>
 
           <button
             onClick={() => alert('Więcej opcji')}
-            className="p-1.5 hover:bg-[#282a2d] hover:text-[#e3e3e3] rounded-full transition"
+            className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition"
             title="Opcje"
           >
-            <MoreVertical className="w-4 h-4 text-[#9aa0a6]" />
+            <MoreVertical className="w-4 h-4 text-[#c4c7c5]" />
           </button>
 
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-[#282a2d] hover:text-[#e3e3e3] rounded-full transition ml-1"
+            className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition ml-1"
             title="Zamknij"
           >
-            <X className="w-4 h-4 text-[#9aa0a6]" />
+            <X className="w-4 h-4 text-[#c4c7c5]" />
           </button>
         </div>
 
-        {/* Title with colored square matching image 5 */}
-        <div className="flex items-start space-x-3 pt-1">
+        {/* Title with colored square */}
+        <div className="flex items-start space-x-3.5 pt-0.5">
           <span 
             className="w-4 h-4 rounded-[4px] mt-1 shrink-0" 
             style={{ backgroundColor: event.customBg || calendarColor }}
           />
           <div>
-            <h2 className="text-xl font-normal text-[#e3e3e3] tracking-wide leading-tight">
+            <h2 className="text-[22px] font-normal text-[#e3e3e3] tracking-wide leading-tight">
               {event.title || '(Bez tytułu)'}
             </h2>
             <p className="text-xs text-[#9aa0a6] mt-1 capitalize">
@@ -118,26 +121,26 @@ export default function EventDetailModal({
           </div>
         </div>
 
-        {/* Zaproś przez link button matching image 5 */}
+        {/* Zaproś przez link button */}
         <div className="pl-7">
           <button
             onClick={handleCopyLink}
             className="flex items-center space-x-2 px-4 py-1.5 rounded-full border border-[#5f6368] hover:bg-[#282a2d] text-xs font-medium text-[#e3e3e3] transition"
           >
-            <LinkIcon className="w-3.5 h-3.5 text-[#9aa0a6]" />
+            <LinkIcon className="w-3.5 h-3.5 text-[#c4c7c5]" />
             <span>Zaproś przez link</span>
           </button>
         </div>
 
         {/* 30 minut wcześniej notification row */}
         <div className="flex items-center space-x-3 text-xs text-[#c4c7c5] pl-1">
-          <Bell className="w-4 h-4 text-[#9aa0a6] shrink-0" />
+          <Bell className="w-4 h-4 text-[#c4c7c5] shrink-0" />
           <span>30 minut wcześniej</span>
         </div>
 
         {/* Calendar row */}
         <div className="flex items-center space-x-3 text-xs text-[#c4c7c5] pl-1">
-          <CalendarIcon className="w-4 h-4 text-[#9aa0a6] shrink-0" />
+          <CalendarIcon className="w-4 h-4 text-[#c4c7c5] shrink-0" />
           <span>{calendarName}</span>
         </div>
       </div>

@@ -207,8 +207,8 @@ export default function Sidebar({
           className="flex items-center justify-between text-xs font-semibold text-[#e3e3e3] py-1.5 px-3 cursor-pointer hover:bg-[#35373a] rounded-full transition"
         >
           <span>Moje kalendarze</span>
-          <div className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#3c4043] text-[#9aa0a6] hover:text-[#e3e3e3] transition -mr-1">
-            <ChevronUp className={`w-4 h-4 text-[#9aa0a6] hover:text-[#e3e3e3] transition-transform duration-200 ${!myCalendarsOpen ? 'rotate-180' : ''}`} />
+          <div className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#4d5156] text-[#9aa0a6] hover:text-white transition -mr-1">
+            <ChevronUp className={`w-4 h-4 text-[#9aa0a6] hover:text-white transition-transform duration-200 ${!myCalendarsOpen ? 'rotate-180' : ''}`} />
           </div>
         </div>
 
@@ -237,14 +237,14 @@ export default function Sidebar({
                   </span>
                 </div>
 
-                {/* X i 3 kropki: bliżej prawej krawędzi (-mr-2), większy hover (w-8 h-8), bez czerwonego */}
+                {/* X i 3 kropki: jaśniejszy szary hover (hover:bg-[#4d5156] hover:text-white) */}
                 <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-0.5 transition shrink-0 -mr-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteCalendar(cal.id);
                     }}
-                    className="w-8 h-8 flex items-center justify-center text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#3c4043] rounded-full transition"
+                    className="w-8 h-8 flex items-center justify-center text-[#9aa0a6] hover:text-white hover:bg-[#4d5156] rounded-full transition"
                     title="Usuń kalendarz"
                   >
                     <X className="w-4 h-4" />
@@ -255,7 +255,7 @@ export default function Sidebar({
                       e.stopPropagation();
                       setActiveMenuCalendarId(activeMenuCalendarId === cal.id ? null : cal.id);
                     }}
-                    className="w-8 h-8 flex items-center justify-center text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#3c4043] rounded-full transition"
+                    className="w-8 h-8 flex items-center justify-center text-[#9aa0a6] hover:text-white hover:bg-[#4d5156] rounded-full transition"
                     title="Opcje kalendarza"
                   >
                     <MoreVertical className="w-4 h-4" />
@@ -293,7 +293,7 @@ export default function Sidebar({
                 e.stopPropagation();
                 onAddOtherCalendar();
               }}
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#3c4043] text-[#9aa0a6] hover:text-[#e3e3e3] transition"
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#4d5156] text-[#9aa0a6] hover:text-white transition"
               title="Dodaj inny kalendarz"
             >
               <Plus className="w-4 h-4" />
@@ -303,10 +303,10 @@ export default function Sidebar({
                 e.stopPropagation();
                 setOtherCalendarsOpen(!otherCalendarsOpen);
               }}
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#3c4043] text-[#9aa0a6] hover:text-[#e3e3e3] transition"
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#4d5156] text-[#9aa0a6] hover:text-white transition"
               title={otherCalendarsOpen ? "Zwiń inne kalendarze" : "Rozwiń inne kalendarze"}
             >
-              <ChevronUp className={`w-4 h-4 text-[#9aa0a6] hover:text-[#e3e3e3] transition-transform duration-200 ${!otherCalendarsOpen ? 'rotate-180' : ''}`} />
+              <ChevronUp className={`w-4 h-4 text-[#9aa0a6] hover:text-white transition-transform duration-200 ${!otherCalendarsOpen ? 'rotate-180' : ''}`} />
             </button>
           </div>
         </div>
@@ -342,7 +342,7 @@ export default function Sidebar({
                       e.stopPropagation();
                       onDeleteOtherCalendar(cal.id);
                     }}
-                    className="w-8 h-8 flex items-center justify-center text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#3c4043] rounded-full transition"
+                    className="w-8 h-8 flex items-center justify-center text-[#9aa0a6] hover:text-white hover:bg-[#4d5156] rounded-full transition"
                     title="Usuń kalendarz"
                   >
                     <X className="w-4 h-4" />
@@ -353,7 +353,7 @@ export default function Sidebar({
                       e.stopPropagation();
                       setActiveMenuCalendarId(activeMenuCalendarId === cal.id ? null : cal.id);
                     }}
-                    className="w-8 h-8 flex items-center justify-center text-[#9aa0a6] hover:text-[#e3e3e3] hover:bg-[#3c4043] rounded-full transition"
+                    className="w-8 h-8 flex items-center justify-center text-[#9aa0a6] hover:text-white hover:bg-[#4d5156] rounded-full transition"
                     title="Opcje kalendarza"
                   >
                     <MoreVertical className="w-4 h-4" />

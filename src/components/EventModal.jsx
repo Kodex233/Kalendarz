@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   X, 
   Trash2, 
@@ -8,7 +8,7 @@ import {
   MapPin, 
   AlignLeft, 
   Calendar as CalendarIcon, 
-  GripHorizontal,
+  ChevronDown,
   ArrowLeftRight
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -29,6 +29,7 @@ export default function EventModal({
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('10:30');
   const [endTime, setEndTime] = useState('11:30');
+  const [isAllDay, setIsAllDay] = useState(false);
   const [guests, setGuests] = useState('');
   const [showGuestInput, setShowGuestInput] = useState(false);
   const [hasMeet, setHasMeet] = useState(false);
@@ -50,6 +51,7 @@ export default function EventModal({
       setDate(initialData.date || new Date().toISOString().split('T')[0]);
       setStartTime(initialData.startTime || '10:30');
       setEndTime(initialData.endTime || '11:30');
+      setIsAllDay(Boolean(initialData.isAllDay));
       setGuests(initialData.invitedEmail || '');
       setShowGuestInput(Boolean(initialData.invitedEmail));
       setLocation(initialData.location || '');
@@ -64,6 +66,7 @@ export default function EventModal({
       setDate(new Date().toISOString().split('T')[0]);
       setStartTime('10:30');
       setEndTime('11:30');
+      setIsAllDay(false);
       setGuests('');
       setShowGuestInput(false);
       setHasMeet(false);
@@ -75,6 +78,16 @@ export default function EventModal({
       setIsExchangeable(false);
     }
   }, [initialData, isOpen]);
+
+  const formattedDateLabel = useMemo(() => {
+    try {
+      if (!date) return 'Wybierz datę';
+      const d = new Date(date + 'T00:00:00');
+      return format(d, 'EEEE, d MMMM', { locale: pl });
+    } catch {
+      return date;
+    }
+  }, [date]);
 
   if (!isOpen) return null;
 
@@ -89,8 +102,9 @@ export default function EventModal({
       await onSave({
         title,
         date,
-        startTime,
-        endTime,
+        startTime: isAllDay ? '00:00' : startTime,
+        endTime: isAllDay ? '23:59' : endTime,
+        isAllDay,
         type: activeTab,
         calendarId: selectedCalendarId,
         color: currentCal.color,
@@ -117,20 +131,28 @@ export default function EventModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
-      {/* Większe okienko z edycją wydarzenia: max-w-2xl z przestronnym układem */}
-      <div className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-2xl overflow-hidden border border-[#303134] animate-in fade-in zoom-in-95 duration-150">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-transparent animate-in fade-in duration-100"
+      onClick={onClose}
+    >
+      {/* Okienko dodawania wydarzenia o optymalnym rozmiarze max-w-[448px] (zgodnie ze zdjęciem) */}
+      <div 
+        className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[448px] overflow-hidden border border-[#303134] animate-in fade-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Top Header bar with drag handle and action icons */}
-        <div className="flex items-center justify-between px-7 pt-5 pb-2 bg-[#1e1f20]">
-          <div className="text-[#9aa0a6] cursor-grab active:cursor-grabbing">
-            <GripHorizontal className="w-5 h-5 text-[#9aa0a6]" />
+        <div className="flex items-center justify-between px-6 pt-4 pb-1 bg-[#1e1f20]">
+          {/* Uchwyt do przesuwania (=) */}
+          <div className="flex flex-col space-y-1 py-1 cursor-grab active:cursor-grabbing text-[#c4c7c5]">
+            <div className="w-4 h-0.5 bg-[#c4c7c5] rounded-full" />
+            <div className="w-4 h-0.5 bg-[#c4c7c5] rounded-full" />
           </div>
           <div className="flex items-center space-x-1">
             {initialData && initialData.id && (
               <button
                 type="button"
                 onClick={handleDelete}
-                className="p-2 text-[#9aa0a6] hover:text-[#f28b82] hover:bg-[#282a2d] rounded-full transition"
+                className="p-1.5 text-[#c4c7c5] hover:text-[#f28b82] hover:bg-[#35373a] rounded-full transition"
                 title="Usuń wydarzenie"
               >
                 <Trash2 className="w-4 h-4" />
@@ -138,18 +160,18 @@ export default function EventModal({
             )}
             <button
               onClick={onClose}
-              className="p-2 text-[#9aa0a6] hover:bg-[#282a2d] hover:text-[#e3e3e3] rounded-full transition"
+              className="p-1.5 text-[#c4c7c5] hover:bg-[#35373a] hover:text-white rounded-full transition"
               title="Zamknij"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="px-7 pb-7 pt-2 space-y-5">
-          {/* Title input with blue bottom underline */}
-          <div className="pb-1">
+        <form onSubmit={handleSubmit} className="px-6 pb-6 pt-1 space-y-4">
+          {/* Title input: "Dodaj tytuł" */}
+          <div className="pb-0.5">
             <input
               type="text"
               placeholder="Dodaj tytuł"
@@ -157,16 +179,16 @@ export default function EventModal({
               onChange={(e) => setTitle(e.target.value)}
               required
               autoFocus
-              className="w-full text-2xl font-normal bg-transparent border-0 border-b-2 border-[#8ab4f8] pb-2 text-[#e3e3e3] focus:outline-none placeholder-[#9aa0a6] transition"
+              className="w-full text-[22px] font-normal bg-transparent border-0 border-b border-transparent focus:border-[#8ab4f8] text-[#e3e3e3] focus:outline-none placeholder-[#9aa0a6] pb-1 transition"
             />
           </div>
 
           {/* Pill Tabs: [ Wydarzenie ] [ Zadanie ] [ Harmonogram spotkań Nowość ] */}
-          <div className="flex items-center space-x-2 pt-1 pb-2">
+          <div className="flex items-center space-x-1.5">
             <button
               type="button"
               onClick={() => setActiveTab('Wydarzenie')}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition ${
+              className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition ${
                 activeTab === 'Wydarzenie'
                   ? 'bg-[#004a77] text-[#c2e7ff]'
                   : 'text-[#c4c7c5] hover:bg-[#282a2d]'
@@ -178,7 +200,7 @@ export default function EventModal({
             <button
               type="button"
               onClick={() => setActiveTab('Zadanie')}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition ${
+              className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition ${
                 activeTab === 'Zadanie'
                   ? 'bg-[#004a77] text-[#c2e7ff]'
                   : 'text-[#c4c7c5] hover:bg-[#282a2d]'
@@ -190,81 +212,139 @@ export default function EventModal({
             <button
               type="button"
               onClick={() => setActiveTab('Harmonogram spotkań')}
-              className={`px-5 py-2 rounded-full text-sm font-medium flex items-center space-x-1.5 transition ${
+              className={`px-3.5 py-1.5 rounded-md text-sm font-medium flex items-center space-x-1.5 transition ${
                 activeTab === 'Harmonogram spotkań'
                   ? 'bg-[#004a77] text-[#c2e7ff]'
                   : 'text-[#c4c7c5] hover:bg-[#282a2d]'
               }`}
             >
               <span>Harmonogram spotkań</span>
-              <span className="text-[10px] font-bold bg-[#284777] text-[#a8c7fa] px-1.5 py-0.5 rounded">
+              <span className="text-[10px] font-bold bg-[#0b57d0] text-[#c2e7ff] px-1.5 py-0.5 rounded-full">
                 Nowość
               </span>
             </button>
           </div>
 
-          {/* Row 1: Clock Icon + Date and Time */}
-          <div className="flex items-start space-x-4 py-1">
-            <Clock className="w-5 h-5 text-[#9aa0a6] mt-1 shrink-0" />
-            <div className="flex-1 space-y-1.5">
+          {/* Row 1: Clock Icon + Date and Time Chips (zgodnie ze zdjęciem) */}
+          <div className="flex items-start space-x-3.5 pt-1">
+            <Clock className="w-5 h-5 text-[#c4c7c5] mt-1 shrink-0" />
+            <div className="flex-1 space-y-2">
               <div className="flex items-center flex-wrap gap-2 text-sm text-[#e3e3e3]">
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="bg-[#282a2d] text-[#e3e3e3] border-0 rounded-lg px-3 py-1.5 text-xs focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
-                />
-                <input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="bg-[#282a2d] text-[#e3e3e3] border-0 rounded-lg px-3 py-1.5 text-xs focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
-                />
-                <span className="text-[#9aa0a6]">–</span>
-                <input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="bg-[#282a2d] text-[#e3e3e3] border-0 rounded-lg px-3 py-1.5 text-xs focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
-                />
+                {/* Chip Daty */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    className="px-3 py-1.5 bg-[#282a2d] hover:bg-[#35373a] text-[#e3e3e3] rounded-md text-sm font-normal capitalize flex items-center transition"
+                  >
+                    {formattedDateLabel}
+                  </button>
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  />
+                </div>
+
+                {!isAllDay && (
+                  <>
+                    {/* Chip Czasu od */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        className="px-3 py-1.5 bg-[#282a2d] hover:bg-[#35373a] text-[#e3e3e3] rounded-md text-sm font-normal transition"
+                      >
+                        {startTime}
+                      </button>
+                      <input
+                        type="time"
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </div>
+
+                    <span className="text-[#9aa0a6]">–</span>
+
+                    {/* Chip Czasu do */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        className="px-3 py-1.5 bg-[#282a2d] hover:bg-[#35373a] text-[#e3e3e3] rounded-md text-sm font-normal transition"
+                      >
+                        {endTime}
+                      </button>
+                      <input
+                        type="time"
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
-              <p className="text-xs text-[#9aa0a6]">
-                Strefa czasowa • Nie powtarza się
-              </p>
+
+              {/* Cały dzień + Strefa czasowa */}
+              <div className="flex items-center space-x-5 pt-0.5">
+                <label className="flex items-center space-x-2 text-sm text-[#e3e3e3] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isAllDay}
+                    onChange={(e) => setIsAllDay(e.target.checked)}
+                    className="w-4 h-4 rounded-[3px] bg-[#282a2d] border border-[#5f6368] text-[#8ab4f8] focus:ring-0 cursor-pointer"
+                  />
+                  <span>Cały dzień</span>
+                </label>
+
+                <button 
+                  type="button" 
+                  onClick={() => alert('Strefa czasowa: GMT+01:00 Czas środkowoeuropejski')}
+                  className="text-sm text-[#8ab4f8] hover:underline font-medium"
+                >
+                  Strefa czasowa
+                </button>
+              </div>
+
+              {/* Nie powtarza się ▾ */}
+              <div className="pt-0.5">
+                <div className="inline-flex items-center space-x-2 px-3 py-1.5 bg-[#282a2d] hover:bg-[#35373a] rounded-md text-sm text-[#e3e3e3] cursor-pointer transition">
+                  <span>Nie powtarza się</span>
+                  <ChevronDown className="w-4 h-4 text-[#9aa0a6]" />
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Row 2: Users Icon -> Dodaj gości */}
-          <div className="flex items-center space-x-4 py-1">
-            <Users className="w-5 h-5 text-[#9aa0a6] shrink-0" />
+          <div className="flex items-center space-x-3.5 pt-0.5">
+            <Users className="w-5 h-5 text-[#c4c7c5] shrink-0" />
             {showGuestInput ? (
               <input
                 type="email"
                 placeholder="Wpisz Gmail gościa..."
                 value={guests}
                 onChange={(e) => setGuests(e.target.value)}
-                className="w-full bg-[#282a2d] border-0 rounded-lg px-3.5 py-2 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
+                className="w-full bg-[#282a2d] border-0 rounded-lg px-3 py-1.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
               />
             ) : (
               <button
                 type="button"
                 onClick={() => setShowGuestInput(true)}
-                className="text-sm text-[#9aa0a6] hover:text-[#e3e3e3] transition text-left"
+                className="text-sm text-[#c4c7c5] hover:text-white transition text-left"
               >
                 Dodaj gości
               </button>
             )}
           </div>
 
-          {/* Row 3: Video Icon -> Dodaj rozmowę wideo w Google Meet */}
-          <div className="flex items-center space-x-4 py-1">
-            <div className="w-5 h-5 rounded flex items-center justify-center bg-[#ea4335] text-white shrink-0">
-              <Video className="w-3.5 h-3.5 text-white" />
-            </div>
+          {/* Row 3: Video Icon (Meet) -> Dodaj rozmowę wideo w Google Meet */}
+          <div className="flex items-center space-x-3.5 pt-0.5">
+            <Video className="w-5 h-5 text-[#fbbc04] shrink-0" />
             <button
               type="button"
               onClick={() => setHasMeet(!hasMeet)}
-              className="text-sm text-[#9aa0a6] hover:text-[#e3e3e3] transition text-left flex items-center space-x-2"
+              className="text-sm text-[#c4c7c5] hover:text-white transition text-left flex items-center space-x-2"
             >
               <span>{hasMeet ? 'Dołączono Google Meet' : 'Dodaj rozmowę wideo w Google Meet'}</span>
               {hasMeet && <span className="text-xs text-[#81c995]">✓</span>}
@@ -272,21 +352,21 @@ export default function EventModal({
           </div>
 
           {/* Row 4: MapPin Icon -> Dodaj lokalizację */}
-          <div className="flex items-center space-x-4 py-1">
-            <MapPin className="w-5 h-5 text-[#9aa0a6] shrink-0" />
+          <div className="flex items-center space-x-3.5 pt-0.5">
+            <MapPin className="w-5 h-5 text-[#c4c7c5] shrink-0" />
             {showLocationInput ? (
               <input
                 type="text"
                 placeholder="Wpisz lokalizację lub salę..."
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full bg-[#282a2d] border-0 rounded-lg px-3.5 py-2 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
+                className="w-full bg-[#282a2d] border-0 rounded-lg px-3 py-1.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
               />
             ) : (
               <button
                 type="button"
                 onClick={() => setShowLocationInput(true)}
-                className="text-sm text-[#9aa0a6] hover:text-[#e3e3e3] transition text-left"
+                className="text-sm text-[#c4c7c5] hover:text-white transition text-left"
               >
                 Dodaj lokalizację
               </button>
@@ -294,35 +374,35 @@ export default function EventModal({
           </div>
 
           {/* Row 5: Description Icon -> Dodaj opis */}
-          <div className="flex items-center space-x-4 py-1">
-            <AlignLeft className="w-5 h-5 text-[#9aa0a6] shrink-0" />
+          <div className="flex items-center space-x-3.5 pt-0.5">
+            <AlignLeft className="w-5 h-5 text-[#c4c7c5] shrink-0" />
             {showDescInput ? (
               <textarea
-                rows={3}
+                rows={2}
                 placeholder="Dodaj opis..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-[#282a2d] border-0 rounded-lg p-3 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
+                className="w-full bg-[#282a2d] border-0 rounded-lg p-2.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
               />
             ) : (
               <button
                 type="button"
                 onClick={() => setShowDescInput(true)}
-                className="text-sm text-[#9aa0a6] hover:text-[#e3e3e3] transition text-left"
+                className="text-sm text-[#c4c7c5] hover:text-white transition text-left"
               >
                 Dodaj opis lub załącznik z Dysku Google
               </button>
             )}
           </div>
 
-          {/* Row 6: Calendar Icon + Calendar Name */}
-          <div className="flex items-start space-x-4 py-1">
-            <CalendarIcon className="w-5 h-5 text-[#9aa0a6] mt-0.5 shrink-0" />
+          {/* Row 6: Calendar Icon + Calendar Name + Notifications */}
+          <div className="flex items-start space-x-3.5 pt-0.5">
+            <CalendarIcon className="w-5 h-5 text-[#c4c7c5] mt-0.5 shrink-0" />
             <div className="flex-1 space-y-0.5">
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium text-[#e3e3e3]">{currentCal.name}</span>
                 <span 
-                  className="w-3 h-3 rounded-full" 
+                  className="w-3 h-3 rounded-full shrink-0" 
                   style={{ backgroundColor: currentCal.color }}
                 />
               </div>
@@ -333,13 +413,13 @@ export default function EventModal({
           </div>
 
           {/* Optional Exchange Checkbox */}
-          <div className="flex items-center space-x-2 pt-1 pl-9">
+          <div className="flex items-center space-x-2 pt-0.5 pl-8">
             <input
               type="checkbox"
               id="exchangeToggle"
               checked={isExchangeable}
               onChange={(e) => setIsExchangeable(e.target.checked)}
-              className="rounded bg-[#282a2d] border-0 text-[#8ab4f8] focus:ring-0 cursor-pointer"
+              className="w-4 h-4 rounded-[3px] bg-[#282a2d] border border-[#5f6368] text-[#8ab4f8] focus:ring-0 cursor-pointer"
             />
             <label htmlFor="exchangeToggle" className="text-xs text-[#9aa0a6] cursor-pointer flex items-center space-x-1.5 hover:text-[#e3e3e3]">
               <ArrowLeftRight className="w-3.5 h-3.5 text-amber-400" />
@@ -347,8 +427,8 @@ export default function EventModal({
             </label>
           </div>
 
-          {/* Bottom Footer: Więcej opcji on left, Zapisz z elegancką czcionką */}
-          <div className="flex items-center justify-between pt-5 border-t border-[#303134]">
+          {/* Bottom Footer: Więcej opcji on left, Zapisz on right */}
+          <div className="flex items-center justify-between pt-4 border-t border-[#303134]">
             <button
               type="button"
               onClick={() => {
@@ -356,7 +436,7 @@ export default function EventModal({
                 setShowLocationInput(true);
                 setShowDescInput(true);
               }}
-              className="text-sm font-medium text-[#8ab4f8] hover:text-[#aecbfa] transition"
+              className="text-sm font-medium text-[#8ab4f8] hover:text-[#aecbfa] transition px-2 py-1"
             >
               Więcej opcji
             </button>
@@ -364,7 +444,7 @@ export default function EventModal({
             <button
               type="submit"
               disabled={loading}
-              className="px-7 py-2.5 bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#041e49] font-medium rounded-full text-sm transition shadow-sm disabled:opacity-50 active:scale-95"
+              className="px-6 py-2 bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#041e49] font-medium rounded-full text-sm transition shadow-sm disabled:opacity-50 active:scale-95"
             >
               {loading ? 'Zapisywanie...' : 'Zapisz'}
             </button>
