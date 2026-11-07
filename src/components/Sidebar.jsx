@@ -153,7 +153,7 @@ export default function Sidebar({
           })}
         </div>
 
-        {/* 3. Szukaj osób: ikonka z lewej, niebieski kursor dosłownie przy ikonce i z lewej od ikonki jak na zdjęciu */}
+        {/* 3. Szukaj osób: ikonka z lewej, niebieski kursor dosłownie przy ikonce i stabilne elementy bez przesunięć */}
         <div className="pt-2">
           <div 
             onClick={() => searchInputRef.current?.focus()}
@@ -161,18 +161,18 @@ export default function Sidebar({
               isSearchingPerson ? 'rounded-t-md border-[#8ab4f8]' : 'rounded-lg border-transparent'
             }`}
           >
-            {/* Kursor dosłownie przy ikonce i z lewej od ikonki jak na zdjęciu */}
-            {isSearchingPerson && !searchPersonQuery && (
-              <div className="w-[1.5px] h-[18px] bg-[#8ab4f8] animate-pulse shrink-0 mr-1.5" />
-            )}
-
-            {/* Ikonka osób z lewej strony */}
-            <svg className="w-5 h-5 text-[#c4c7c5] shrink-0 mr-2.5 pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M9 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
-              <path d="M9 13c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4zm-6 5c.2-.71 3.3-2 6-2 2.69 0 5.78 1.28 6 2H3z" />
-              <path d="M16.5 12c1.38 0 2.5-1.12 2.5-2.5S17.88 7 16.5 7c-.3 0-.58.05-.85.15.53.7.85 1.57.85 2.52s-.32 1.82-.85 2.52c.27.1.55.15.85.15z" />
-              <path d="M18 14.5c1.86.32 4 1.35 4 2.5v3h-3v-2c0-.79-.3-1.52-.79-2.07.61-.17 1.24-.31 1.79-.43z" />
-            </svg>
+            {/* Ikonka osób z lewej strony i kursor pozycjonowany bezwzględnie - brak przesunięcia ikony i tekstu */}
+            <div className="relative shrink-0 flex items-center mr-2.5">
+              {isSearchingPerson && !searchPersonQuery && (
+                <div className="absolute -left-[3px] w-[1.5px] h-[18px] bg-[#8ab4f8] animate-pulse pointer-events-none" />
+              )}
+              <svg className="w-5 h-5 text-[#c4c7c5] pointer-events-none" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                <path d="M9 13c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4zm-6 5c.2-.71 3.3-2 6-2 2.69 0 5.78 1.28 6 2H3z" />
+                <path d="M16.5 12c1.38 0 2.5-1.12 2.5-2.5S17.88 7 16.5 7c-.3 0-.58.05-.85.15.53.7.85 1.57.85 2.52s-.32 1.82-.85 2.52c.27.1.55.15.85.15z" />
+                <path d="M18 14.5c1.86.32 4 1.35 4 2.5v3h-3v-2c0-.79-.3-1.52-.79-2.07.61-.17 1.24-.31 1.79-.43z" />
+              </svg>
+            </div>
 
             <input
               ref={searchInputRef}
@@ -187,9 +187,7 @@ export default function Sidebar({
                 setSearchPersonQuery(e.target.value);
                 if (onSearchPerson) onSearchPerson(e.target.value);
               }}
-              className={`w-full bg-transparent border-0 text-sm font-medium text-[#c4c7c5] placeholder-[#c4c7c5] focus:outline-none p-0 ${
-                searchPersonQuery ? 'caret-[#8ab4f8]' : 'caret-transparent'
-              }`}
+              className="w-full bg-transparent border-0 text-sm font-medium text-[#c4c7c5] placeholder-[#c4c7c5] focus:outline-none p-0 caret-[#8ab4f8]"
             />
           </div>
         </div>
