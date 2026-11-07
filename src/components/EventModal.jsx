@@ -167,8 +167,8 @@ export default function EventModal({
           </div>
         </div>
 
-        {/* Form Body: bardziej zwarty układ (space-y-3), mniej zbędnych napisów */}
-        <form onSubmit={handleSubmit} className="px-6 pb-4 pt-0.5 space-y-3">
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="px-6 pb-4 pt-0.5 space-y-3.5">
           {/* Title input: "Dodaj tytuł" */}
           <div className="pb-0.5">
             <input
@@ -224,187 +224,190 @@ export default function EventModal({
             </button>
           </div>
 
-          {/* Row 1: Clock Icon + Date and Time Chips */}
-          <div className="flex items-start space-x-3.5 pt-0.5">
-            <Clock className="w-5 h-5 text-[#c4c7c5] mt-1 shrink-0" />
-            <div className="flex-1 space-y-2">
-              <div className="flex items-center flex-wrap gap-2 text-sm text-[#e3e3e3]">
-                {/* Chip Daty */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    className="px-3 py-1.5 bg-[#282a2d] hover:bg-[#35373a] text-[#e3e3e3] rounded-md text-sm font-normal capitalize flex items-center transition"
+          {/* Ikony pod sobą z napisem - minimalnie większy odstęp w pionie (space-y-4) oraz od napisu (space-x-4) */}
+          <div className="space-y-4 pt-1">
+            {/* Row 1: Clock Icon + Date and Time Chips */}
+            <div className="flex items-start space-x-4">
+              <Clock className="w-5 h-5 text-[#c4c7c5] mt-1 shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center flex-wrap gap-2 text-sm text-[#e3e3e3]">
+                  {/* Chip Daty */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      className="px-3 py-1.5 bg-[#282a2d] hover:bg-[#35373a] text-[#e3e3e3] rounded-md text-sm font-normal capitalize flex items-center transition"
+                    >
+                      {formattedDateLabel}
+                    </button>
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    />
+                  </div>
+
+                  {!isAllDay && (
+                    <>
+                      {/* Chip Czasu od */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          className="px-3 py-1.5 bg-[#282a2d] hover:bg-[#35373a] text-[#e3e3e3] rounded-md text-sm font-normal transition"
+                        >
+                          {startTime}
+                        </button>
+                        <input
+                          type="time"
+                          value={startTime}
+                          onChange={(e) => setStartTime(e.target.value)}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                      </div>
+
+                      <span className="text-[#9aa0a6]">–</span>
+
+                      {/* Chip Czasu do */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          className="px-3 py-1.5 bg-[#282a2d] hover:bg-[#35373a] text-[#e3e3e3] rounded-md text-sm font-normal transition"
+                        >
+                          {endTime}
+                        </button>
+                        <input
+                          type="time"
+                          value={endTime}
+                          onChange={(e) => setEndTime(e.target.value)}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Cały dzień + Strefa czasowa + Nie powtarza się */}
+                <div className="flex items-center space-x-4 pt-0.5 flex-wrap gap-y-1 text-sm">
+                  <label className="flex items-center space-x-2 text-sm text-[#e3e3e3] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isAllDay}
+                      onChange={(e) => setIsAllDay(e.target.checked)}
+                      className="w-4 h-4 rounded-[3px] bg-[#282a2d] border border-[#5f6368] text-[#8ab4f8] focus:ring-0 cursor-pointer"
+                    />
+                    <span>Cały dzień</span>
+                  </label>
+
+                  <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 bg-[#282a2d] hover:bg-[#35373a] rounded-md text-xs text-[#e3e3e3] cursor-pointer transition">
+                    <span>Nie powtarza się</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-[#9aa0a6]" />
+                  </div>
+
+                  <button 
+                    type="button" 
+                    onClick={() => alert('Strefa czasowa: GMT+01:00 Czas środkowoeuropejski')}
+                    className="text-xs text-[#8ab4f8] hover:underline font-medium"
                   >
-                    {formattedDateLabel}
+                    Strefa czasowa
                   </button>
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                  />
                 </div>
-
-                {!isAllDay && (
-                  <>
-                    {/* Chip Czasu od */}
-                    <div className="relative">
-                      <button
-                        type="button"
-                        className="px-3 py-1.5 bg-[#282a2d] hover:bg-[#35373a] text-[#e3e3e3] rounded-md text-sm font-normal transition"
-                      >
-                        {startTime}
-                      </button>
-                      <input
-                        type="time"
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                      />
-                    </div>
-
-                    <span className="text-[#9aa0a6]">–</span>
-
-                    {/* Chip Czasu do */}
-                    <div className="relative">
-                      <button
-                        type="button"
-                        className="px-3 py-1.5 bg-[#282a2d] hover:bg-[#35373a] text-[#e3e3e3] rounded-md text-sm font-normal transition"
-                      >
-                        {endTime}
-                      </button>
-                      <input
-                        type="time"
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Cały dzień + Strefa czasowa + Nie powtarza się */}
-              <div className="flex items-center space-x-4 pt-0.5 flex-wrap gap-y-1 text-sm">
-                <label className="flex items-center space-x-2 text-sm text-[#e3e3e3] cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isAllDay}
-                    onChange={(e) => setIsAllDay(e.target.checked)}
-                    className="w-4 h-4 rounded-[3px] bg-[#282a2d] border border-[#5f6368] text-[#8ab4f8] focus:ring-0 cursor-pointer"
-                  />
-                  <span>Cały dzień</span>
-                </label>
-
-                <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 bg-[#282a2d] hover:bg-[#35373a] rounded-md text-xs text-[#e3e3e3] cursor-pointer transition">
-                  <span>Nie powtarza się</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-[#9aa0a6]" />
-                </div>
-
-                <button 
-                  type="button" 
-                  onClick={() => alert('Strefa czasowa: GMT+01:00 Czas środkowoeuropejski')}
-                  className="text-xs text-[#8ab4f8] hover:underline font-medium"
-                >
-                  Strefa czasowa
-                </button>
               </div>
             </div>
-          </div>
 
-          {/* Row 2: Users Icon -> Dodaj gości */}
-          <div className="flex items-center space-x-3.5">
-            <Users className="w-5 h-5 text-[#c4c7c5] shrink-0" />
-            {showGuestInput ? (
-              <input
-                type="email"
-                placeholder="Wpisz Gmail gościa..."
-                value={guests}
-                onChange={(e) => setGuests(e.target.value)}
-                className="w-full bg-[#282a2d] border-0 rounded-lg px-3 py-1.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
-              />
-            ) : (
-              <button
-                type="button"
-                onClick={() => setShowGuestInput(true)}
-                className="text-sm text-[#c4c7c5] hover:text-white transition text-left"
-              >
-                Dodaj gości
-              </button>
-            )}
-          </div>
-
-          {/* Row 3: Video Icon (Meet) -> Dodaj rozmowę wideo w Google Meet */}
-          <div className="flex items-center space-x-3.5">
-            <Video className="w-5 h-5 text-[#fbbc04] shrink-0" />
-            <button
-              type="button"
-              onClick={() => setHasMeet(!hasMeet)}
-              className="text-sm text-[#c4c7c5] hover:text-white transition text-left flex items-center space-x-2"
-            >
-              <span>{hasMeet ? 'Dołączono Google Meet' : 'Dodaj rozmowę wideo w Google Meet'}</span>
-              {hasMeet && <span className="text-xs text-[#81c995]">✓</span>}
-            </button>
-          </div>
-
-          {/* Row 4: MapPin Icon -> Dodaj lokalizację */}
-          <div className="flex items-center space-x-3.5">
-            <MapPin className="w-5 h-5 text-[#c4c7c5] shrink-0" />
-            {showLocationInput ? (
-              <input
-                type="text"
-                placeholder="Wpisz lokalizację..."
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="w-full bg-[#282a2d] border-0 rounded-lg px-3 py-1.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
-              />
-            ) : (
-              <button
-                type="button"
-                onClick={() => setShowLocationInput(true)}
-                className="text-sm text-[#c4c7c5] hover:text-white transition text-left"
-              >
-                Dodaj lokalizację
-              </button>
-            )}
-          </div>
-
-          {/* Row 5: Description Icon -> Dodaj opis */}
-          <div className="flex items-center space-x-3.5">
-            <AlignLeft className="w-5 h-5 text-[#c4c7c5] shrink-0" />
-            {showDescInput ? (
-              <textarea
-                rows={2}
-                placeholder="Dodaj opis..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-[#282a2d] border-0 rounded-lg p-2.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
-              />
-            ) : (
-              <button
-                type="button"
-                onClick={() => setShowDescInput(true)}
-                className="text-sm text-[#c4c7c5] hover:text-white transition text-left"
-              >
-                Dodaj opis lub załącznik
-              </button>
-            )}
-          </div>
-
-          {/* Row 6: Calendar Icon + Calendar Name + Settings Subtitle (jak na zdjeciu) */}
-          <div className="flex items-start space-x-3.5">
-            <CalendarIcon className="w-5 h-5 text-[#c4c7c5] mt-0.5 shrink-0" />
-            <div className="flex flex-col">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-[#e3e3e3]">{currentCal.name}</span>
-                <span 
-                  className="w-3 h-3 rounded-full shrink-0" 
-                  style={{ backgroundColor: currentCal.color }}
+            {/* Row 2: Users Icon -> Dodaj gości */}
+            <div className="flex items-center space-x-4">
+              <Users className="w-5 h-5 text-[#c4c7c5] shrink-0" />
+              {showGuestInput ? (
+                <input
+                  type="email"
+                  placeholder="Wpisz Gmail gościa..."
+                  value={guests}
+                  onChange={(e) => setGuests(e.target.value)}
+                  className="w-full bg-[#282a2d] border-0 rounded-lg px-3 py-1.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
                 />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowGuestInput(true)}
+                  className="text-sm text-[#c4c7c5] hover:text-white transition text-left"
+                >
+                  Dodaj gości
+                </button>
+              )}
+            </div>
+
+            {/* Row 3: Video Icon (Meet) -> Dodaj rozmowę wideo w Google Meet */}
+            <div className="flex items-center space-x-4">
+              <Video className="w-5 h-5 text-[#fbbc04] shrink-0" />
+              <button
+                type="button"
+                onClick={() => setHasMeet(!hasMeet)}
+                className="text-sm text-[#c4c7c5] hover:text-white transition text-left flex items-center space-x-2"
+              >
+                <span>{hasMeet ? 'Dołączono Google Meet' : 'Dodaj rozmowę wideo w Google Meet'}</span>
+                {hasMeet && <span className="text-xs text-[#81c995]">✓</span>}
+              </button>
+            </div>
+
+            {/* Row 4: MapPin Icon -> Dodaj lokalizację */}
+            <div className="flex items-center space-x-4">
+              <MapPin className="w-5 h-5 text-[#c4c7c5] shrink-0" />
+              {showLocationInput ? (
+                <input
+                  type="text"
+                  placeholder="Wpisz lokalizację..."
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full bg-[#282a2d] border-0 rounded-lg px-3 py-1.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowLocationInput(true)}
+                  className="text-sm text-[#c4c7c5] hover:text-white transition text-left"
+                >
+                  Dodaj lokalizację
+                </button>
+              )}
+            </div>
+
+            {/* Row 5: Description Icon -> Dodaj opis lub załącznik z Dysku Google */}
+            <div className="flex items-center space-x-4">
+              <AlignLeft className="w-5 h-5 text-[#c4c7c5] shrink-0" />
+              {showDescInput ? (
+                <textarea
+                  rows={2}
+                  placeholder="Dodaj opis..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full bg-[#282a2d] border-0 rounded-lg p-2.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:ring-1 focus:ring-[#8ab4f8] focus:outline-none"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowDescInput(true)}
+                  className="text-sm text-[#c4c7c5] hover:text-white transition text-left"
+                >
+                  Dodaj opis lub załącznik z Dysku Google
+                </button>
+              )}
+            </div>
+
+            {/* Row 6: Calendar Icon + Calendar Name + Settings Subtitle (jak na zdjeciu) */}
+            <div className="flex items-start space-x-4">
+              <CalendarIcon className="w-5 h-5 text-[#c4c7c5] mt-0.5 shrink-0" />
+              <div className="flex flex-col">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-[#e3e3e3]">{currentCal.name}</span>
+                  <span 
+                    className="w-3 h-3 rounded-full shrink-0" 
+                    style={{ backgroundColor: currentCal.color }}
+                  />
+                </div>
+                <span className="text-xs text-[#9aa0a6] mt-0.5">
+                  Zajęty • Widoczność domyślna • Powiadom 30 minut wcześniej
+                </span>
               </div>
-              <span className="text-xs text-[#9aa0a6] mt-0.5">
-                Zajęty • Widoczność domyślna • Powiadom 30 minut wcześniej
-              </span>
             </div>
           </div>
 
