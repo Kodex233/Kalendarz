@@ -63,9 +63,9 @@ export default function EventDetailModal({
             className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition"
             title="Edytuj wydarzenie"
           >
-            {/* Ołówek edycji ze zdjęcia Image 2 */}
-            <svg className="w-5 h-5 text-[#c4c7c5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            {/* Ołówek edycji ze zdjęcia Google Material */}
+            <svg className="w-5 h-5 fill-current text-[#c4c7c5] hover:text-white" viewBox="0 0 24 24">
+              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
             </svg>
           </button>
 
@@ -74,13 +74,9 @@ export default function EventDetailModal({
             className="p-2 hover:bg-[#35373a] hover:text-[#f28b82] rounded-full transition"
             title="Usuń wydarzenie"
           >
-            {/* Kosz ze zdjęcia Image 1 */}
-            <svg className="w-5 h-5 text-[#c4c7c5] hover:text-[#f28b82] transition" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 6h18" />
-              <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-              <path d="M10 11v6" />
-              <path d="M14 11v6" />
+            {/* Kosz ze zdjęcia Google Material */}
+            <svg className="w-5 h-5 fill-current text-[#c4c7c5] hover:text-[#f28b82] transition" viewBox="0 0 24 24">
+              <path d="M15 4V3H9v1H4v2h1v13c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V6h1V4h-5zm2 15H7V6h10v13zM9 8h2v9H9zm4 0h2v9h-2z" />
             </svg>
           </button>
 

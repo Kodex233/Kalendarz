@@ -39,6 +39,22 @@ const HOUR_LABELS = [
   '11 PM'  // 23:00
 ];
 
+const formatTimeRangeCompact = (start, end) => {
+  if (!start || !end) return '';
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  const sPeriod = sh >= 12 ? 'pm' : 'am';
+  const ePeriod = eh >= 12 ? 'pm' : 'am';
+  const sH = sh % 12 === 0 ? 12 : sh % 12;
+  const eH = eh % 12 === 0 ? 12 : eh % 12;
+  const sM = sm ? `:${sm.toString().padStart(2, '0')}` : '';
+  const eM = em ? `:${em.toString().padStart(2, '0')}` : '';
+  if (sPeriod === ePeriod) {
+    return `${sM ? sH + sM : sH}–${eH}${eM}${ePeriod}`;
+  }
+  return `${sM ? sH + sM : sH}${sPeriod}–${eH}${eM}${ePeriod}`;
+};
+
 export default function CalendarWeek({
   currentDate,
   events,
@@ -291,7 +307,7 @@ export default function CalendarWeek({
                       >
                         <div className="font-semibold truncate leading-tight">{titleDisplay}</div>
                         <div className="text-[10px] opacity-90 truncate leading-tight mt-0.5">
-                          {creatingEvent.startTime}–{creatingEvent.endTime}
+                          {formatTimeRangeCompact(creatingEvent.startTime, creatingEvent.endTime)}
                         </div>
                       </div>
                     );

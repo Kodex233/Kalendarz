@@ -1,15 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   X, 
-  Trash2, 
   Clock, 
-  Users, 
-  Video, 
-  MapPin, 
-  AlignLeft, 
-  Calendar as CalendarIcon, 
-  ChevronDown,
-  ChevronUp,
   Info
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -48,44 +40,36 @@ export default function EventModal({
   const [isRepeatMenuOpen, setIsRepeatMenuOpen] = useState(false);
   const [repeatRule, setRepeatRule] = useState('Nie powtarza się');
   const repeatMenuRef = useRef(null);
+  const lastOpenedSlotRef = useRef(null);
 
   useEffect(() => {
     setActiveTab(eventType || 'Wydarzenie');
   }, [eventType]);
 
   useEffect(() => {
-    if (initialData) {
-      setTitle(initialData.title || '');
-      setDate(initialData.date || new Date().toISOString().split('T')[0]);
-      setStartTime(initialData.startTime || '10:30');
-      setEndTime(initialData.endTime || '11:30');
-      setIsAllDay(Boolean(initialData.isAllDay));
-      setGuests(initialData.invitedEmail || '');
-      setShowGuestInput(Boolean(initialData.invitedEmail));
-      setLocation(initialData.location || '');
-      setShowLocationInput(Boolean(initialData.location));
-      setDescription(initialData.description || '');
-      setShowDescInput(Boolean(initialData.description));
-      setSelectedCalendarId(initialData.calendarId || 'kodex');
-      setRepeatRule('Nie powtarza się');
-      if (initialData.type) setActiveTab(initialData.type);
+    if (isOpen) {
+      const slotKey = initialData?.id || `${initialData?.date}_${initialData?.startTime}_${initialData?.slotRect?.top}`;
+      if (lastOpenedSlotRef.current !== slotKey) {
+        lastOpenedSlotRef.current = slotKey;
+        setTitle(initialData?.title || '');
+        setDate(initialData?.date || new Date().toISOString().split('T')[0]);
+        setStartTime(initialData?.startTime || '10:30');
+        setEndTime(initialData?.endTime || '11:30');
+        setIsAllDay(Boolean(initialData?.isAllDay));
+        setGuests(initialData?.invitedEmail || '');
+        setShowGuestInput(Boolean(initialData?.invitedEmail));
+        setLocation(initialData?.location || '');
+        setShowLocationInput(Boolean(initialData?.location));
+        setDescription(initialData?.description || '');
+        setShowDescInput(Boolean(initialData?.description));
+        setSelectedCalendarId(initialData?.calendarId || 'kodex');
+        setRepeatRule('Nie powtarza się');
+        if (initialData?.type) setActiveTab(initialData.type);
+      }
     } else {
-      setTitle('');
-      setDate(new Date().toISOString().split('T')[0]);
-      setStartTime('10:30');
-      setEndTime('11:30');
-      setIsAllDay(false);
-      setGuests('');
-      setShowGuestInput(false);
-      setHasMeet(false);
-      setLocation('');
-      setShowLocationInput(false);
-      setDescription('');
-      setShowDescInput(false);
-      setSelectedCalendarId('kodex');
-      setRepeatRule('Nie powtarza się');
+      lastOpenedSlotRef.current = null;
     }
-  }, [initialData, isOpen]);
+  }, [isOpen, initialData?.id, initialData?.date, initialData?.startTime, initialData?.slotRect]);
 
   // Close repeat dropdown on click outside
   useEffect(() => {
@@ -99,6 +83,16 @@ export default function EventModal({
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isRepeatMenuOpen]);
+
+  // Format 12h time (np. 1:00am, 2:00am)
+  const formatTime12h = (timeStr) => {
+    if (!timeStr) return '';
+    const [h, m] = timeStr.split(':').map(Number);
+    const period = h >= 12 ? 'pm' : 'am';
+    const displayH = h % 12 === 0 ? 12 : h % 12;
+    const displayM = m !== undefined ? m.toString().padStart(2, '0') : '00';
+    return `${displayH}:${displayM}${period}`;
+  };
 
   // Explicit handlers that notify parent without wiping initialData or causing effect loops
   const handleTitleChange = (val) => {
@@ -123,24 +117,25 @@ export default function EventModal({
 
   const currentCal = myCalendars.find(c => c.id === selectedCalendarId) || { name: 'kodex', color: '#1a73e8' };
 
-  // Formatted date chip text
+  // Formatted date chip text (z wielką literą jak na zdjęciu)
   const formattedDateLabel = useMemo(() => {
     try {
       if (!date) return 'Wybierz datę';
       const d = new Date(date + 'T00:00:00');
-      return format(d, 'EEEE, d MMMM', { locale: pl });
+      const formatted = format(d, 'EEEE, d MMMM', { locale: pl });
+      return formatted.charAt(0).toUpperCase() + formatted.slice(1);
     } catch {
       return date;
     }
   }, [date]);
 
-  // Repeat menu options matching image 1
+  // Repeat menu options matching image 3 (dokładnie jak na zrzucie ekranu)
   const repeatOptions = useMemo(() => {
     try {
       const d = new Date((date || new Date().toISOString().split('T')[0]) + 'T00:00:00');
-      const dayName = format(d, 'EEEE', { locale: pl });
+      const dayName = format(d, 'EEEE', { locale: pl }).toLowerCase();
       const dayNum = format(d, 'd', { locale: pl });
-      const monthName = format(d, 'MMMM', { locale: pl });
+      const monthName = format(d, 'MMMM', { locale: pl }).toLowerCase();
 
       return [
         { label: 'Nie powtarza się', value: 'Nie powtarza się' },
@@ -263,13 +258,9 @@ export default function EventModal({
                   className="p-1.5 text-[#c4c7c5] hover:text-[#f28b82] hover:bg-[#35373a] rounded-full transition"
                   title="Usuń wydarzenie"
                 >
-                  {/* Google Trash Can ze zdjęcia Image 1 */}
-                  <svg className="w-5 h-5 text-[#c4c7c5] hover:text-[#f28b82] transition" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 6h18" />
-                    <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                    <path d="M10 11v6" />
-                    <path d="M14 11v6" />
+                  {/* Google Trash Can ze zdjęcia Image 4 */}
+                  <svg className="w-5 h-5 fill-current text-[#c4c7c5] hover:text-[#f28b82] transition" viewBox="0 0 24 24">
+                    <path d="M15 4V3H9v1H4v2h1v13c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V6h1V4h-5zm2 15H7V6h10v13zM9 8h2v9H9zm4 0h2v9h-2z" />
                   </svg>
                 </button>
               )}
@@ -360,7 +351,7 @@ export default function EventModal({
                       />
                     </div>
                     <div className="px-4 py-2 bg-[#303134] text-[#e3e3e3] rounded-md text-sm font-normal">
-                      {startTime} – {endTime}
+                      {formatTime12h(startTime)} – {formatTime12h(endTime)}
                     </div>
                   </div>
                 </div>
@@ -396,7 +387,9 @@ export default function EventModal({
 
                 {/* Wybór kalendarza */}
                 <div className="flex items-center space-x-4 py-1">
-                  <CalendarIcon className="w-5 h-5 text-[#c4c7c5] shrink-0" />
+                  <svg className="w-5 h-5 text-[#c4c7c5] shrink-0 fill-current" viewBox="0 0 24 24">
+                    <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z" />
+                  </svg>
                   <span className="text-sm font-medium text-[#e3e3e3]">{currentCal.name}</span>
                 </div>
 
@@ -440,13 +433,13 @@ export default function EventModal({
 
                         {!isAllDay && (
                           <>
-                            {/* Chip Czasu od: większy padding, jaśniejszy szary */}
+                            {/* Chip Czasu od: np. 1:00am jak na zdjęciu Image 2 */}
                             <div className="relative">
                               <button
                                 type="button"
                                 className="px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition"
                               >
-                                {startTime}
+                                {formatTime12h(startTime)}
                               </button>
                               <input
                                 type="time"
@@ -458,13 +451,13 @@ export default function EventModal({
 
                             <span className="text-[#9aa0a6]">–</span>
 
-                            {/* Chip Czasu do: większy padding, jaśniejszy szary */}
+                            {/* Chip Czasu do: np. 2:00am jak na zdjęciu Image 2 */}
                             <div className="relative">
                               <button
                                 type="button"
                                 className="px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition"
                               >
-                                {endTime}
+                                {formatTime12h(endTime)}
                               </button>
                               <input
                                 type="time"
@@ -500,12 +493,12 @@ export default function EventModal({
                         </button>
                       </div>
 
-                      {/* Dropdown "Nie powtarza się": większy padding, jasny szary, niebieska kreska i pełna lista jak na zdjęciu Image 1 */}
+                      {/* Dropdown "Nie powtarza się": ze strzałką caret solid i niebieską kreską jak na zdjęciu Image 3 */}
                       <div className="relative inline-block" ref={repeatMenuRef}>
                         <button
                           type="button"
                           onClick={() => setIsRepeatMenuOpen(!isRepeatMenuOpen)}
-                          className={`flex items-center justify-between space-x-2 px-3.5 py-2 bg-[#303134] hover:bg-[#3c4043] text-sm text-[#e3e3e3] cursor-pointer transition ${
+                          className={`flex items-center justify-between space-x-2.5 px-3.5 py-2 bg-[#303134] hover:bg-[#3c4043] text-sm text-[#e3e3e3] cursor-pointer transition ${
                             isRepeatMenuOpen 
                               ? 'rounded-t-md border-b-2 border-[#a8c7fa]' 
                               : 'rounded-md'
@@ -513,13 +506,17 @@ export default function EventModal({
                         >
                           <span>{repeatRule}</span>
                           {isRepeatMenuOpen ? (
-                            <ChevronUp className="w-4 h-4 text-[#a8c7fa]" />
+                            <svg className="w-2.5 h-2.5 fill-[#a8c7fa]" viewBox="0 0 24 24">
+                              <path d="M7 14l5-5 5 5z" />
+                            </svg>
                           ) : (
-                            <ChevronDown className="w-4 h-4 text-[#9aa0a6]" />
+                            <svg className="w-2.5 h-2.5 fill-[#9aa0a6]" viewBox="0 0 24 24">
+                              <path d="M7 10l5 5 5-5z" />
+                            </svg>
                           )}
                         </button>
 
-                        {/* Menu opcji powtarzania (Image 1) */}
+                        {/* Menu opcji powtarzania (dokładnie jak na zdjęciu Image 3) */}
                         {isRepeatMenuOpen && (
                           <div className="absolute left-0 top-full mt-0 w-80 bg-[#282a2d] rounded-b-md shadow-2xl py-1 z-50 animate-in fade-in zoom-in-95 duration-100 border border-white/5">
                             {repeatOptions.map((opt, i) => (
@@ -544,9 +541,14 @@ export default function EventModal({
                     </div>
                   </div>
 
-                  {/* Row 2: Users Icon -> Dodaj gości */}
+                  {/* Row 2: Users Icon -> Dodaj gości (Ikonka Google Material ze zdjęcia Image 1) */}
                   <div className="flex items-center space-x-4">
-                    <Users className="w-5 h-5 text-[#c4c7c5] shrink-0" />
+                    <svg className="w-5 h-5 text-[#c4c7c5] shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M9 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                      <path d="M9 13c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4zm-6 5c.2-.71 3.3-2 6-2 2.69 0 5.78 1.28 6 2H3z" />
+                      <path d="M16.5 12c1.38 0 2.5-1.12 2.5-2.5S17.88 7 16.5 7c-.3 0-.58.05-.85.15.53.7.85 1.57.85 2.52s-.32 1.82-.85 2.52c.27.1.55.15.85.15z" />
+                      <path d="M18 14.5c1.86.32 4 1.35 4 2.5v3h-3v-2c0-.79-.3-1.52-.79-2.07.61-.17 1.24-.31 1.79-.43z" />
+                    </svg>
                     {showGuestInput ? (
                       <input
                         type="email"
@@ -566,9 +568,11 @@ export default function EventModal({
                     )}
                   </div>
 
-                  {/* Row 3: Video Icon (Meet) -> Dodaj rozmowę wideo w Google Meet */}
+                  {/* Row 3: Video Icon (Google Meet) -> Dodaj rozmowę wideo w Google Meet */}
                   <div className="flex items-center space-x-4">
-                    <Video className="w-5 h-5 text-[#fbbc04] shrink-0" />
+                    <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="#fbbc04">
+                      <path d="M17 10.5V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3.5l4 4v-11l-4 4z" />
+                    </svg>
                     <button
                       type="button"
                       onClick={() => setHasMeet(!hasMeet)}
@@ -579,9 +583,11 @@ export default function EventModal({
                     </button>
                   </div>
 
-                  {/* Row 4: MapPin Icon -> Dodaj lokalizację */}
+                  {/* Row 4: MapPin Icon -> Dodaj lokalizację (Google Material Location Pin) */}
                   <div className="flex items-center space-x-4">
-                    <MapPin className="w-5 h-5 text-[#c4c7c5] shrink-0" />
+                    <svg className="w-5 h-5 text-[#c4c7c5] shrink-0 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                    </svg>
                     {showLocationInput ? (
                       <input
                         type="text"
@@ -601,9 +607,11 @@ export default function EventModal({
                     )}
                   </div>
 
-                  {/* Row 5: Description Icon -> Dodaj opis lub załącznik z Dysku Google */}
+                  {/* Row 5: Description Icon -> Dodaj opis lub załącznik z Dysku Google (Google Material notes) */}
                   <div className="flex items-center space-x-4">
-                    <AlignLeft className="w-5 h-5 text-[#c4c7c5] shrink-0" />
+                    <svg className="w-5 h-5 text-[#c4c7c5] shrink-0 fill-current" viewBox="0 0 24 24">
+                      <path d="M3 18h12v-2H3v2zM3 6v2h18V6H3zm0 7h18v-2H3v2z" />
+                    </svg>
                     {showDescInput ? (
                       <textarea
                         rows={2}
@@ -623,9 +631,11 @@ export default function EventModal({
                     )}
                   </div>
 
-                  {/* Row 6: Calendar Icon + Calendar Name + Settings Subtitle (jak na zdjeciu) */}
+                  {/* Row 6: Calendar Icon + Calendar Name + Settings Subtitle (Google Material calendar) */}
                   <div className="flex items-start space-x-4">
-                    <CalendarIcon className="w-5 h-5 text-[#c4c7c5] mt-0.5 shrink-0" />
+                    <svg className="w-5 h-5 text-[#c4c7c5] mt-0.5 shrink-0 fill-current" viewBox="0 0 24 24">
+                      <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z" />
+                    </svg>
                     <div className="flex flex-col">
                       <div className="flex items-center space-x-2">
                         <span className="text-sm font-medium text-[#e3e3e3]">{currentCal.name}</span>
