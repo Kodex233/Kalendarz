@@ -35,6 +35,8 @@ export default function EventModal({
   const [showDescInput, setShowDescInput] = useState(false);
   const [selectedCalendarId, setSelectedCalendarId] = useState('kodex');
   const [loading, setLoading] = useState(false);
+  const [hasDeadline, setHasDeadline] = useState(Boolean(initialData?.deadlineDate));
+  const [deadlineDate, setDeadlineDate] = useState(initialData?.deadlineDate || '');
 
   // Timezone and Repeat states
   const [isTimeZoneModalOpen, setIsTimeZoneModalOpen] = useState(false);
@@ -65,6 +67,8 @@ export default function EventModal({
         setShowDescInput(Boolean(initialData?.description));
         setSelectedCalendarId(initialData?.calendarId || 'kodex');
         setRepeatRule('Nie powtarza się');
+        setHasDeadline(Boolean(initialData?.deadlineDate));
+        setDeadlineDate(initialData?.deadlineDate || '');
         if (initialData?.type) setActiveTab(initialData.type);
       }
     } else {
@@ -134,6 +138,19 @@ export default function EventModal({
       return date;
     }
   }, [date]);
+
+  // Formatted deadline date chip text (z wielką literą jak na zdjęciu Image 1)
+  const formattedDeadlineLabel = useMemo(() => {
+    try {
+      const dStr = deadlineDate || date;
+      if (!dStr) return 'Wybierz datę';
+      const d = new Date(dStr + 'T00:00:00');
+      const formatted = format(d, 'EEEE, d MMMM', { locale: pl });
+      return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+    } catch {
+      return deadlineDate || date;
+    }
+  }, [deadlineDate, date]);
 
   // Repeat menu options matching image 3 (dokładnie jak na zrzucie ekranu)
   const repeatOptions = useMemo(() => {
@@ -220,7 +237,8 @@ export default function EventModal({
         hasMeet,
         invitedEmail: guests,
         isExchangeable: false,
-        repeatRule
+        repeatRule,
+        deadlineDate: hasDeadline ? deadlineDate : null
       });
       onClose();
     } catch (err) {
@@ -515,17 +533,60 @@ export default function EventModal({
                   </div>
                 </div>
 
-                {/* Row 2: Target / Bullseye Icon -> Dodaj termin */}
+                {/* Row 2: Target / Bullseye Icon -> Dodaj termin / Termin chip (Image 1) */}
                 <div className="flex items-center space-x-4">
                   <svg className="w-5 h-5 text-[#c4c7c5] shrink-0" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M19.07 4.93l-1.41 1.41C19.1 7.79 20 9.79 20 12c0 4.42-3.58 8-8 8s-8-3.58-8-8c0-2.21.9-4.21 2.34-5.66L4.93 4.93C3.12 6.74 2 9.24 2 12c0 5.52 4.48 10 10 10s10-4.48 10-10c0-2.76-1.12-5.26-2.93-7.07zM12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
                   </svg>
-                  <button
-                    type="button"
-                    className="text-sm text-[#c4c7c5] hover:text-white transition text-left"
-                  >
-                    Dodaj termin
-                  </button>
+                  {hasDeadline ? (
+                    <div className="flex items-center space-x-3 text-sm">
+                      <span className="text-[#e3e3e3] font-normal">Termin</span>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          className="px-3.5 py-1.5 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal capitalize flex items-center transition"
+                        >
+                          {formattedDeadlineLabel}
+                        </button>
+                        <input
+                          type="date"
+                          value={deadlineDate || date}
+                          onChange={(e) => setDeadlineDate(e.target.value)}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHasDeadline(false);
+                          setDeadlineDate('');
+                        }}
+                        className="p-1 text-[#c4c7c5] hover:text-white hover:bg-[#35373a] rounded-full transition"
+                        title="Usuń termin"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHasDeadline(true);
+                        if (!deadlineDate) {
+                          try {
+                            const nextDay = new Date(date + 'T00:00:00');
+                            nextDay.setDate(nextDay.getDate() + 1);
+                            setDeadlineDate(format(nextDay, 'yyyy-MM-dd'));
+                          } catch {
+                            setDeadlineDate(date);
+                          }
+                        }
+                      }}
+                      className="text-sm text-[#c4c7c5] hover:text-white transition text-left"
+                    >
+                      Dodaj termin
+                    </button>
+                  )}
                 </div>
 
                 {/* Row 3: Notes / Description Icon -> Dodaj opis lub załącznik z Dysku Google */}
