@@ -22,22 +22,31 @@ export default function CreateDropdown({ onSelectType, isCollapsed = false }) {
 
   return (
     <div className="relative inline-block" ref={dropdownRef}>
-      {/* Button: border-none, slightly lighter background, slightly smaller width (px-3.5), comfortable height, normal white +, text Utwórz, arrow */}
+      {/* Button Utwórz: lekko ciemniejsze tło, większy padding, trójkątna strzałka ze zdjęcia */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center bg-[#3c4043] hover:bg-[#484b50] shadow-md hover:shadow-lg rounded-2xl text-white font-medium transition duration-150 active:scale-[0.98] border-0 focus:outline-none ${
-          isCollapsed ? 'w-12 h-12 justify-center p-0' : 'space-x-2.5 px-3.5 py-3.5 min-h-[50px]'
+        className={`flex items-center bg-[#333538] hover:bg-[#3c3e42] shadow-md hover:shadow-lg rounded-2xl text-white font-medium transition duration-150 active:scale-[0.98] border-0 focus:outline-none ${
+          isCollapsed ? 'w-12 h-12 justify-center p-0' : 'space-x-3 px-5 py-3.5 min-h-[52px]'
         }`}
         title="Utwórz nowe"
       >
-        <Plus className="w-5 h-5 text-white stroke-[2.5]" />
+        {/* Plus SVG ze zdjęcia */}
+        <svg className="w-5 h-5 text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
         
         {!isCollapsed && (
           <>
             <span className="text-sm font-['Product_Sans',sans-serif] text-[#e3e3e3] font-medium tracking-wide">
               Utwórz
             </span>
-            <ChevronDown className={`w-4 h-4 text-[#c4c7c5] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            {/* Trójkątna strzałka w dół ze zdjęcia Image 3 */}
+            <svg 
+              className={`w-2.5 h-2 fill-[#c4c7c5] ml-1 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+              viewBox="0 0 10 6"
+            >
+              <path d="M0 0l5 6 5-6z" />
+            </svg>
           </>
         )}
       </button>

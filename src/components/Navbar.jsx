@@ -581,7 +581,11 @@ export default function Navbar({
           className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
           title="Szukaj w kalendarzu"
         >
-          <Search className="w-6 h-6" />
+          {/* Ikonka wyszukiwarki ze zdjęcia Image 5 */}
+          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
         </button>
 
         <button
@@ -710,9 +714,9 @@ export default function Navbar({
         ) : (
           <button
             onClick={onOpenAuth}
-            className="flex items-center justify-center px-5 py-2.5 bg-transparent hover:bg-[#282a2d] border border-[#8e918f] hover:border-white text-[#a8c7fa] hover:text-white rounded-full text-sm font-medium transition focus:outline-none shadow-xs ml-1"
+            className="px-6 py-2 bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#062e6f] font-medium rounded-full text-sm transition shadow-sm active:scale-95 ml-1"
           >
-            <span>Zaloguj się</span>
+            Zaloguj się
           </button>
         )}
       </div>

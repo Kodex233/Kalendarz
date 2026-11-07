@@ -100,19 +100,26 @@ export default function EventModal({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isRepeatMenuOpen]);
 
-  // Notify parent of form changes so calendar grid updates live preview
-  useEffect(() => {
-    if (isOpen && onFormChange) {
-      onFormChange({
-        title,
-        date,
-        startTime,
-        endTime,
-        calendarId: selectedCalendarId,
-        color: '#e8710a' // Kolor podglądu ze zdjęcia (pomarańczowy/koralowy)
-      });
-    }
-  }, [title, date, startTime, endTime, selectedCalendarId, isOpen]);
+  // Explicit handlers that notify parent without wiping initialData or causing effect loops
+  const handleTitleChange = (val) => {
+    setTitle(val);
+    if (onFormChange) onFormChange({ title: val });
+  };
+
+  const handleDateChange = (val) => {
+    setDate(val);
+    if (onFormChange) onFormChange({ date: val });
+  };
+
+  const handleStartTimeChange = (val) => {
+    setStartTime(val);
+    if (onFormChange) onFormChange({ startTime: val });
+  };
+
+  const handleEndTimeChange = (val) => {
+    setEndTime(val);
+    if (onFormChange) onFormChange({ endTime: val });
+  };
 
   const currentCal = myCalendars.find(c => c.id === selectedCalendarId) || { name: 'kodex', color: '#1a73e8' };
 
@@ -246,7 +253,7 @@ export default function EventModal({
                 type="text"
                 placeholder="Dodaj tytuł"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => handleTitleChange(e.target.value)}
                 autoFocus
                 className="w-full text-[22px] font-normal bg-transparent border-0 border-b-2 border-transparent focus:border-[#a8c7fa] text-[#e3e3e3] focus:outline-none placeholder-[#9aa0a6] pb-1 transition"
               />
@@ -310,7 +317,7 @@ export default function EventModal({
                       <input
                         type="date"
                         value={date}
-                        onChange={(e) => setDate(e.target.value)}
+                        onChange={(e) => handleDateChange(e.target.value)}
                         className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                       />
                     </div>
@@ -388,7 +395,7 @@ export default function EventModal({
                           <input
                             type="date"
                             value={date}
-                            onChange={(e) => setDate(e.target.value)}
+                            onChange={(e) => handleDateChange(e.target.value)}
                             className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                           />
                         </div>
@@ -406,7 +413,7 @@ export default function EventModal({
                               <input
                                 type="time"
                                 value={startTime}
-                                onChange={(e) => setStartTime(e.target.value)}
+                                onChange={(e) => handleStartTimeChange(e.target.value)}
                                 className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                               />
                             </div>
@@ -424,7 +431,7 @@ export default function EventModal({
                               <input
                                 type="time"
                                 value={endTime}
-                                onChange={(e) => setEndTime(e.target.value)}
+                                onChange={(e) => handleEndTimeChange(e.target.value)}
                                 className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                               />
                             </div>

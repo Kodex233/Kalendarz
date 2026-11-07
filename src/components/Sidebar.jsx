@@ -104,14 +104,14 @@ export default function Sidebar({
               className="p-1 hover:bg-[#282a2d] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] transition"
               title="Poprzedni miesiąc"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
             </button>
             <button 
               onClick={() => setMiniDate(addMonths(miniDate, 1))}
               className="p-1 hover:bg-[#282a2d] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] transition"
               title="Następny miesiąc"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4 stroke-[2.5]" />
             </button>
           </div>
         </div>
@@ -153,11 +153,10 @@ export default function Sidebar({
           })}
         </div>
 
-        {/* 3. Szukaj osób: bez X i bez pełnego borderu na niebiesko, tylko na dole niebieska kreska */}
+        {/* 3. Szukaj osób: większy napis (text-sm), ikonka ze zdjęcia Image 1, kursor z lewej od ikonki, napis nie zmienia koloru, ciemniejsze tło */}
         <div className="pt-2">
           {isSearchingPerson ? (
-            <div className="relative flex items-center bg-[#303134] h-10 px-3.5 rounded-t-md border-0 border-b-2 border-[#8ab4f8] transition">
-              <User className="w-4 h-4 text-[#c4c7c5] mr-2.5 shrink-0" />
+            <div className="relative flex items-center justify-between bg-[#282a2d] h-10 px-3.5 rounded-t-md border-0 border-b-2 border-[#8ab4f8] transition">
               <input
                 ref={searchInputRef}
                 type="text"
@@ -170,16 +169,29 @@ export default function Sidebar({
                   setSearchPersonQuery(e.target.value);
                   if (onSearchPerson) onSearchPerson(e.target.value);
                 }}
-                className="w-full bg-transparent border-0 text-xs text-[#e3e3e3] placeholder-[#9aa0a6] focus:outline-none"
+                className="w-full bg-transparent border-0 text-sm font-medium text-[#c4c7c5] placeholder-[#c4c7c5] focus:outline-none"
               />
+              {/* Ikonka osób ze zdjęcia Image 1 na prawo od kursora */}
+              <svg className="w-5 h-5 text-[#c4c7c5] shrink-0 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
             </div>
           ) : (
             <button
               onClick={() => setIsSearchingPerson(true)}
-              className="w-full flex items-center space-x-2.5 h-10 px-3.5 bg-[#303134] hover:bg-[#3c4043] text-[#c4c7c5] hover:text-white text-xs font-medium transition duration-150 rounded-lg"
+              className="w-full flex items-center justify-between h-10 px-3.5 bg-[#282a2d] hover:bg-[#323438] text-[#c4c7c5] hover:text-[#c4c7c5] text-sm font-medium transition duration-150 rounded-lg"
             >
-              <User className="w-4 h-4 text-[#c4c7c5]" />
-              <span>Szukaj osób</span>
+              <span className="text-[#c4c7c5]">Szukaj osób</span>
+              {/* Ikonka osób ze zdjęcia Image 1 */}
+              <svg className="w-5 h-5 text-[#c4c7c5] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
             </button>
           )}
         </div>
@@ -194,7 +206,7 @@ export default function Sidebar({
             className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#35373a] text-[#9aa0a6] hover:text-[#e3e3e3] transition -mr-1"
             title="Dodaj harmonogram"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 stroke-[2.5]" />
           </button>
         </div>
       </div>
@@ -295,7 +307,7 @@ export default function Sidebar({
               className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#4d5156] text-[#9aa0a6] hover:text-white transition"
               title="Dodaj inny kalendarz"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 stroke-[2.5]" />
             </button>
             <button
               onClick={(e) => {

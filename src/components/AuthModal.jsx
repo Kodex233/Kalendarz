@@ -254,10 +254,9 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2.5 bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#041e49] font-medium rounded-full text-sm transition shadow-sm disabled:opacity-50 active:scale-95 flex items-center space-x-1"
+              className="px-6 py-2.5 bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#062e6f] font-medium rounded-full text-sm transition shadow-sm disabled:opacity-50 active:scale-95"
             >
-              <span>{loading ? 'Czekaj...' : (isRegister ? 'Zarejestruj' : 'Dalej')}</span>
-              <ArrowRight className="w-4 h-4 ml-1" />
+              {loading ? 'Czekaj...' : (isRegister ? 'Zarejestruj' : 'Dalej')}
             </button>
           </div>
         </form>
