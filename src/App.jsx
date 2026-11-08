@@ -9,6 +9,7 @@ import Sidebar from './components/Sidebar';
 import CalendarMonth from './components/CalendarMonth';
 import CalendarWeek from './components/CalendarWeek';
 import EventModal from './components/EventModal';
+import EventDetailModal from './components/EventDetailModal';
 import ExchangeModal from './components/ExchangeModal';
 import AuthModal from './components/AuthModal';
 import { auth, onAuthStateChanged, logoutUser } from './firebase/config';
@@ -35,7 +36,7 @@ const INITIAL_OTHER_CALENDARS = [
   { id: 'swieta', name: 'Święta w Polsce', color: '#1e8e3e', checked: true },
 ];
 
-// Default starter demo events matching screenshots
+// Default starter demo events matching user screenshots
 const DEMO_EVENTS = [
   {
     id: 'demo-holiday',
@@ -47,6 +48,7 @@ const DEMO_EVENTS = [
     calendarId: 'swieta',
     customBg: '#34a853',
     description: 'Święto państwowe w Polsce',
+    isAllDay: true,
     isExchangeable: false,
     userId: 'system',
     userEmail: 'swieta@kalendarz.pl'
@@ -66,13 +68,13 @@ const DEMO_EVENTS = [
   },
   {
     id: 'demo-2',
-    title: 'Dyżur / Konsultacje',
+    title: 'Konsultacje',
     date: '2026-11-10',
-    startTime: '14:00',
-    endTime: '16:00',
-    color: 'yellow',
+    startTime: '12:00',
+    endTime: '13:00',
+    color: 'blue',
     calendarId: 'kodex',
-    description: 'Dostępny termin',
+    description: 'Konsultacje semestralne',
     isExchangeable: true,
     userId: 'friend-1',
     userName: 'Kolega Janek',
@@ -116,7 +118,8 @@ export default function App() {
   const [exchanges, setExchanges] = useState([]);
 
   // Modals state
-  const [eventModalOpen, setEventModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [exchangeModalOpen, setExchangeModalOpen] = useState(false);
   const [initialTargetEventForSwap, setInitialTargetEventForSwap] = useState(null);
@@ -160,7 +163,7 @@ export default function App() {
   // Month navigation handlers
   const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
-  const handleToday = () => setCurrentDate(new Date());
+  const handleToday = () => setCurrentDate(new Date(2026, 10, 8));
   const handleSelectDate = (date) => setCurrentDate(date);
 
   // Calendar Management Handlers
@@ -209,7 +212,7 @@ export default function App() {
     setOtherCalendars(prev => [...prev, newCal]);
   };
 
-  // Open Event Modal for new event with type
+  // Open Create Event Modal with specific type
   const handleOpenCreateModal = (type = 'Wydarzenie') => {
     if (type === 'Harmonogram spotkań') {
       setExchangeModalOpen(true);
@@ -217,10 +220,10 @@ export default function App() {
     }
     setEventType(type);
     setSelectedEvent(null);
-    setEventModalOpen(true);
+    setCreateModalOpen(true);
   };
 
-  // Open Event Modal for slot clicked on weekly grid
+  // Open Create Event Modal for a clicked slot on weekly grid
   const handleSelectSlot = (date, timeStr) => {
     const [h] = timeStr.split(':').map(Number);
     const endH = h + 1;
@@ -231,14 +234,20 @@ export default function App() {
       calendarId: 'kodex'
     });
     setEventType('Wydarzenie');
-    setEventModalOpen(true);
+    setCreateModalOpen(true);
   };
 
-  // Open Event Modal for existing event
+  // Click on existing event -> open EventDetailModal (image 5)
   const handleSelectEvent = (event) => {
     setSelectedEvent(event);
+    setDetailModalOpen(true);
+  };
+
+  // Open Edit mode from Detail Modal
+  const handleEditFromDetail = (event) => {
+    setSelectedEvent(event);
     setEventType(event.type || 'Wydarzenie');
-    setEventModalOpen(true);
+    setCreateModalOpen(true);
   };
 
   // Save Event
@@ -276,21 +285,13 @@ export default function App() {
   const handleDeleteEvent = async (eventId) => {
     if (!user) {
       setMyEvents(prev => prev.filter(e => e.id !== eventId));
-      setEventModalOpen(false);
+      setCreateModalOpen(false);
+      setDetailModalOpen(false);
       return;
     }
     await deleteEvent(eventId);
-    setEventModalOpen(false);
-  };
-
-  // Quick swap with a friend's event
-  const handleProposeSwapWithEvent = (targetEvent) => {
-    if (!user) {
-      setAuthModalOpen(true);
-      return;
-    }
-    setInitialTargetEventForSwap(targetEvent);
-    setExchangeModalOpen(true);
+    setCreateModalOpen(false);
+    setDetailModalOpen(false);
   };
 
   // Filter events based on active checked calendars and search queries
@@ -345,8 +346,12 @@ export default function App() {
     return combined;
   }, [myEvents, exchangeableEvents, myCalendars, otherCalendars, searchQuery, personSearchQuery]);
 
+  const activeEventCal = selectedEvent ? (
+    myCalendars.find(c => c.id === selectedEvent.calendarId) || { name: 'kodex', color: '#1a73e8' }
+  ) : { name: 'kodex', color: '#1a73e8' };
+
   return (
-    <div className="h-screen w-screen flex flex-col bg-[#1f1f1f] text-[#e3e3e3] overflow-hidden">
+    <div className="h-screen w-screen flex flex-col bg-[#131314] text-[#e3e3e3] overflow-hidden">
       {/* Top Navbar */}
       <Navbar
         currentDate={currentDate}
@@ -364,8 +369,8 @@ export default function App() {
         onViewChange={setActiveView}
       />
 
-      {/* Main Container with Sidebar + Calendar */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* Main Container: Sidebar + Rounded Calendar Canvas */}
+      <div className="flex-1 flex overflow-hidden bg-[#131314]">
         <Sidebar
           isOpen={sidebarOpen}
           onOpenCreateModal={handleOpenCreateModal}
@@ -399,15 +404,16 @@ export default function App() {
             onSelectEvent={handleSelectEvent}
             onSelectSlot={handleSelectSlot}
             viewMode={activeView}
-            currentUserId={user?.uid || 'demo-user'}
+            isSidebarOpen={sidebarOpen}
+            onOpenCreateModal={handleOpenCreateModal}
           />
         )}
       </div>
 
-      {/* Modals */}
+      {/* 1. Okienko dodawania wydarzenia (Create Event Modal) matching image 3 */}
       <EventModal
-        isOpen={eventModalOpen}
-        onClose={() => setEventModalOpen(false)}
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
         onSave={handleSaveEvent}
         onDelete={handleDeleteEvent}
         initialData={selectedEvent}
@@ -416,6 +422,18 @@ export default function App() {
         myCalendars={myCalendars}
       />
 
+      {/* 2. Okienko szczegółów wydarzenia (Event Detail Modal) matching image 5 */}
+      <EventDetailModal
+        isOpen={detailModalOpen}
+        onClose={() => setDetailModalOpen(false)}
+        event={selectedEvent}
+        onEdit={handleEditFromDetail}
+        onDelete={handleDeleteEvent}
+        calendarName={activeEventCal.name}
+        calendarColor={activeEventCal.color}
+      />
+
+      {/* 3. Wymiana terminów Modal */}
       <ExchangeModal
         isOpen={exchangeModalOpen}
         onClose={() => {
@@ -431,6 +449,7 @@ export default function App() {
         initialTargetEvent={initialTargetEventForSwap}
       />
 
+      {/* 4. Auth Modal */}
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}

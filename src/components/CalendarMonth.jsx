@@ -10,16 +10,6 @@ import {
   isSameDay 
 } from 'date-fns';
 import { pl } from 'date-fns/locale';
-import { ArrowLeftRight } from 'lucide-react';
-
-const COLOR_MAP = {
-  blue: 'bg-[#1b3a57] text-[#c2e7ff] border-l-4 border-[#8ab4f8] hover:bg-[#23486c]',
-  green: 'bg-[#133926] text-[#c4eed0] border-l-4 border-[#81c995] hover:bg-[#1a4a32]',
-  purple: 'bg-[#371e54] text-[#e8dff5] border-l-4 border-[#c58af9] hover:bg-[#48286e]',
-  red: 'bg-[#4c1f24] text-[#fce8e6] border-l-4 border-[#f28b82] hover:bg-[#61272d]',
-  yellow: 'bg-[#433519] text-[#feefc3] border-l-4 border-[#fdd663] hover:bg-[#564420]',
-  gray: 'bg-[#303134] text-[#e8eaed] border-l-4 border-[#9aa0a6] hover:bg-[#3c4043]',
-};
 
 export default function CalendarMonth({
   currentDate,
@@ -30,7 +20,7 @@ export default function CalendarMonth({
 }) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
-  // Sunday first matching image 2 and 4 (NIEDZ., PON., WT., ŚR., CZW., PT., SOB.)
+  // Sunday first matching image 1 and 2 (NIEDZ., PON., WT., ŚR., CZW., PT., SOB.)
   const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
 
@@ -55,9 +45,9 @@ export default function CalendarMonth({
   }, [events]);
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-4rem)] bg-[#1f1f1f] text-[#e3e3e3] overflow-hidden select-none">
-      {/* Week day headers matching image 1 and 2 */}
-      <div className="grid grid-cols-7 border-b border-[#3c4043] bg-[#1f1f1f]">
+    <div className="flex-1 flex flex-col h-[calc(100vh-4rem)] bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] border border-[#303134]/60 overflow-hidden select-none m-2 ml-1 mr-3 shadow-xl">
+      {/* Week day headers */}
+      <div className="grid grid-cols-7 border-b border-[#303134] bg-[#1e1f20]">
         {weekDayNames.map((name, i) => (
           <div 
             key={i} 
@@ -69,7 +59,7 @@ export default function CalendarMonth({
       </div>
 
       {/* Days Grid */}
-      <div className="flex-1 grid grid-cols-7 grid-rows-5 md:grid-rows-6 border-b border-l border-[#3c4043]">
+      <div className="flex-1 grid grid-cols-7 grid-rows-5 md:grid-rows-6 border-b border-l border-[#303134]">
         {days.map((day, idx) => {
           const dateStr = format(day, 'yyyy-MM-dd');
           const dayEvents = eventsByDate[dateStr] || [];
@@ -81,10 +71,10 @@ export default function CalendarMonth({
             <div
               key={idx}
               onClick={() => onSelectDate(day)}
-              className={`border-r border-b border-[#3c4043] p-1.5 flex flex-col min-h-0 overflow-hidden cursor-pointer transition ${
+              className={`border-r border-b border-[#303134] p-1.5 flex flex-col min-h-0 overflow-hidden cursor-pointer transition ${
                 isCurrentMonth 
-                  ? 'bg-[#1f1f1f] hover:bg-[#282a2d]' 
-                  : 'bg-[#191a1c] text-[#5f6368]'
+                  ? 'bg-[#1e1f20] hover:bg-[#282a2d]' 
+                  : 'bg-[#161718] text-[#5f6368]'
               }`}
             >
               {/* Day header number with circular highlight */}
@@ -111,8 +101,7 @@ export default function CalendarMonth({
               {/* Event Chips List */}
               <div className="flex-1 space-y-1 overflow-y-auto pr-0.5">
                 {dayEvents.slice(0, 3).map((event) => {
-                  const colorClass = COLOR_MAP[event.color] || (event.customBg ? '' : COLOR_MAP.blue);
-                  const customStyle = event.customBg ? { backgroundColor: event.customBg, color: '#ffffff' } : {};
+                  const customStyle = event.customBg ? { backgroundColor: event.customBg, color: '#ffffff' } : { backgroundColor: '#1a73e8', color: '#ffffff' };
 
                   return (
                     <div
@@ -122,7 +111,7 @@ export default function CalendarMonth({
                         e.stopPropagation();
                         onSelectEvent(event);
                       }}
-                      className={`text-[11px] font-medium px-2 py-0.5 rounded truncate shadow-xs flex items-center justify-between transition cursor-pointer ${colorClass}`}
+                      className="text-[11px] font-medium px-2 py-0.5 rounded truncate shadow-xs flex items-center justify-between transition cursor-pointer hover:brightness-110"
                       title={`${event.title} (${event.startTime || ''} - ${event.endTime || ''})`}
                     >
                       <div className="flex items-center space-x-1.5 truncate">
@@ -133,15 +122,6 @@ export default function CalendarMonth({
                         )}
                         <span className="truncate">{event.title}</span>
                       </div>
-
-                      {event.isExchangeable && (
-                        <span 
-                          className="shrink-0 ml-1 p-0.5 bg-amber-500/20 text-amber-300 rounded-full" 
-                          title="Ten termin można wymienić"
-                        >
-                          <ArrowLeftRight className="w-2.5 h-2.5" />
-                        </span>
-                      )}
                     </div>
                   );
                 })}

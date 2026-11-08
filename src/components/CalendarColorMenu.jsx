@@ -30,7 +30,7 @@ export default function CalendarColorMenu({
   return (
     <div 
       ref={menuRef}
-      className="absolute left-full top-0 ml-2 z-50 w-64 bg-[#282a2d] border-0 ring-1 ring-white/10 rounded-2xl shadow-2xl py-2 text-[#e3e3e3] animate-in fade-in zoom-in-95 duration-100"
+      className="absolute right-2 top-9 z-50 w-56 bg-[#282a2d] border-0 ring-1 ring-white/10 rounded-2xl shadow-2xl py-2 text-[#e3e3e3] animate-in fade-in zoom-in-95 duration-100"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Options */}
@@ -55,7 +55,7 @@ export default function CalendarColorMenu({
       </button>
 
       {/* Divider */}
-      <div className="border-t border-[#3c4043] my-2"></div>
+      <div className="border-t border-[#3c4043] my-1.5"></div>
 
       {/* 24-color grid (4 rows x 6 cols) matching Google Calendar image */}
       <div className="px-3 py-1">

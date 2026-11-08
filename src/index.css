@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-[#1f1f1f] text-[#e3e3e3] font-sans antialiased overflow-hidden select-none;
+    @apply bg-[#131314] text-[#e3e3e3] font-sans antialiased overflow-hidden select-none;
   }
 }
 
@@ -19,12 +19,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3c4043;
+  background: #303134;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #5f6368;
+  background: #444746;
 }
 
 /* Google-like transitions */

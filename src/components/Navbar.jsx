@@ -6,7 +6,7 @@ import {
   ChevronDown,
   Search, 
   Settings, 
-  Calendar as CalendarIcon,
+  HelpCircle,
   LogOut,
   User as UserIcon,
   ArrowLeft,
@@ -96,7 +96,7 @@ export default function Navbar({
   // FULL SEARCH MODE OVERLAY (Shows ONLY the search bar across the whole top bar)
   if (isSearchOpen) {
     return (
-      <header className="h-16 border-b border-[#3c4043] px-4 flex items-center bg-[#282a2d] text-[#e3e3e3] select-none z-50 sticky top-0 animate-in fade-in duration-100">
+      <header className="h-16 border-b border-[#303134] px-4 flex items-center bg-[#282a2d] text-[#e3e3e3] select-none z-50 sticky top-0 animate-in fade-in duration-100">
         <button
           onClick={() => {
             setIsSearchOpen(false);
@@ -138,7 +138,7 @@ export default function Navbar({
   }
 
   return (
-    <header className="h-16 border-b border-[#3c4043] px-4 flex items-center justify-between bg-[#1f1f1f] text-[#e3e3e3] select-none z-10 sticky top-0">
+    <header className="h-16 border-b border-[#303134] px-4 flex items-center justify-between bg-[#131314] text-[#e3e3e3] select-none z-20 sticky top-0">
       {/* Left: Hamburger, Logo, Dzisiaj (larger radius), Navigation, Month Dropdown */}
       <div className="flex items-center space-x-3">
         <button 
@@ -150,7 +150,7 @@ export default function Navbar({
         </button>
 
         <div className="flex items-center space-x-2 mr-3 cursor-pointer">
-          <div className="w-10 h-10 bg-[#8ab4f8] text-[#041e49] rounded-xl flex items-center justify-center font-bold text-lg shadow-sm">
+          <div className="w-10 h-10 bg-[#1a73e8] text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-sm">
             {format(new Date(), 'd')}
           </div>
           <span className="text-xl font-normal text-[#e3e3e3] tracking-tight font-['Product_Sans',sans-serif]">
@@ -158,7 +158,7 @@ export default function Navbar({
           </span>
         </div>
 
-        {/* Dzisiaj button: WIEKSZY RADIUS (rounded-full) matching image 2 */}
+        {/* Dzisiaj button: WIEKSZY RADIUS (rounded-full) matching image 1 and 2 */}
         <button
           onClick={onToday}
           className="px-5 py-2 border border-[#5f6368] hover:bg-[#282a2d] rounded-full text-sm font-medium text-[#e3e3e3] transition active:scale-95"
@@ -258,9 +258,9 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Right: Search Icon, Settings Icon, View Switcher dropdown, User Profile */}
+      {/* Right: Search Icon, Help, Settings Icon, View Switcher dropdown (Większy radius matching image 1/2), User Profile */}
       <div className="flex items-center space-x-2">
-        {/* Search Icon button (clicking expands full top search) */}
+        {/* Search Icon button */}
         <button
           onClick={() => setIsSearchOpen(true)}
           className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
@@ -269,22 +269,31 @@ export default function Navbar({
           <Search className="w-5 h-5" />
         </button>
 
+        {/* Support Icon button matching image 1 */}
+        <button
+          onClick={() => alert('Pomoc i opinie')}
+          className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
+          title="Pomoc"
+        >
+          <HelpCircle className="w-5 h-5" />
+        </button>
+
         {/* Settings Icon button */}
         <button
-          onClick={() => alert('Ustawienia kalendarza')}
+          onClick={() => alert('Menu ustawień')}
           className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
           title="Ustawienia"
         >
           <Settings className="w-5 h-5" />
         </button>
 
-        {/* View Switcher Dropdown matching image 3 */}
+        {/* View Switcher Dropdown: WIĘKSZY RADIUS (rounded-full) jak button Dzisiaj matching image 1 and 2 */}
         <div className="relative ml-1" ref={viewMenuRef}>
           <button
             onClick={() => setIsViewMenuOpen(!isViewMenuOpen)}
-            className="flex items-center space-x-2 px-3.5 py-2 bg-transparent hover:bg-[#282a2d] border border-[#5f6368] rounded-lg text-sm font-medium text-[#e3e3e3] transition focus:outline-none"
+            className="flex items-center space-x-2 px-5 py-2 bg-transparent hover:bg-[#282a2d] border border-[#5f6368] rounded-full text-sm font-medium text-[#e3e3e3] transition focus:outline-none"
           >
-            <span>{VIEW_LABELS[activeView] || 'Miesiąc'}</span>
+            <span>{VIEW_LABELS[activeView] || 'Tydzień'}</span>
             <ChevronDown className={`w-4 h-4 text-[#9aa0a6] transition-transform ${isViewMenuOpen ? 'rotate-180' : ''}`} />
           </button>
 
@@ -368,21 +377,14 @@ export default function Navbar({
           )}
         </div>
 
-        {/* User Auth Info */}
+        {/* User Auth Info: Elegancki avatar / Zaloguj button matching image 1 and 2 */}
         {user ? (
           <div className="flex items-center space-x-2 pl-2">
-            <div className="flex items-center space-x-2">
-              {user.photoURL ? (
-                <img 
-                  src={user.photoURL} 
-                  alt={user.displayName || user.email} 
-                  className="w-8 h-8 rounded-full border border-[#5f6368] object-cover"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-[#8ab4f8] text-[#041e49] flex items-center justify-center font-bold text-xs">
-                  {user.displayName ? user.displayName[0].toUpperCase() : (user.email ? user.email[0].toUpperCase() : 'U')}
-                </div>
-              )}
+            <div 
+              className="w-9 h-9 rounded-full bg-[#d93025] text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-[#3c4043] cursor-pointer"
+              title={user.displayName || user.email}
+            >
+              {user.displayName ? user.displayName[0].toUpperCase() : (user.email ? user.email[0].toUpperCase() : 'K')}
             </div>
             <button
               onClick={onLogout}
@@ -395,7 +397,7 @@ export default function Navbar({
         ) : (
           <button
             onClick={onOpenAuth}
-            className="flex items-center space-x-2 px-4 py-2 bg-[#8ab4f8] hover:bg-[#aecbfa] text-[#041e49] rounded-full text-sm font-semibold transition shadow-sm ml-1"
+            className="flex items-center space-x-2 px-5 py-2 border border-[#5f6368] hover:border-[#8ab4f8] hover:bg-[#282a2d] text-[#8ab4f8] rounded-full text-sm font-semibold transition shadow-xs ml-1"
           >
             <UserIcon className="w-4 h-4" />
             <span>Zaloguj się</span>

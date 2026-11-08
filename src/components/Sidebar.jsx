@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Users, 
+  UserPlus,
   ChevronLeft, 
   ChevronRight, 
   ChevronUp, 
@@ -9,8 +9,7 @@ import {
   MoreVertical, 
   X, 
   Plus,
-  Search,
-  Mail
+  Search
 } from 'lucide-react';
 import CreateDropdown from './CreateDropdown';
 import CalendarColorMenu from './CalendarColorMenu';
@@ -48,6 +47,7 @@ export default function Sidebar({
   const [miniDate, setMiniDate] = useState(new Date());
   const [myCalendarsOpen, setMyCalendarsOpen] = useState(true);
   const [otherCalendarsOpen, setOtherCalendarsOpen] = useState(true);
+  const [bookingPagesOpen, setBookingPagesOpen] = useState(false);
   const [activeMenuCalendarId, setActiveMenuCalendarId] = useState(null);
   const [searchPersonQuery, setSearchPersonQuery] = useState('');
   const [isSearchingPerson, setIsSearchingPerson] = useState(false);
@@ -55,7 +55,7 @@ export default function Sidebar({
 
   const monthStart = startOfMonth(miniDate);
   const monthEnd = endOfMonth(monthStart);
-  // Sunday first matching image: N P W Ś C P S
+  // Sunday first matching image 1 and 2: N P W Ś C P S
   const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
   const miniDays = eachDayOfInterval({ start: startDate, end: endDate });
@@ -66,39 +66,33 @@ export default function Sidebar({
     }
   }, [isSearchingPerson]);
 
-  // When collapsed: show ONLY the + button on the left!
-  if (!isOpen) {
-    return (
-      <aside className="w-16 border-r border-[#3c4043] bg-[#1f1f1f] flex flex-col items-center py-4 space-y-4 shrink-0 h-[calc(100vh-4rem)] select-none">
-        <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={true} />
-      </aside>
-    );
-  }
+  // When hidden: Return null so the [+] button moves directly above GMT+1 in the calendar (matching image 4)
+  if (!isOpen) return null;
 
   return (
-    <aside className="w-64 border-r border-[#3c4043] bg-[#1f1f1f] text-[#e3e3e3] flex flex-col px-4 py-4 space-y-5 select-none shrink-0 overflow-y-auto h-[calc(100vh-4rem)]">
+    <aside className="w-64 bg-[#131314] text-[#e3e3e3] flex flex-col px-4 py-3 space-y-4 select-none shrink-0 overflow-y-auto h-[calc(100vh-4rem)]">
       {/* 1. Button + Utwórz ▾ without border */}
       <div>
         <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={false} />
       </div>
 
       {/* 2. Mini Calendar without background or border, larger typography */}
-      <div className="bg-transparent border-0 p-0 space-y-3">
+      <div className="bg-transparent border-0 p-0 space-y-2">
         <div className="flex items-center justify-between px-1">
-          <span className="text-base font-semibold text-[#e3e3e3] capitalize">
+          <span className="text-sm font-semibold text-[#e3e3e3] capitalize">
             {format(miniDate, 'LLLL yyyy', { locale: pl })}
           </span>
           <div className="flex items-center space-x-1">
             <button 
               onClick={() => setMiniDate(subMonths(miniDate, 1))}
-              className="p-1 hover:bg-[#35373a] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] transition"
+              className="p-1 hover:bg-[#282a2d] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] transition"
               title="Poprzedni miesiąc"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button 
               onClick={() => setMiniDate(addMonths(miniDate, 1))}
-              className="p-1 hover:bg-[#35373a] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] transition"
+              className="p-1 hover:bg-[#282a2d] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] transition"
               title="Następny miesiąc"
             >
               <ChevronRight className="w-4 h-4" />
@@ -106,14 +100,14 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* Days of week header matching image 4: N P W Ś C P S */}
+        {/* Days of week header matching image 1: N P W Ś C P S */}
         <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-[#9aa0a6]">
           {['N', 'P', 'W', 'Ś', 'C', 'P', 'S'].map((d, i) => (
             <div key={i} className="py-0.5">{d}</div>
           ))}
         </div>
 
-        {/* Mini Month Grid - larger text */}
+        {/* Mini Month Grid */}
         <div className="grid grid-cols-7 gap-1 text-center text-xs">
           {miniDays.map((day, idx) => {
             const isCurrentMonth = isSameMonth(day, miniDate);
@@ -130,7 +124,7 @@ export default function Sidebar({
                     : isToday
                     ? 'border border-[#8ab4f8] text-[#8ab4f8] font-bold'
                     : isCurrentMonth 
-                    ? 'text-[#e3e3e3] hover:bg-[#35373a]' 
+                    ? 'text-[#e3e3e3] hover:bg-[#282a2d]' 
                     : 'text-[#5f6368]'
                 }`}
               >
@@ -140,10 +134,10 @@ export default function Sidebar({
           })}
         </div>
 
-        {/* 3. Szukaj osób po Gmailu under the mini-calendar matching image 4 */}
+        {/* 3. Szukaj osób z mniejszym radiusem i poprawną ikonką (UserPlus) matching image 1 */}
         <div className="pt-2">
           {isSearchingPerson ? (
-            <div className="relative flex items-center bg-[#282a2d] rounded-xl px-3 py-2 ring-1 ring-[#8ab4f8]">
+            <div className="relative flex items-center bg-[#282a2d] rounded-lg px-3 py-2 ring-1 ring-[#8ab4f8]">
               <Search className="w-4 h-4 text-[#9aa0a6] mr-2 shrink-0" />
               <input
                 ref={searchInputRef}
@@ -175,39 +169,58 @@ export default function Sidebar({
           ) : (
             <button
               onClick={() => setIsSearchingPerson(true)}
-              className="w-full flex items-center space-x-3 px-3.5 py-2.5 bg-[#282a2d] hover:bg-[#35373a] text-[#c4c7c5] hover:text-[#e3e3e3] rounded-xl text-sm font-medium transition duration-150 border-0"
+              className="w-full flex items-center space-x-2.5 px-3 py-2 bg-[#282a2d] hover:bg-[#35373a] text-[#c4c7c5] hover:text-[#e3e3e3] rounded-lg text-xs font-medium transition duration-150 border-0 shadow-xs"
             >
-              <Users className="w-4 h-4 text-[#9aa0a6]" />
-              <span className="text-xs font-medium">Szukaj osób</span>
+              <UserPlus className="w-4 h-4 text-[#9aa0a6]" />
+              <span>Szukaj osób</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* 4. Moje kalendarze (Collapsible with chevron, large custom colored tick, hover 3 dots & X) */}
-      <div className="space-y-1 pt-1">
+      {/* 4. Strony rezerwacji + matching image 1 and 2 */}
+      <div className="pt-1">
+        <div 
+          onClick={() => setBookingPagesOpen(!bookingPagesOpen)}
+          className="flex items-center justify-between py-1.5 px-2 hover:bg-[#282a2d] rounded-full cursor-pointer transition text-[#e3e3e3] group"
+        >
+          <span className="text-xs font-medium tracking-wide">
+            Strony rezerwacji
+          </span>
+          <button 
+            type="button" 
+            onClick={(e) => { e.stopPropagation(); onOpenCreateModal('Harmonogram spotkań'); }}
+            className="text-[#9aa0a6] hover:text-[#e3e3e3] p-1"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* 5. Moje kalendarze (Pill hover, larger X & 3 dots target, visible popup menu) */}
+      <div className="space-y-1">
         <div 
           onClick={() => setMyCalendarsOpen(!myCalendarsOpen)}
-          className="flex items-center justify-between py-1.5 px-2 hover:bg-[#282a2d] rounded-lg cursor-pointer transition text-[#e3e3e3] group"
+          className="flex items-center justify-between py-1.5 px-2 hover:bg-[#282a2d] rounded-full cursor-pointer transition text-[#e3e3e3] group"
         >
-          <span className="text-xs font-semibold tracking-wide">
+          <span className="text-xs font-medium tracking-wide">
             Moje kalendarze
           </span>
-          <button className="text-[#9aa0a6] group-hover:text-[#e3e3e3]">
+          <button className="text-[#9aa0a6] group-hover:text-[#e3e3e3] p-1">
             {myCalendarsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
         </div>
 
         {myCalendarsOpen && (
-          <div className="space-y-0.5 pt-1">
+          <div className="space-y-0.5 pt-0.5">
             {myCalendars.map((cal) => (
               <div
                 key={cal.id}
-                className="relative group flex items-center justify-between px-2 py-1.5 rounded-xl hover:bg-[#282a2d] transition cursor-pointer"
+                className="relative group flex items-center justify-between px-2.5 py-1.5 rounded-full hover:bg-[#282a2d] transition cursor-pointer"
                 onClick={() => onToggleCalendar(cal.id)}
               >
                 {/* Left: Large colored tick & Name */}
-                <div className="flex items-center space-x-2.5 truncate">
+                <div className="flex items-center space-x-3 truncate">
                   <div
                     style={{
                       backgroundColor: cal.checked ? cal.color : 'transparent',
@@ -226,8 +239,8 @@ export default function Sidebar({
                   </span>
                 </div>
 
-                {/* Right: Hover actions (X delete & 3 dots) */}
-                <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition shrink-0">
+                {/* Right: Larger hover targets for X and 3 dots matching image 3 and 5 */}
+                <div className="flex items-center space-x-0.5 opacity-0 group-hover:opacity-100 transition shrink-0">
                   {onDeleteCalendar && myCalendars.length > 1 && (
                     <button
                       type="button"
@@ -235,10 +248,10 @@ export default function Sidebar({
                         e.stopPropagation();
                         onDeleteCalendar(cal.id);
                       }}
-                      className="p-1 hover:bg-[#35373a] text-[#9aa0a6] hover:text-[#f28b82] rounded-full transition"
+                      className="w-7 h-7 flex items-center justify-center hover:bg-[#35373a] text-[#9aa0a6] hover:text-[#f28b82] rounded-full transition"
                       title="Usuń kalendarz"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="w-4 h-4" />
                     </button>
                   )}
 
@@ -248,10 +261,10 @@ export default function Sidebar({
                       e.stopPropagation();
                       setActiveMenuCalendarId(activeMenuCalendarId === cal.id ? null : cal.id);
                     }}
-                    className="p-1 hover:bg-[#35373a] text-[#9aa0a6] hover:text-[#e3e3e3] rounded-full transition"
+                    className="w-7 h-7 flex items-center justify-center hover:bg-[#35373a] text-[#9aa0a6] hover:text-[#e3e3e3] rounded-full transition"
                     title="Opcje kalendarza"
                   >
-                    <MoreVertical className="w-3.5 h-3.5" />
+                    <MoreVertical className="w-4 h-4" />
                   </button>
                 </div>
 
@@ -270,13 +283,13 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* 5. Inne kalendarze (Collapsible with +, chevron, large colored tick, hover 3 dots & X) */}
-      <div className="space-y-1 pt-1 border-t border-[#3c4043]/50">
+      {/* 6. Inne kalendarze (Pill hover, larger X & 3 dots target) */}
+      <div className="space-y-1 pt-1">
         <div 
           onClick={() => setOtherCalendarsOpen(!otherCalendarsOpen)}
-          className="flex items-center justify-between py-1.5 px-2 hover:bg-[#282a2d] rounded-lg cursor-pointer transition text-[#e3e3e3] group"
+          className="flex items-center justify-between py-1.5 px-2 hover:bg-[#282a2d] rounded-full cursor-pointer transition text-[#e3e3e3] group"
         >
-          <span className="text-xs font-semibold tracking-wide">
+          <span className="text-xs font-medium tracking-wide">
             Inne kalendarze
           </span>
           <div className="flex items-center space-x-1 text-[#9aa0a6] group-hover:text-[#e3e3e3]">
@@ -287,28 +300,28 @@ export default function Sidebar({
                   e.stopPropagation();
                   onAddOtherCalendar();
                 }}
-                className="p-1 hover:bg-[#35373a] rounded-full transition"
+                className="w-6 h-6 flex items-center justify-center hover:bg-[#282a2d] rounded-full transition"
                 title="Dodaj inny kalendarz"
               >
-                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                <Plus className="w-4 h-4 stroke-[2]" />
               </button>
             )}
-            <button className="p-0.5">
+            <button className="w-6 h-6 flex items-center justify-center">
               {otherCalendarsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
           </div>
         </div>
 
         {otherCalendarsOpen && (
-          <div className="space-y-0.5 pt-1">
+          <div className="space-y-0.5 pt-0.5">
             {otherCalendars.map((cal) => (
               <div
                 key={cal.id}
-                className="relative group flex items-center justify-between px-2 py-1.5 rounded-xl hover:bg-[#282a2d] transition cursor-pointer"
+                className="relative group flex items-center justify-between px-2.5 py-1.5 rounded-full hover:bg-[#282a2d] transition cursor-pointer"
                 onClick={() => onToggleOtherCalendar(cal.id)}
               >
                 {/* Left: Large colored tick & Name */}
-                <div className="flex items-center space-x-2.5 truncate">
+                <div className="flex items-center space-x-3 truncate">
                   <div
                     style={{
                       backgroundColor: cal.checked ? cal.color : 'transparent',
@@ -327,8 +340,8 @@ export default function Sidebar({
                   </span>
                 </div>
 
-                {/* Right: Hover actions (X delete & 3 dots) */}
-                <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition shrink-0">
+                {/* Right: Larger hover targets */}
+                <div className="flex items-center space-x-0.5 opacity-0 group-hover:opacity-100 transition shrink-0">
                   {onDeleteOtherCalendar && (
                     <button
                       type="button"
@@ -336,10 +349,10 @@ export default function Sidebar({
                         e.stopPropagation();
                         onDeleteOtherCalendar(cal.id);
                       }}
-                      className="p-1 hover:bg-[#35373a] text-[#9aa0a6] hover:text-[#f28b82] rounded-full transition"
+                      className="w-7 h-7 flex items-center justify-center hover:bg-[#35373a] text-[#9aa0a6] hover:text-[#f28b82] rounded-full transition"
                       title="Usuń kalendarz"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="w-4 h-4" />
                     </button>
                   )}
 
@@ -349,10 +362,10 @@ export default function Sidebar({
                       e.stopPropagation();
                       setActiveMenuCalendarId(activeMenuCalendarId === cal.id ? null : cal.id);
                     }}
-                    className="p-1 hover:bg-[#35373a] text-[#9aa0a6] hover:text-[#e3e3e3] rounded-full transition"
+                    className="w-7 h-7 flex items-center justify-center hover:bg-[#35373a] text-[#9aa0a6] hover:text-[#e3e3e3] rounded-full transition"
                     title="Opcje kalendarza"
                   >
-                    <MoreVertical className="w-3.5 h-3.5" />
+                    <MoreVertical className="w-4 h-4" />
                   </button>
                 </div>
 
@@ -369,6 +382,11 @@ export default function Sidebar({
             ))}
           </div>
         )}
+      </div>
+
+      {/* Footer link matching image 1 and 2 */}
+      <div className="mt-auto pt-6 text-[11px] text-[#9aa0a6] hover:underline cursor-pointer">
+        Warunki – Prywatność
       </div>
     </aside>
   );
