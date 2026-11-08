@@ -388,13 +388,6 @@ export default function Sidebar({
           </div>
         )}
       </div>
-
-      {/* Footer Links */}
-      <div className="pt-3 text-[11px] text-[#9aa0a6] space-x-2 px-2">
-        <span className="hover:underline cursor-pointer">Warunki</span>
-        <span>•</span>
-        <span className="hover:underline cursor-pointer">Prywatność</span>
-      </div>
       </div>
     </aside>
   );
