@@ -23,15 +23,21 @@ import ExchangeModal from './components/ExchangeModal';
 import AuthModal from './components/AuthModal';
 import { auth, onAuthStateChanged, logoutUser, db } from './firebase/config';
 import { collection, getDocs } from 'firebase/firestore';
+import JoinRoomModal from './components/JoinRoomModal';
 import { 
+  createOrUpdateRoom,
+  getRoomData,
+  joinRoom,
+  subscribeToRoom,
+  subscribeToRoomEvents,
+  saveRoomEvent,
+  swapRoomEventsInFirestore,
   subscribeToUserEvents, 
   subscribeToExchangeableEvents, 
   subscribeToExchanges,
   createEvent,
   updateEvent,
-  deleteEvent,
-  proposeExchange,
-  respondToExchange
+  deleteEvent
 } from './firebase/eventsService';
 
 // Default starter calendars matching user screenshots
@@ -213,6 +219,75 @@ export default function App() {
   const [exchangeModalOpen, setExchangeModalOpen] = useState(false);
   const [initialTargetEventForSwap, setInitialTargetEventForSwap] = useState(null);
   const [eventType, setEventType] = useState('Wydarzenie');
+
+  // Multi-device Room Sharing & PIN state
+  const [roomCode, setRoomCode] = useState('kodex');
+  const [roomPin, setRoomPin] = useState('1234');
+  const [participants, setParticipants] = useState(['Kodex']);
+  const [currentUserName, setCurrentUserName] = useState('Kodex');
+  const [joinModalOpen, setJoinModalOpen] = useState(false);
+  const [urlJoinParams, setUrlJoinParams] = useState({ room: 'kodex', pin: '' });
+
+  // 1. Sprawdź parametry URL na starcie (?room=kodex&pin=1234)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const r = params.get('room');
+      const p = params.get('pin');
+
+      if (r) {
+        setUrlJoinParams({ room: r, pin: p || '' });
+        setRoomCode(r);
+        if (p) setRoomPin(p);
+
+        const savedUser = localStorage.getItem(`room_${r}_user`);
+        if (!savedUser) {
+          // Nowa osoba z innego komputera wchodząca z linku: pytamy o imię i PIN
+          setJoinModalOpen(true);
+        } else {
+          setCurrentUserName(savedUser);
+        }
+      } else {
+        // Domyślna inicjalizacja pokoju w Firestore
+        createOrUpdateRoom('kodex', { pin: '1234', hostName: 'Kodex', participants: ['Kodex'] })
+          .catch(e => console.warn('Room init:', e));
+
+        // Zapewnij obecność początkowych wydarzeń w pokoju Firestore
+        getDocs(collection(db, 'events')).then(snap => {
+          if (!snap || snap.size === 0) {
+            INITIAL_DEMO_EVENTS.forEach(ev => {
+              saveRoomEvent('kodex', ev).catch(() => {});
+            });
+          }
+        }).catch(() => {});
+      }
+    }
+  }, []);
+
+  // 2. Nasłuchuj pokoju i jego uczestników w czasie rzeczywistym
+  useEffect(() => {
+    if (!roomCode) return;
+    const unsubRoom = subscribeToRoom(roomCode, (roomData) => {
+      if (roomData) {
+        if (roomData.pin) setRoomPin(roomData.pin);
+        if (roomData.participants) setParticipants(roomData.participants);
+      }
+    });
+
+    const unsubEvents = subscribeToRoomEvents(roomCode, (roomEvents) => {
+      if (roomEvents && roomEvents.length > 0) {
+        const mine = roomEvents.filter(e => e.userName === currentUserName || (!e.userName && e.userId === 'user-kodex'));
+        const others = roomEvents.filter(e => e.userName !== currentUserName && e.userId !== 'user-kodex');
+        if (mine.length > 0) setMyEvents(mine);
+        if (others.length > 0) setExchangeableEvents(others);
+      }
+    });
+
+    return () => {
+      unsubRoom();
+      unsubEvents();
+    };
+  }, [roomCode, currentUserName]);
 
   // Track Firebase Auth state & load Firestore data
   useEffect(() => {
@@ -485,6 +560,31 @@ export default function App() {
     setExchangeModalOpen(true);
   };
 
+  const handleJoinRoom = async ({ roomCode: rCode, userName: uName, pin: uPin }) => {
+    const room = await getRoomData(rCode);
+    if (!room) {
+      throw new Error(`Nie znaleziono pokoju o kodzie "${rCode}".`);
+    }
+    if (room.pin && String(room.pin) !== String(uPin)) {
+      throw new Error('Nieprawidłowy kod PIN dostępu do tego kalendarza!');
+    }
+
+    await joinRoom(rCode, uName);
+    setRoomCode(rCode);
+    setRoomPin(uPin);
+    setCurrentUserName(uName);
+    localStorage.setItem(`room_${rCode}_user`, uName);
+
+    setOtherCalendars(prev => prev.map(c => c.id === 'inne' ? { ...c, checked: true, name: `Kalendarz: ${room.hostName || 'Gospodarz'}` } : c));
+    showToast(`Połączono z kalendarzem "${rCode}" jako ${uName}!`);
+  };
+
+  const handleUpdatePin = async (newPin) => {
+    setRoomPin(newPin);
+    await createOrUpdateRoom(roomCode, { pin: newPin });
+    showToast(`Kod PIN zmieniony na: ${newPin}`);
+  };
+
   // Direct simple swap: natychmiastowa zamiana terminów w kalendarzu i bazie Firebase
   const handleDirectSwap = async (myEventId, targetEventId) => {
     const all = [...myEvents, ...exchangeableEvents];
@@ -513,17 +613,11 @@ export default function App() {
       return e;
     }));
 
-    if (!myEv.id.startsWith('demo-') || !targetEv.id.startsWith('demo-')) {
-      try {
-        if (!myEv.id.startsWith('demo-')) {
-          await updateEvent(myEv.id, { date: targetDate, startTime: targetStart, endTime: targetEnd });
-        }
-        if (!targetEv.id.startsWith('demo-')) {
-          await updateEvent(targetEv.id, { date: myDate, startTime: myStart, endTime: myEnd });
-        }
-      } catch (err) {
-        console.warn('Firestore swap:', err);
-      }
+    // Real-time zapis w Firebase Firestore dla obu połączonych urządzeń
+    try {
+      await swapRoomEventsInFirestore(myEv, targetEv, roomCode);
+    } catch (err) {
+      console.warn('Firestore room swap error:', err);
     }
 
     showToast(`Pomyślnie zamieniono: "${myEv.title}" ⇄ "${targetEv.title}"!`);
@@ -813,17 +907,31 @@ export default function App() {
         calendarColor={activeEventCal.color}
       />
 
-      {/* 3. Wymiana terminów - dedykowane, proste okienko */}
+      {/* 3. Wymiana terminów - z linkiem do skopiowania, kodem PIN i synchronizacją na żywo */}
       <ExchangeModal
         isOpen={exchangeModalOpen}
         onClose={() => {
           setExchangeModalOpen(false);
           setInitialTargetEventForSwap(null);
         }}
-        myEvents={myEvents.filter(e => e.userId === 'user-kodex' || (!e.userId?.startsWith('friend-') && e.id !== 'demo-holiday'))}
-        exchangeableEvents={[...exchangeableEvents, ...myEvents.filter(e => e.userId === 'friend-janek' || e.userId?.startsWith('friend-'))]}
+        myEvents={myEvents.filter(e => e.userId === 'user-kodex' || e.userName === currentUserName || (!e.userId?.startsWith('friend-') && e.id !== 'demo-holiday'))}
+        exchangeableEvents={[...exchangeableEvents, ...myEvents.filter(e => (e.userId === 'friend-janek' || e.userId?.startsWith('friend-')) && e.userName !== currentUserName)]}
         onDirectSwap={handleDirectSwap}
+        roomCode={roomCode}
+        roomPin={roomPin}
+        participants={participants}
+        onUpdatePin={handleUpdatePin}
+        currentUserRole={currentUserName}
         user={user}
+      />
+
+      {/* 4. Dołączanie do kalendarza znajomego przez link lub PIN z innego komputera */}
+      <JoinRoomModal
+        isOpen={joinModalOpen}
+        onClose={() => setJoinModalOpen(false)}
+        initialRoomCode={urlJoinParams.room}
+        initialPin={urlJoinParams.pin}
+        onJoinSuccess={handleJoinRoom}
       />
 
       {/* 4. Auth Modal - Autentyczny styl Google */}

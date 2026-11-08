@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCt4Y0K_E5OmEiqZvRb8UELose64hm0htE",
@@ -134,12 +134,22 @@ async function main() {
   for (const ev of allEvents) {
     const docRef = await addDoc(collection(db, "events"), {
       ...ev,
+      roomCode: "kodex",
       createdAt: serverTimestamp()
     });
     console.log(`✓ Dodano do Firebase: ${ev.title} (ID: ${docRef.id}, Użytkownik: ${ev.userName})`);
   }
 
-  console.log(`\nSukces! Dodano łącznie ${allEvents.length} wydarzeń do kolekcji 'events' w bazie Firebase Firestore (kalendarz-d284f).`);
+  // Utwórz pokój kodex z kodem PIN 1234
+  await setDoc(doc(db, "calendar_rooms", "kodex"), {
+    roomCode: "kodex",
+    pin: "1234",
+    hostName: "Kodex",
+    participants: ["Kodex", "Kolega Janek"],
+    updatedAt: serverTimestamp()
+  }, { merge: true });
+
+  console.log(`\nSukces! Pokój 'kodex' (PIN: 1234) i ${allEvents.length} wydarzeń zapisano w Firebase Firestore.`);
   process.exit(0);
 }
 

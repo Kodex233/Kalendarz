@@ -4,6 +4,8 @@ import {
   updateDoc, 
   deleteDoc, 
   doc, 
+  getDoc,
+  setDoc,
   query, 
   where, 
   onSnapshot,
@@ -15,6 +17,142 @@ import { db } from "./config";
 
 const EVENTS_COLLECTION = "events";
 const EXCHANGES_COLLECTION = "exchanges";
+const ROOMS_COLLECTION = "calendar_rooms";
+
+/**
+ * Utwórz lub zaktualizuj pokój współdzielonego kalendarza (PIN, link, uczestnicy)
+ */
+export const createOrUpdateRoom = async (roomCode, { pin, hostName, participants = [] }) => {
+  const roomRef = doc(db, ROOMS_COLLECTION, roomCode);
+  await setDoc(roomRef, {
+    roomCode,
+    pin: String(pin),
+    hostName: hostName || 'Kodex',
+    participants: participants.length > 0 ? participants : [hostName || 'Kodex'],
+    updatedAt: serverTimestamp()
+  }, { merge: true });
+  return roomRef;
+};
+
+/**
+ * Pobierz dane pokoju (weryfikacja PIN)
+ */
+export const getRoomData = async (roomCode) => {
+  const roomRef = doc(db, ROOMS_COLLECTION, roomCode);
+  const snap = await getDoc(roomRef);
+  if (snap.exists()) {
+    return snap.data();
+  }
+  return null;
+};
+
+/**
+ * Dołącz do pokoju jako uczestnik
+ */
+export const joinRoom = async (roomCode, participantName) => {
+  const roomRef = doc(db, ROOMS_COLLECTION, roomCode);
+  const snap = await getDoc(roomRef);
+  if (!snap.exists()) {
+    throw new Error('Pokój o podanym kodzie nie istnieje.');
+  }
+  const data = snap.data();
+  const currentParticipants = data.participants || [];
+  if (!currentParticipants.includes(participantName)) {
+    await updateDoc(roomRef, {
+      participants: [...currentParticipants, participantName],
+      updatedAt: serverTimestamp()
+    });
+  }
+  return data;
+};
+
+/**
+ * Nasłuchiwanie stanu pokoju w czasie rzeczywistym
+ */
+export const subscribeToRoom = (roomCode, callback) => {
+  const roomRef = doc(db, ROOMS_COLLECTION, roomCode);
+  return onSnapshot(roomRef, (snap) => {
+    if (snap.exists()) {
+      callback(snap.data());
+    } else {
+      callback(null);
+    }
+  }, (err) => {
+    console.warn('Room subscription error:', err);
+  });
+};
+
+/**
+ * Nasłuchiwanie wydarzeń powiązanych z pokojem w czasie rzeczywistym
+ */
+export const subscribeToRoomEvents = (roomCode, callback) => {
+  const q = query(
+    collection(db, EVENTS_COLLECTION),
+    where("roomCode", "==", roomCode)
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    const events = snapshot.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+    callback(events);
+  }, (err) => {
+    console.warn('Room events subscription error:', err);
+  });
+};
+
+/**
+ * Zapisz lub zaktualizuj wydarzenie w pokoju
+ */
+export const saveRoomEvent = async (roomCode, eventData) => {
+  if (eventData.id && !eventData.id.startsWith('demo-')) {
+    const ref = doc(db, EVENTS_COLLECTION, eventData.id);
+    await setDoc(ref, {
+      ...eventData,
+      roomCode,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    return eventData.id;
+  } else {
+    const cleanData = { ...eventData };
+    delete cleanData.id;
+    const ref = await addDoc(collection(db, EVENTS_COLLECTION), {
+      ...cleanData,
+      roomCode,
+      createdAt: serverTimestamp()
+    });
+    return ref.id;
+  }
+};
+
+/**
+ * Rzeczywista natychmiastowa wymiana dwóch terminów w Firebase Firestore
+ */
+export const swapRoomEventsInFirestore = async (myEv, targetEv, roomCode) => {
+  const myDate = myEv.date;
+  const myStart = myEv.startTime;
+  const myEnd = myEv.endTime;
+
+  const targetDate = targetEv.date;
+  const targetStart = targetEv.startTime;
+  const targetEnd = targetEv.endTime;
+
+  // Zapisz oba wydarzenia z zamienionymi terminami
+  await saveRoomEvent(roomCode, {
+    ...myEv,
+    date: targetDate,
+    startTime: targetStart,
+    endTime: targetEnd
+  });
+
+  await saveRoomEvent(roomCode, {
+    ...targetEv,
+    date: myDate,
+    startTime: myStart,
+    endTime: myEnd
+  });
+};
 
 /**
  * Real-time subscription to events for a specific user
