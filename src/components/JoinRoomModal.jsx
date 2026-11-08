@@ -106,7 +106,7 @@ export default function JoinRoomModal({
                 type="text"
                 required
                 maxLength={8}
-                placeholder="np. 1234"
+                placeholder="np. 482910"
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
                 className="w-full bg-[#131314] border border-[#444746] focus:border-[#8ab4f8] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#747775] font-mono tracking-wider focus:outline-none transition"

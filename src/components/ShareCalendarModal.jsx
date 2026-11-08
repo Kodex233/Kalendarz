@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 /**
- * Generuje 4-cyfrowy kod PIN rotowany co 15 minut
+ * Generuje 6-cyfrowy kod PIN rotowany co 15 minut
  */
 export function generate15MinPin(roomCode = 'kodex') {
   const intervalIndex = Math.floor(Date.now() / (15 * 60 * 1000));
   let hash = 0;
-  const str = `${roomCode}_${intervalIndex}_kalendarz`;
+  const str = `${roomCode}_${intervalIndex}_kalendarz_pin6`;
   for (let i = 0; i < str.length; i++) {
     hash = (hash << 5) - hash + str.charCodeAt(i);
     hash |= 0;
   }
   const positive = Math.abs(hash);
-  const pinNum = 1000 + (positive % 9000);
+  const pinNum = 100000 + (positive % 900000);
   return String(pinNum);
 }
 
@@ -101,7 +101,7 @@ export default function ShareCalendarModal({
   };
 
   const handleRegeneratePin = () => {
-    const randomPin = String(Math.floor(1000 + Math.random() * 9000));
+    const randomPin = String(Math.floor(100000 + Math.random() * 900000));
     if (onUpdatePin) onUpdatePin(randomPin);
   };
 

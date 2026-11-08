@@ -99,18 +99,48 @@ export default function CalendarMonth({
                   </span>
                 )}
                 
-                {/* Liczba na środku, na tej samej wysokości, z nazwą miesiąca jeśli to 1 dzień */}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDayClick(day);
-                  }}
-                  className={`h-7 px-2 rounded-full text-xs flex items-center justify-center transition ${circleClass} font-normal`}
-                  title="Kliknij, aby przejść do widoku dnia"
-                >
-                  {dayDisplay}
-                </button>
+                {/* Liczba na środku: idealnie okrągłe tło (w-7 h-7 rounded-full) bez efektu jaja */}
+                {isFirstOfMonth ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDayClick(day);
+                    }}
+                    className={`h-7 flex items-center justify-center space-x-1 text-xs transition font-normal ${
+                      isToday ? '' : 'px-2 rounded-full text-[#e3e3e3] hover:bg-[#35373a]'
+                    }`}
+                    title="Kliknij, aby przejść do widoku dnia"
+                  >
+                    {isToday ? (
+                      <>
+                        <span className="w-7 h-7 rounded-full bg-[#a8c7fa] text-[#041e49] font-medium flex items-center justify-center shadow-xs">
+                          1
+                        </span>
+                        <span className="text-xs text-[#a8c7fa] font-medium capitalize pr-1">
+                          {monthAbbr}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span>1</span>
+                        <span className="capitalize">{monthAbbr}</span>
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDayClick(day);
+                    }}
+                    className={`w-7 h-7 rounded-full text-xs flex items-center justify-center transition ${circleClass} font-normal shrink-0`}
+                    title="Kliknij, aby przejść do widoku dnia"
+                  >
+                    {dayDisplay}
+                  </button>
+                )}
               </div>
 
               {/* Event Pills */}

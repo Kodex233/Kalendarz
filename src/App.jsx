@@ -21,7 +21,7 @@ import EventModal from './components/EventModal';
 import EventDetailModal from './components/EventDetailModal';
 import ExchangeModal from './components/ExchangeModal';
 import AuthModal from './components/AuthModal';
-import ShareCalendarModal from './components/ShareCalendarModal';
+import ShareCalendarModal, { generate15MinPin } from './components/ShareCalendarModal';
 import { auth, onAuthStateChanged, logoutUser, db } from './firebase/config';
 import { collection, getDocs } from 'firebase/firestore';
 import JoinRoomModal from './components/JoinRoomModal';
@@ -223,7 +223,7 @@ export default function App() {
 
   // Multi-device Room Sharing & PIN state
   const [roomCode, setRoomCode] = useState('kodex');
-  const [roomPin, setRoomPin] = useState('1234');
+  const [roomPin, setRoomPin] = useState(() => generate15MinPin('kodex'));
   const [participants, setParticipants] = useState(['Kodex']);
   const [detailedParticipants, setDetailedParticipants] = useState([
     { name: 'Kolega Janek', email: 'janek@firma.pl', role: 'Pełny dostęp', isOwner: false }

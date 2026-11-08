@@ -21,7 +21,7 @@ export default function ExchangeModal({
   exchangeableEvents = [],
   onDirectSwap,
   roomCode = 'kodex',
-  roomPin = '1234',
+  roomPin = '482910',
   participants = ['Kodex'],
   onUpdatePin,
   currentUserRole = 'Kodex'
