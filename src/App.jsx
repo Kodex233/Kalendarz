@@ -7,6 +7,7 @@ import {
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import CalendarMonth from './components/CalendarMonth';
+import CalendarWeek from './components/CalendarWeek';
 import EventModal from './components/EventModal';
 import ExchangeModal from './components/ExchangeModal';
 import AuthModal from './components/AuthModal';
@@ -34,55 +35,57 @@ const INITIAL_OTHER_CALENDARS = [
   { id: 'swieta', name: 'Święta w Polsce', color: '#1e8e3e', checked: true },
 ];
 
-// Default starter demo events
+// Default starter demo events matching screenshots
 const DEMO_EVENTS = [
+  {
+    id: 'demo-holiday',
+    title: 'Dzień Niepodległości',
+    date: '2026-11-11',
+    startTime: '08:00',
+    endTime: '20:00',
+    color: 'green',
+    calendarId: 'swieta',
+    customBg: '#34a853',
+    description: 'Święto państwowe w Polsce',
+    isExchangeable: false,
+    userId: 'system',
+    userEmail: 'swieta@kalendarz.pl'
+  },
   {
     id: 'demo-1',
     title: 'Spotkanie projektowe',
-    date: format(new Date(), 'yyyy-MM-dd'),
-    startTime: '10:00',
+    date: '2026-11-08',
+    startTime: '10:30',
     endTime: '11:30',
     color: 'blue',
     calendarId: 'kodex',
-    description: 'Omówienie harmonogramu i wymiany terminów',
+    description: 'Omówienie harmonogramu spotkań',
     isExchangeable: true,
     userId: 'demo-user',
     userEmail: 'demo@kalendarz.pl'
   },
   {
     id: 'demo-2',
-    title: 'Dyżur / Konsultacje (dostępny termin)',
-    date: format(new Date(Date.now() + 86400000 * 2), 'yyyy-MM-dd'),
+    title: 'Dyżur / Konsultacje',
+    date: '2026-11-10',
     startTime: '14:00',
     endTime: '16:00',
     color: 'yellow',
-    calendarId: 'swieta',
-    description: 'Chętnie zamienię się na inny termin!',
+    calendarId: 'kodex',
+    description: 'Dostępny termin',
     isExchangeable: true,
     userId: 'friend-1',
     userName: 'Kolega Janek',
     userEmail: 'janek@firma.pl'
-  },
-  {
-    id: 'demo-3',
-    title: 'Obiad rodzinny',
-    date: format(new Date(Date.now() + 86400000 * 4), 'yyyy-MM-dd'),
-    startTime: '13:00',
-    endTime: '15:00',
-    color: 'gray',
-    calendarId: 'familijne',
-    description: 'Uroczysty obiad',
-    isExchangeable: false,
-    userId: 'demo-user',
-    userEmail: 'demo@kalendarz.pl'
   }
 ];
 
 export default function App() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 10, 8)); // 8 Nov 2026 as in screenshots
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeView, setActiveView] = useState('month');
+  const [activeView, setActiveView] = useState('week'); // Default to week matching image 1
   const [searchQuery, setSearchQuery] = useState('');
+  const [personSearchQuery, setPersonSearchQuery] = useState('');
 
   // Authentication
   const [user, setUser] = useState(null);
@@ -124,8 +127,8 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (!currentUser) {
-        setMyEvents(DEMO_EVENTS.filter(e => e.userId === 'demo-user'));
-        setExchangeableEvents(DEMO_EVENTS.filter(e => e.userId !== 'demo-user'));
+        setMyEvents(DEMO_EVENTS.filter(e => e.userId === 'demo-user' || e.userId === 'system'));
+        setExchangeableEvents(DEMO_EVENTS.filter(e => e.userId !== 'demo-user' && e.userId !== 'system'));
       }
     });
     return () => unsubscribe();
@@ -136,7 +139,7 @@ export default function App() {
     if (!user) return;
 
     const unsubMyEvents = subscribeToUserEvents(user.uid, (events) => {
-      setMyEvents(events);
+      setMyEvents([...DEMO_EVENTS.filter(e => e.userId === 'system'), ...events]);
     });
 
     const unsubExchangeable = subscribeToExchangeableEvents(user.uid, (events) => {
@@ -158,6 +161,7 @@ export default function App() {
   const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
   const handleToday = () => setCurrentDate(new Date());
+  const handleSelectDate = (date) => setCurrentDate(date);
 
   // Calendar Management Handlers
   const handleToggleCalendar = (id) => {
@@ -216,12 +220,15 @@ export default function App() {
     setEventModalOpen(true);
   };
 
-  // Open Event Modal for specific date
-  const handleSelectDate = (date) => {
+  // Open Event Modal for slot clicked on weekly grid
+  const handleSelectSlot = (date, timeStr) => {
+    const [h] = timeStr.split(':').map(Number);
+    const endH = h + 1;
     setSelectedEvent({
       date: format(date, 'yyyy-MM-dd'),
-      startTime: '09:00',
-      endTime: '10:00'
+      startTime: `${h.toString().padStart(2, '0')}:00`,
+      endTime: `${endH.toString().padStart(2, '0')}:00`,
+      calendarId: 'kodex'
     });
     setEventType('Wydarzenie');
     setEventModalOpen(true);
@@ -245,7 +252,7 @@ export default function App() {
           id: 'demo-' + Date.now(),
           userId: 'demo-user',
           userEmail: 'demo@kalendarz.pl',
-          calendarId: 'kodex'
+          calendarId: eventData.calendarId || 'kodex'
         };
         setMyEvents(prev => [...prev, newEv]);
       }
@@ -260,7 +267,7 @@ export default function App() {
         userId: user.uid,
         userEmail: user.email,
         userName: user.displayName || user.email.split('@')[0],
-        calendarId: 'kodex'
+        calendarId: eventData.calendarId || 'kodex'
       });
     }
   };
@@ -286,7 +293,7 @@ export default function App() {
     setExchangeModalOpen(true);
   };
 
-  // Filter events based on active checked calendars and search query
+  // Filter events based on active checked calendars and search queries
   const visibleEvents = React.useMemo(() => {
     const activeCalendarIds = new Set([
       ...myCalendars.filter(c => c.checked).map(c => c.id),
@@ -310,11 +317,11 @@ export default function App() {
       const calId = e.calendarId || 'kodex';
       return {
         ...e,
-        customBg: calendarColorMap[calId] || null
+        customBg: e.customBg || calendarColorMap[calId] || null
       };
     });
 
-    // Filter by search query
+    // Filter by general search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       combined = combined.filter(e => 
@@ -325,13 +332,18 @@ export default function App() {
       );
     }
 
-    return combined;
-  }, [myEvents, exchangeableEvents, myCalendars, otherCalendars, searchQuery]);
+    // Filter by person search query (Gmail)
+    if (personSearchQuery.trim()) {
+      const pq = personSearchQuery.toLowerCase();
+      combined = combined.filter(e =>
+        (e.userEmail && e.userEmail.toLowerCase().includes(pq)) ||
+        (e.invitedEmail && e.invitedEmail.toLowerCase().includes(pq)) ||
+        (e.userName && e.userName.toLowerCase().includes(pq))
+      );
+    }
 
-  const pendingExchangesCount = exchanges.filter(ex => 
-    (ex.targetUserId === user?.uid || (user?.email && ex.targetUserEmail?.toLowerCase() === user.email.toLowerCase())) &&
-    ex.status === 'pending'
-  ).length;
+    return combined;
+  }, [myEvents, exchangeableEvents, myCalendars, otherCalendars, searchQuery, personSearchQuery]);
 
   return (
     <div className="h-screen w-screen flex flex-col bg-[#1f1f1f] text-[#e3e3e3] overflow-hidden">
@@ -341,12 +353,11 @@ export default function App() {
         onPrevMonth={handlePrevMonth}
         onNextMonth={handleNextMonth}
         onToday={handleToday}
+        onSelectDate={handleSelectDate}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         user={user}
         onOpenAuth={() => setAuthModalOpen(true)}
         onLogout={logoutUser}
-        onOpenExchangeModal={() => setExchangeModalOpen(true)}
-        pendingExchangesCount={pendingExchangesCount}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         activeView={activeView}
@@ -359,10 +370,7 @@ export default function App() {
           isOpen={sidebarOpen}
           onOpenCreateModal={handleOpenCreateModal}
           selectedDate={currentDate}
-          onSelectDate={(date) => {
-            setCurrentDate(date);
-            handleSelectDate(date);
-          }}
+          onSelectDate={handleSelectDate}
           myCalendars={myCalendars}
           onToggleCalendar={handleToggleCalendar}
           onUpdateCalendarColor={handleUpdateCalendarColor}
@@ -373,19 +381,27 @@ export default function App() {
           onUpdateOtherCalendarColor={handleUpdateOtherCalendarColor}
           onDeleteOtherCalendar={handleDeleteOtherCalendar}
           onAddOtherCalendar={handleAddOtherCalendar}
-          exchangeableEvents={exchangeableEvents}
-          onProposeSwapWithEvent={handleProposeSwapWithEvent}
-          onOpenExchangeModal={() => setExchangeModalOpen(true)}
-          user={user}
+          onSearchPerson={setPersonSearchQuery}
         />
 
-        <CalendarMonth
-          currentDate={currentDate}
-          events={visibleEvents}
-          onSelectEvent={handleSelectEvent}
-          onSelectDate={handleSelectDate}
-          currentUserId={user?.uid || 'demo-user'}
-        />
+        {activeView === 'month' ? (
+          <CalendarMonth
+            currentDate={currentDate}
+            events={visibleEvents}
+            onSelectEvent={handleSelectEvent}
+            onSelectDate={handleSelectDate}
+            currentUserId={user?.uid || 'demo-user'}
+          />
+        ) : (
+          <CalendarWeek
+            currentDate={currentDate}
+            events={visibleEvents}
+            onSelectEvent={handleSelectEvent}
+            onSelectSlot={handleSelectSlot}
+            viewMode={activeView}
+            currentUserId={user?.uid || 'demo-user'}
+          />
+        )}
       </div>
 
       {/* Modals */}
@@ -396,8 +412,8 @@ export default function App() {
         onDelete={handleDeleteEvent}
         initialData={selectedEvent}
         currentUserId={user?.uid || 'demo-user'}
-        onOpenExchangeForEvent={handleProposeSwapWithEvent}
         eventType={eventType}
+        myCalendars={myCalendars}
       />
 
       <ExchangeModal

@@ -1,17 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Users, 
-  ArrowLeftRight, 
   ChevronLeft, 
-  ChevronRight,
-  ChevronUp,
-  ChevronDown,
-  Clock,
-  Sparkles,
-  Check,
-  MoreVertical,
-  X,
-  Plus
+  ChevronRight, 
+  ChevronUp, 
+  ChevronDown, 
+  Check, 
+  MoreVertical, 
+  X, 
+  Plus,
+  Search,
+  Mail
 } from 'lucide-react';
 import CreateDropdown from './CreateDropdown';
 import CalendarColorMenu from './CalendarColorMenu';
@@ -44,61 +43,77 @@ export default function Sidebar({
   onUpdateOtherCalendarColor,
   onDeleteOtherCalendar,
   onAddOtherCalendar,
-  exchangeableEvents,
-  onProposeSwapWithEvent,
-  onOpenExchangeModal,
-  user
+  onSearchPerson
 }) {
   const [miniDate, setMiniDate] = useState(new Date());
   const [myCalendarsOpen, setMyCalendarsOpen] = useState(true);
   const [otherCalendarsOpen, setOtherCalendarsOpen] = useState(true);
   const [activeMenuCalendarId, setActiveMenuCalendarId] = useState(null);
+  const [searchPersonQuery, setSearchPersonQuery] = useState('');
+  const [isSearchingPerson, setIsSearchingPerson] = useState(false);
+  const searchInputRef = useRef(null);
 
   const monthStart = startOfMonth(miniDate);
   const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  // Sunday first matching image: N P W Ś C P S
+  const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
   const miniDays = eachDayOfInterval({ start: startDate, end: endDate });
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isSearchingPerson && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchingPerson]);
+
+  // When collapsed: show ONLY the + button on the left!
+  if (!isOpen) {
+    return (
+      <aside className="w-16 border-r border-[#3c4043] bg-[#1f1f1f] flex flex-col items-center py-4 space-y-4 shrink-0 h-[calc(100vh-4rem)] select-none">
+        <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={true} />
+      </aside>
+    );
+  }
 
   return (
-    <aside className="w-64 border-r border-[#3c4043] bg-[#1f1f1f] text-[#e3e3e3] flex flex-col p-4 space-y-5 select-none shrink-0 overflow-y-auto h-[calc(100vh-4rem)]">
-      {/* 1. Google-like "+ Utwórz ▾" button with smaller rounding and dropdown */}
+    <aside className="w-64 border-r border-[#3c4043] bg-[#1f1f1f] text-[#e3e3e3] flex flex-col px-4 py-4 space-y-5 select-none shrink-0 overflow-y-auto h-[calc(100vh-4rem)]">
+      {/* 1. Button + Utwórz ▾ without border */}
       <div>
-        <CreateDropdown onSelectType={onOpenCreateModal} />
+        <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={false} />
       </div>
 
-      {/* 2. Mini Calendar Picker */}
-      <div className="bg-[#202124] p-3 rounded-xl border border-[#3c4043]/80">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold text-[#e3e3e3] capitalize">
+      {/* 2. Mini Calendar without background or border, larger typography */}
+      <div className="bg-transparent border-0 p-0 space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-base font-semibold text-[#e3e3e3] capitalize">
             {format(miniDate, 'LLLL yyyy', { locale: pl })}
           </span>
-          <div className="flex items-center space-x-0.5">
+          <div className="flex items-center space-x-1">
             <button 
               onClick={() => setMiniDate(subMonths(miniDate, 1))}
               className="p-1 hover:bg-[#35373a] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] transition"
+              title="Poprzedni miesiąc"
             >
-              <ChevronLeft className="w-3.5 h-3.5" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
             <button 
               onClick={() => setMiniDate(addMonths(miniDate, 1))}
               className="p-1 hover:bg-[#35373a] rounded-full text-[#9aa0a6] hover:text-[#e3e3e3] transition"
+              title="Następny miesiąc"
             >
-              <ChevronRight className="w-3.5 h-3.5" />
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Days of week header */}
-        <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-[#9aa0a6] mb-1">
-          {['P', 'W', 'Ś', 'C', 'P', 'S', 'N'].map((d, i) => (
-            <div key={i}>{d}</div>
+        {/* Days of week header matching image 4: N P W Ś C P S */}
+        <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-[#9aa0a6]">
+          {['N', 'P', 'W', 'Ś', 'C', 'P', 'S'].map((d, i) => (
+            <div key={i} className="py-0.5">{d}</div>
           ))}
         </div>
 
-        {/* Mini Month Grid */}
+        {/* Mini Month Grid - larger text */}
         <div className="grid grid-cols-7 gap-1 text-center text-xs">
           {miniDays.map((day, idx) => {
             const isCurrentMonth = isSameMonth(day, miniDate);
@@ -109,9 +124,9 @@ export default function Sidebar({
               <button
                 key={idx}
                 onClick={() => onSelectDate(day)}
-                className={`w-6 h-6 mx-auto rounded-full flex items-center justify-center text-[11px] transition ${
+                className={`w-7 h-7 mx-auto rounded-full flex items-center justify-center text-xs transition ${
                   isSelected 
-                    ? 'bg-[#8ab4f8] text-[#1f1f1f] font-bold'
+                    ? 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-xs'
                     : isToday
                     ? 'border border-[#8ab4f8] text-[#8ab4f8] font-bold'
                     : isCurrentMonth 
@@ -124,10 +139,53 @@ export default function Sidebar({
             );
           })}
         </div>
+
+        {/* 3. Szukaj osób po Gmailu under the mini-calendar matching image 4 */}
+        <div className="pt-2">
+          {isSearchingPerson ? (
+            <div className="relative flex items-center bg-[#282a2d] rounded-xl px-3 py-2 ring-1 ring-[#8ab4f8]">
+              <Search className="w-4 h-4 text-[#9aa0a6] mr-2 shrink-0" />
+              <input
+                ref={searchInputRef}
+                type="email"
+                placeholder="Wpisz Gmail osoby..."
+                value={searchPersonQuery}
+                onChange={(e) => {
+                  setSearchPersonQuery(e.target.value);
+                  if (onSearchPerson) onSearchPerson(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape' || e.key === 'Enter') {
+                    if (!searchPersonQuery) setIsSearchingPerson(false);
+                  }
+                }}
+                className="w-full bg-transparent border-0 text-xs text-[#e3e3e3] placeholder-[#9aa0a6] focus:outline-none"
+              />
+              <button 
+                onClick={() => {
+                  setSearchPersonQuery('');
+                  if (onSearchPerson) onSearchPerson('');
+                  setIsSearchingPerson(false);
+                }}
+                className="p-0.5 text-[#9aa0a6] hover:text-white"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsSearchingPerson(true)}
+              className="w-full flex items-center space-x-3 px-3.5 py-2.5 bg-[#282a2d] hover:bg-[#35373a] text-[#c4c7c5] hover:text-[#e3e3e3] rounded-xl text-sm font-medium transition duration-150 border-0"
+            >
+              <Users className="w-4 h-4 text-[#9aa0a6]" />
+              <span className="text-xs font-medium">Szukaj osób</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* 3. Moje kalendarze (Collapsible with chevron, large custom colored tick, hover 3 dots & X) */}
-      <div className="space-y-1">
+      {/* 4. Moje kalendarze (Collapsible with chevron, large custom colored tick, hover 3 dots & X) */}
+      <div className="space-y-1 pt-1">
         <div 
           onClick={() => setMyCalendarsOpen(!myCalendarsOpen)}
           className="flex items-center justify-between py-1.5 px-2 hover:bg-[#282a2d] rounded-lg cursor-pointer transition text-[#e3e3e3] group"
@@ -212,7 +270,7 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* 4. Inne kalendarze (Collapsible with +, chevron, large colored tick, hover 3 dots & X) */}
+      {/* 5. Inne kalendarze (Collapsible with +, chevron, large colored tick, hover 3 dots & X) */}
       <div className="space-y-1 pt-1 border-t border-[#3c4043]/50">
         <div 
           onClick={() => setOtherCalendarsOpen(!otherCalendarsOpen)}
@@ -311,61 +369,6 @@ export default function Sidebar({
             ))}
           </div>
         )}
-      </div>
-
-      {/* 5. Giełda terminów (Wymiana ze znajomymi) */}
-      <div className="pt-2 border-t border-[#3c4043]/50 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-1.5 text-xs font-semibold uppercase tracking-wider text-[#fdd663]">
-            <Users className="w-3.5 h-3.5" />
-            <span>Giełda terminów</span>
-          </div>
-          <span className="text-[10px] bg-[#433519] text-[#feefc3] font-bold px-1.5 py-0.5 rounded-full border border-[#fdd663]/30">
-            {exchangeableEvents.length}
-          </span>
-        </div>
-
-        {exchangeableEvents.length === 0 ? (
-          <div className="p-3 bg-[#202124] border border-dashed border-[#3c4043] rounded-lg text-center">
-            <p className="text-xs text-[#9aa0a6]">Brak terminów na wymianę.</p>
-            <p className="text-[10px] text-[#5f6368] mt-1">Udostępnij własny termin lub poproś kolegę o dodanie!</p>
-          </div>
-        ) : (
-          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-            {exchangeableEvents.slice(0, 5).map((ev) => (
-              <div 
-                key={ev.id}
-                className="p-2.5 bg-[#332a15]/50 border border-[#fdd663]/30 rounded-lg hover:bg-[#433519]/70 transition group text-left cursor-pointer"
-                onClick={() => onProposeSwapWithEvent(ev)}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#e3e3e3] truncate max-w-[130px]">{ev.title}</span>
-                  <ArrowLeftRight className="w-3 h-3 text-[#fdd663] group-hover:scale-110 transition" />
-                </div>
-                <div className="flex items-center space-x-1 text-[11px] text-[#c4c7c5] mt-1">
-                  <Clock className="w-3 h-3 text-[#9aa0a6]" />
-                  <span>{ev.date} {ev.startTime}</span>
-                </div>
-                <div className="text-[10px] text-[#9aa0a6] mt-0.5 truncate">
-                  Od: {ev.userName || ev.userEmail || "Znajomy"}
-                </div>
-                <button 
-                  className="w-full mt-2 py-1 bg-[#1f1f1f] hover:bg-[#fdd663] hover:text-[#1f1f1f] border border-[#fdd663]/40 text-[#fdd663] text-[11px] font-semibold rounded transition"
-                >
-                  Zaproponuj wymianę
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Info footer */}
-      <div className="mt-auto pt-4 border-t border-[#3c4043]/50 text-[11px] text-[#9aa0a6]">
-        <p className="flex items-center space-x-1">
-          <Sparkles className="w-3.5 h-3.5 text-[#8ab4f8]" />
-          <span>Synchronizacja Firestore Cloud</span>
-        </p>
       </div>
     </aside>
   );

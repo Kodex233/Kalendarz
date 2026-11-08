@@ -30,7 +30,7 @@ export default function CalendarColorMenu({
   return (
     <div 
       ref={menuRef}
-      className="absolute left-full top-0 ml-2 z-50 w-64 bg-[#282a2d] border border-[#3c4043] rounded-xl shadow-2xl py-2 text-[#e3e3e3] animate-in fade-in zoom-in-95 duration-100"
+      className="absolute left-full top-0 ml-2 z-50 w-64 bg-[#282a2d] border-0 ring-1 ring-white/10 rounded-2xl shadow-2xl py-2 text-[#e3e3e3] animate-in fade-in zoom-in-95 duration-100"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Options */}

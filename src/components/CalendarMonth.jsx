@@ -9,6 +9,7 @@ import {
   isSameMonth, 
   isSameDay 
 } from 'date-fns';
+import { pl } from 'date-fns/locale';
 import { ArrowLeftRight } from 'lucide-react';
 
 const COLOR_MAP = {
@@ -29,13 +30,14 @@ export default function CalendarMonth({
 }) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  // Sunday first matching image 2 and 4 (NIEDZ., PON., WT., ŚR., CZW., PT., SOB.)
+  const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
 
   const days = eachDayOfInterval({ start: startDate, end: endDate });
   const today = new Date();
 
-  const weekDayNames = ['PON.', 'WT.', 'ŚR.', 'CZW.', 'PT.', 'SOB.', 'NIEDZ.'];
+  const weekDayNames = ['NIEDZ.', 'PON.', 'WT.', 'ŚR.', 'CZW.', 'PT.', 'SOB.'];
 
   // Group events by YYYY-MM-DD
   const eventsByDate = React.useMemo(() => {
@@ -54,12 +56,12 @@ export default function CalendarMonth({
 
   return (
     <div className="flex-1 flex flex-col h-[calc(100vh-4rem)] bg-[#1f1f1f] text-[#e3e3e3] overflow-hidden select-none">
-      {/* Week day headers */}
+      {/* Week day headers matching image 1 and 2 */}
       <div className="grid grid-cols-7 border-b border-[#3c4043] bg-[#1f1f1f]">
         {weekDayNames.map((name, i) => (
           <div 
             key={i} 
-            className="py-2 text-center text-[11px] font-semibold text-[#9aa0a6] uppercase tracking-wider"
+            className="py-2.5 text-center text-[11px] font-semibold text-[#9aa0a6] uppercase tracking-wider"
           >
             {name}
           </div>
@@ -73,6 +75,7 @@ export default function CalendarMonth({
           const dayEvents = eventsByDate[dateStr] || [];
           const isCurrentMonth = isSameMonth(day, currentDate);
           const isToday = isSameDay(day, today);
+          const isSelected = isSameDay(day, currentDate);
 
           return (
             <div
@@ -84,12 +87,12 @@ export default function CalendarMonth({
                   : 'bg-[#191a1c] text-[#5f6368]'
               }`}
             >
-              {/* Day header number */}
+              {/* Day header number with circular highlight */}
               <div className="flex justify-between items-center mb-1">
                 <span
-                  className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full ${
-                    isToday
-                      ? 'bg-[#8ab4f8] text-[#1f1f1f] font-bold shadow-sm'
+                  className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full transition ${
+                    isToday || isSelected
+                      ? 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-xs'
                       : isCurrentMonth
                       ? 'text-[#e3e3e3]'
                       : 'text-[#5f6368]'
@@ -120,7 +123,7 @@ export default function CalendarMonth({
                         onSelectEvent(event);
                       }}
                       className={`text-[11px] font-medium px-2 py-0.5 rounded truncate shadow-xs flex items-center justify-between transition cursor-pointer ${colorClass}`}
-                      title={`${event.title} (${event.startTime || ''} - ${event.endTime || ''}) ${event.isExchangeable ? '• Termin do wymiany' : ''}`}
+                      title={`${event.title} (${event.startTime || ''} - ${event.endTime || ''})`}
                     >
                       <div className="flex items-center space-x-1.5 truncate">
                         {event.startTime && (
