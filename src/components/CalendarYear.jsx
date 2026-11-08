@@ -89,6 +89,14 @@ export default function CalendarYear({
     });
   };
 
+  const handleGoToDay = (day) => {
+    onSelectDate(day);
+    if (onViewChange) {
+      onViewChange('day');
+    }
+    setSelectedDayInfo(null);
+  };
+
   const handleMonthTitleClick = (monthDate) => {
     onSelectDate(monthDate);
     if (onViewChange) onViewChange('month');
@@ -129,15 +137,20 @@ export default function CalendarYear({
                 if (isToday) {
                   dayClass = 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-xs';
                 } else if (isSelected && isCurrent) {
-                  // Tło dnia: #004a77 (zgodnie z życzeniem)
-                  dayClass = 'bg-[#004a77] text-[#c2e7ff] font-bold shadow-xs';
+                  // Wybrany dzień: niebieskie kółko Google jak na zdjęciu Image 1 i 2
+                  dayClass = 'bg-[#1a73e8] text-white font-medium shadow-xs';
                 }
 
                 return (
                   <button
                     key={dIdx}
+                    type="button"
                     onClick={(e) => handleDayClick(day, e)}
-                    className={`w-6 h-6 mx-auto rounded-full flex items-center justify-center text-[11px] transition ${dayClass}`}
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      handleGoToDay(day);
+                    }}
+                    className={`w-6 h-6 mx-auto rounded-full flex items-center justify-center text-[11px] transition ${dayClass} cursor-pointer`}
                     title={format(day, 'd MMMM yyyy', { locale: pl })}
                   >
                     {format(day, 'd')}
@@ -149,7 +162,7 @@ export default function CalendarYear({
         ))}
       </div>
 
-      {/* Small popover when day is clicked: ciemniejsze tło, bez border, anchored near day */}
+      {/* Okienko z wydarzeniami w danym dniu w roku (1:1 z obrazami Image 1 i Image 2) */}
       {selectedDayInfo && (
         <div 
           ref={popoverRef}
@@ -157,31 +170,39 @@ export default function CalendarYear({
             top: `${selectedDayInfo.coords.top}px`, 
             left: `${selectedDayInfo.coords.left}px` 
           } : undefined}
-          className={`fixed z-50 bg-[#161718] text-[#e3e3e3] rounded-2xl shadow-2xl p-4 border-0 w-64 text-center animate-in fade-in zoom-in-95 duration-100 ring-1 ring-white/10 ${
+          className={`fixed z-50 bg-[#282a2d] text-[#e3e3e3] rounded-[20px] shadow-[0_12px_36px_rgba(0,0,0,0.65)] p-4 border border-[#444746] w-[260px] text-center animate-in fade-in zoom-in-95 duration-75 select-none ${
             !selectedDayInfo.coords ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' : ''
           }`}
         >
-          {/* Header with day abbreviation and close button */}
-          <div className="flex items-center justify-between pb-1 text-[#9aa0a6]">
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              {format(selectedDayInfo.day, 'EEE.', { locale: pl })}
-            </span>
+          {/* Nagłówek okienka z X w rogu, wycentrowanym skrótem dnia i dużą cyfrą */}
+          <div className="relative flex flex-col items-center justify-center pt-0.5">
             <button
+              type="button"
               onClick={() => setSelectedDayInfo(null)}
-              className="p-1 hover:bg-[#35373a] hover:text-white rounded-full transition"
+              className="absolute right-0 top-0 p-1 text-[#9aa0a6] hover:text-white hover:bg-white/10 rounded-full transition cursor-pointer"
+              title="Zamknij"
             >
               <X className="w-4 h-4" />
             </button>
+
+            <span className="text-xs font-semibold uppercase text-[#9aa0a6] tracking-wider">
+              {format(selectedDayInfo.day, 'EEE.', { locale: pl })}
+            </span>
+
+            {/* Kliknięcie liczby przenosi od razu do widoku dnia BEZ animacji */}
+            <button
+              type="button"
+              onClick={() => handleGoToDay(selectedDayInfo.day)}
+              className="text-3xl font-normal text-white my-1 hover:text-[#8ab4f8] transition cursor-pointer"
+              title="Przejdź do widoku dnia"
+            >
+              {format(selectedDayInfo.day, 'd')}
+            </button>
           </div>
 
-          {/* Large day number */}
-          <div className="text-3xl font-normal text-[#e3e3e3] my-2">
-            {format(selectedDayInfo.day, 'd')}
-          </div>
-
-          {/* Events or empty message */}
+          {/* Lista wydarzeń lub napis o braku wydarzeń (Image 1 i Image 2) */}
           {selectedDayInfo.events.length > 0 ? (
-            <div className="space-y-1.5 text-left mt-2 max-h-36 overflow-y-auto pt-1">
+            <div className="space-y-1.5 text-left mt-2.5 max-h-48 overflow-y-auto pr-0.5">
               {selectedDayInfo.events.map(ev => (
                 <div
                   key={ev.id}
@@ -189,21 +210,21 @@ export default function CalendarYear({
                     if (onSelectEvent) onSelectEvent(ev);
                     setSelectedDayInfo(null);
                   }}
-                  className="px-2.5 py-1.5 rounded-lg bg-[#1e1f20] hover:bg-[#35373a] cursor-pointer transition flex items-center space-x-2 text-xs"
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium text-white truncate cursor-pointer hover:brightness-110 transition shadow-xs flex items-center justify-between"
+                  style={{ backgroundColor: ev.customBg || '#1e8e3e' }}
+                  title={`${ev.title}${ev.startTime ? ' (' + ev.startTime + ')' : ''}`}
                 >
-                  <span 
-                    className="w-2 h-2 rounded-full shrink-0" 
-                    style={{ backgroundColor: ev.customBg || '#1a73e8' }} 
-                  />
-                  <div className="flex-1 truncate">
-                    <span className="font-medium">{ev.title}</span>
-                    {ev.startTime && <span className="text-[#9aa0a6] text-[10px] ml-1.5">{ev.startTime}</span>}
-                  </div>
+                  <span className="truncate">{ev.title}</span>
+                  {ev.startTime && (
+                    <span className="text-[10px] opacity-90 ml-1.5 shrink-0 font-normal">
+                      {ev.startTime}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-xs text-[#9aa0a6] mt-2 leading-relaxed">
+            <p className="text-xs text-[#9aa0a6] mt-3 mb-1 text-center leading-relaxed">
               Na ten dzień nie ma zaplanowanych wydarzeń.
             </p>
           )}

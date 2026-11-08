@@ -150,7 +150,7 @@ const INITIAL_DEMO_EVENTS = [
 
 export default function App() {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 10, 8)); // 8 Nov 2026 as in screenshots
-  const [slideDirection, setSlideDirection] = useState('next'); // 'next' or 'prev' for slide animation
+  const [slideDirection, setSlideDirection] = useState('none'); // 'next', 'prev', or 'none' for instant view transitions
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeView, setActiveView] = useState('week'); // Default to week matching image 1
   const [searchQuery, setSearchQuery] = useState('');
@@ -376,16 +376,27 @@ export default function App() {
     }
   };
 
+  // Reset slide animation after step animation completes so view transitions have NO animation
+  useEffect(() => {
+    if (slideDirection !== 'none') {
+      const timer = setTimeout(() => setSlideDirection('none'), 250);
+      return () => clearTimeout(timer);
+    }
+  }, [slideDirection]);
+
   const handleToday = () => {
-    const todayDate = new Date(2026, 10, 8);
-    setSlideDirection(todayDate >= currentDate ? 'next' : 'prev');
-    setCurrentDate(todayDate);
+    setSlideDirection('none');
+    setCurrentDate(new Date(2026, 10, 8));
   };
 
   const handleSelectDate = (date) => {
-    if (date > currentDate) setSlideDirection('next');
-    else if (date < currentDate) setSlideDirection('prev');
+    setSlideDirection('none');
     setCurrentDate(date);
+  };
+
+  const handleViewChange = (newView) => {
+    setSlideDirection('none');
+    setActiveView(newView);
   };
 
   // Calendar Management Handlers
@@ -800,7 +811,7 @@ export default function App() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         activeView={activeView}
-        onViewChange={setActiveView}
+        onViewChange={handleViewChange}
         advancedFilters={advancedFilters}
         onAdvancedFiltersChange={setAdvancedFilters}
         myCalendars={myCalendars}
@@ -838,10 +849,15 @@ export default function App() {
           onSearchPerson={setPersonSearchQuery}
         />
 
-        {/* Animated Calendar Container: płynna animacja w lewo lub w prawo przy zmianie daty */}
+        {/* Calendar Container: bez niepotrzebnych animacji przy zmianie widoków i kliknięciu w roku */}
         <div 
-          key={`${format(currentDate, 'yyyy-MM-dd')}-${activeView}`}
-          className={`flex-1 flex overflow-hidden ${slideDirection === 'next' ? 'calendar-slide-next' : 'calendar-slide-prev'}`}
+          className={`flex-1 flex overflow-hidden ${
+            slideDirection === 'next'
+              ? 'calendar-slide-next'
+              : slideDirection === 'prev'
+              ? 'calendar-slide-prev'
+              : 'calendar-slide-none'
+          }`}
         >
           {activeView === 'month' ? (
             <CalendarMonth
@@ -849,7 +865,7 @@ export default function App() {
               events={visibleEvents}
               onSelectEvent={handleSelectEvent}
               onSelectDate={handleSelectDate}
-              onViewChange={setActiveView}
+              onViewChange={handleViewChange}
               currentUserId={user?.uid || 'user-kodex'}
             />
           ) : activeView === 'year' ? (
@@ -857,7 +873,7 @@ export default function App() {
               currentDate={currentDate}
               events={visibleEvents}
               onSelectDate={handleSelectDate}
-              onViewChange={setActiveView}
+              onViewChange={handleViewChange}
               onSelectEvent={handleSelectEvent}
             />
           ) : activeView === 'agenda' ? (
@@ -876,7 +892,7 @@ export default function App() {
               isSidebarOpen={sidebarOpen}
               onOpenCreateModal={handleOpenCreateModal}
               onSelectDate={handleSelectDate}
-              onViewChange={setActiveView}
+              onViewChange={handleViewChange}
               creatingEvent={createModalOpen && selectedEvent?.isNew ? selectedEvent : null}
             />
           )}

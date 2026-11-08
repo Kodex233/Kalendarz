@@ -69,3 +69,8 @@
   animation: slideInFromLeft 0.22s cubic-bezier(0.2, 0, 0, 1) forwards;
   will-change: transform, opacity;
 }
+
+.calendar-slide-none {
+  animation: none !important;
+  transform: none !important;
+}
