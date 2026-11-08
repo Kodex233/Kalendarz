@@ -54,18 +54,24 @@ export default function CalendarAgenda({
     }
   };
 
+  const today = currentDate || new Date();
+  const todayDayNum = format(today, 'd');
+  const todayLabel = format(today, 'LLL, EEE.', { locale: pl }).toUpperCase();
+
   return (
     <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-5 mr-4 m-3 ml-2 mt-1 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none shadow-2xl">
-      {/* Red current time indicator line at the top */}
+      {/* Czerwony pasek aktualnego czasu na górze z połączonym kółkiem w matowym kolorze #e06d69 */}
       <div className="flex items-center space-x-3 pt-5 pb-3 px-6 shrink-0 border-b border-white/20">
         <div className="w-8 h-8 rounded-full bg-[#a8c7fa] text-[#041e49] font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
-          8
+          {todayDayNum}
         </div>
         <span className="text-xs font-semibold text-[#a8c7fa] tracking-wider uppercase shrink-0">
-          LIS, NIEDZ.
+          {todayLabel}
         </span>
-        <div className="w-3 h-3 bg-[#ea4335] rounded-full shrink-0 -mr-1.5 z-10" />
-        <div className="flex-1 border-t-2 border-[#ea4335]" />
+        <div className="flex-1 flex items-center">
+          <div className="w-2.5 h-2.5 bg-[#e06d69] rounded-full shrink-0 shadow-xs" />
+          <div className="flex-1 border-t-2 border-[#e06d69]" />
+        </div>
       </div>
 
       {/* Events list: kratki do końca krawędzi, scrollbar wewnątrz tła kalendarza */}

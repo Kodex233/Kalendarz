@@ -21,6 +21,7 @@ import EventModal from './components/EventModal';
 import EventDetailModal from './components/EventDetailModal';
 import ExchangeModal from './components/ExchangeModal';
 import AuthModal from './components/AuthModal';
+import ShareCalendarModal from './components/ShareCalendarModal';
 import { auth, onAuthStateChanged, logoutUser, db } from './firebase/config';
 import { collection, getDocs } from 'firebase/firestore';
 import JoinRoomModal from './components/JoinRoomModal';
@@ -224,7 +225,11 @@ export default function App() {
   const [roomCode, setRoomCode] = useState('kodex');
   const [roomPin, setRoomPin] = useState('1234');
   const [participants, setParticipants] = useState(['Kodex']);
+  const [detailedParticipants, setDetailedParticipants] = useState([
+    { name: 'Kolega Janek', email: 'janek@firma.pl', role: 'Pełny dostęp', isOwner: false }
+  ]);
   const [currentUserName, setCurrentUserName] = useState('Kodex');
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [urlJoinParams, setUrlJoinParams] = useState({ room: 'kodex', pin: '' });
 
@@ -575,8 +580,20 @@ export default function App() {
     setCurrentUserName(uName);
     localStorage.setItem(`room_${rCode}_user`, uName);
 
+    setDetailedParticipants(prev => {
+      if (prev.some(p => p.name === uName)) return prev;
+      return [...prev, { name: uName, email: `${uName.toLowerCase().replace(/\s+/g, '')}@gmail.com`, role: 'Pełny dostęp', isOwner: false }];
+    });
+
     setOtherCalendars(prev => prev.map(c => c.id === 'inne' ? { ...c, checked: true, name: `Kalendarz: ${room.hostName || 'Gospodarz'}` } : c));
     showToast(`Połączono z kalendarzem "${rCode}" jako ${uName}!`);
+  };
+
+  const handleUpdateParticipants = (newParticipants) => {
+    setDetailedParticipants(newParticipants);
+    createOrUpdateRoom(roomCode, {
+      participants: ['Kodex', ...newParticipants.map(p => p.name)]
+    }).catch(e => console.warn(e));
   };
 
   const handleUpdatePin = async (newPin) => {
@@ -789,6 +806,7 @@ export default function App() {
         myCalendars={myCalendars}
         otherCalendars={otherCalendars}
         onOpenExchangeModal={() => setExchangeModalOpen(true)}
+        onOpenShareModal={() => setShareModalOpen(true)}
         pendingExchangesCount={pendingExchangesCount}
         roomCode={roomCode}
         roomPin={roomPin}
@@ -942,7 +960,21 @@ export default function App() {
         onJoinSuccess={handleJoinRoom}
       />
 
-      {/* 4. Auth Modal - Autentyczny styl Google */}
+      {/* 5. Autentyczne okno udostępniania w stylu Google z zarządzaniem uprawnieniami (1:1 z obrazami) */}
+      <ShareCalendarModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        calendarName="kodex"
+        ownerName={user?.displayName ? `${user.displayName} (you)` : 'kodex (you)'}
+        ownerEmail={user?.email || 'kodex233@gmail.com'}
+        roomCode={roomCode}
+        currentPin={roomPin}
+        onUpdatePin={handleUpdatePin}
+        participants={detailedParticipants}
+        onUpdateParticipants={handleUpdateParticipants}
+      />
+
+      {/* 6. Auth Modal - Autentyczny styl Google */}
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}

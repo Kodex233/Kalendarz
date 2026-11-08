@@ -268,13 +268,13 @@ export default function CalendarWeek({
                     );
                   })}
 
-                  {/* Red current time indicator line: wyżej w kratce (-translate-y-[24px]) i matowy jaśniejszy kolor (#e06d69) */}
+                  {/* Red current time indicator line na aktualnej godzinie z połączonym kółkiem w kolorze #e06d69 */}
                   {isToday && (
                     <div 
-                      className="absolute left-0 right-0 z-20 flex items-center -translate-y-[24px] pointer-events-none"
+                      className="absolute left-0 right-0 z-20 flex items-center -translate-y-1/2 pointer-events-none"
                       style={{ top: `${timeProgressMinutes}px` }}
                     >
-                      <div className="w-3 h-3 bg-[#e06d69] rounded-full -ml-1.5 shadow-xs" />
+                      <div className="w-2.5 h-2.5 bg-[#e06d69] rounded-full -ml-1.25 shrink-0 shadow-xs" />
                       <div className="flex-1 border-t-2 border-[#e06d69]" />
                     </div>
                   )}
