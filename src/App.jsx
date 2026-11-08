@@ -21,7 +21,8 @@ import EventModal from './components/EventModal';
 import EventDetailModal from './components/EventDetailModal';
 import ExchangeModal from './components/ExchangeModal';
 import AuthModal from './components/AuthModal';
-import { auth, onAuthStateChanged, logoutUser } from './firebase/config';
+import { auth, onAuthStateChanged, logoutUser, db } from './firebase/config';
+import { collection, getDocs } from 'firebase/firestore';
 import { 
   subscribeToUserEvents, 
   subscribeToExchangeableEvents, 
@@ -43,9 +44,10 @@ const INITIAL_MY_CALENDARS = [
 
 const INITIAL_OTHER_CALENDARS = [
   { id: 'swieta', name: 'Święta w Polsce', color: '#1e8e3e', checked: true },
+  { id: 'inne', name: 'Kalendarz kolegi (Janek)', color: '#f6bf26', checked: true },
 ];
 
-// Default starter demo events matching user screenshots
+// Default starter demo events: pełny kalendarz Twój oraz kolegi
 const INITIAL_DEMO_EVENTS = [
   {
     id: 'demo-holiday',
@@ -70,6 +72,7 @@ const INITIAL_DEMO_EVENTS = [
     endTime: '11:30',
     color: 'blue',
     calendarId: 'kodex',
+    customBg: '#1a73e8',
     description: 'Omówienie harmonogramu i terminów',
     isExchangeable: true,
     userId: 'user-kodex',
@@ -78,15 +81,61 @@ const INITIAL_DEMO_EVENTS = [
   },
   {
     id: 'demo-2',
-    title: 'Konsultacje',
+    title: 'Dyżur poranny - Kolega Janek',
+    date: '2026-11-09',
+    startTime: '08:00',
+    endTime: '11:00',
+    color: 'teal',
+    calendarId: 'inne',
+    customBg: '#00897b',
+    description: 'Dyżur techniczny poniedziałek',
+    isExchangeable: true,
+    userId: 'friend-janek',
+    userName: 'Kolega Janek',
+    userEmail: 'janek@firma.pl'
+  },
+  {
+    id: 'demo-3',
+    title: 'Konsultacje semestralne - Kolega Janek',
     date: '2026-11-10',
     startTime: '12:00',
-    endTime: '13:00',
-    color: 'blue',
-    calendarId: 'kodex',
-    description: 'Konsultacje semestralne',
+    endTime: '13:30',
+    color: 'yellow',
+    calendarId: 'inne',
+    customBg: '#f6bf26',
+    description: 'Konsultacje semestralne w sali 204',
     isExchangeable: true,
-    userId: 'friend-1',
+    userId: 'friend-janek',
+    userName: 'Kolega Janek',
+    userEmail: 'janek@firma.pl'
+  },
+  {
+    id: 'demo-4',
+    title: 'Warsztaty frontend - Kolega Janek',
+    date: '2026-11-11',
+    startTime: '14:00',
+    endTime: '16:00',
+    color: 'purple',
+    calendarId: 'inne',
+    customBg: '#8e24aa',
+    description: 'Prezentacja komponentów i architektury',
+    isExchangeable: true,
+    userId: 'friend-janek',
+    userName: 'Kolega Janek',
+    userEmail: 'janek@firma.pl'
+  },
+  {
+    id: 'demo-5',
+    title: 'Dyżur piątkowy - Kolega Janek',
+    date: '2026-11-13',
+    startTime: '10:00',
+    endTime: '13:00',
+    color: 'red',
+    calendarId: 'inne',
+    customBg: '#e67c73',
+    description: 'Dyżur weekendowy support',
+    isExchangeable: true,
+    userId: 'friend-janek',
     userName: 'Kolega Janek',
     userEmail: 'janek@firma.pl'
   }
@@ -165,7 +214,7 @@ export default function App() {
   const [initialTargetEventForSwap, setInitialTargetEventForSwap] = useState(null);
   const [eventType, setEventType] = useState('Wydarzenie');
 
-  // Track Firebase Auth state
+  // Track Firebase Auth state & load Firestore data
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -174,6 +223,22 @@ export default function App() {
         setExchangeableEvents(INITIAL_DEMO_EVENTS.filter(e => e.userId !== 'user-kodex' && e.userId !== 'system'));
       }
     });
+
+    // Sync from Firestore directly so real Firebase data is immediately active
+    getDocs(collection(db, 'events')).then(snap => {
+      if (snap && snap.size > 0) {
+        const events = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const mine = events.filter(e => e.userId === 'user-kodex');
+        const friend = events.filter(e => e.userId === 'friend-janek' || e.userId?.startsWith('friend-'));
+        if (mine.length > 0) {
+          setMyEvents([...INITIAL_DEMO_EVENTS.filter(e => e.userId === 'system'), ...mine]);
+        }
+        if (friend.length > 0) {
+          setExchangeableEvents(friend);
+        }
+      }
+    }).catch(err => console.warn('Firestore load:', err));
+
     return () => unsubscribe();
   }, []);
 
@@ -418,6 +483,50 @@ export default function App() {
   const handleProposeSwapWithEvent = (targetEvent) => {
     setInitialTargetEventForSwap(targetEvent);
     setExchangeModalOpen(true);
+  };
+
+  // Direct simple swap: natychmiastowa zamiana terminów w kalendarzu i bazie Firebase
+  const handleDirectSwap = async (myEventId, targetEventId) => {
+    const all = [...myEvents, ...exchangeableEvents];
+    const myEv = all.find(e => e.id === myEventId);
+    const targetEv = all.find(e => e.id === targetEventId);
+
+    if (!myEv || !targetEv) return;
+
+    const myDate = myEv.date;
+    const myStart = myEv.startTime;
+    const myEnd = myEv.endTime;
+
+    const targetDate = targetEv.date;
+    const targetStart = targetEv.startTime;
+    const targetEnd = targetEv.endTime;
+
+    setMyEvents(prev => prev.map(e => {
+      if (e.id === myEv.id) return { ...e, date: targetDate, startTime: targetStart, endTime: targetEnd };
+      if (e.id === targetEv.id) return { ...e, date: myDate, startTime: myStart, endTime: myEnd };
+      return e;
+    }));
+
+    setExchangeableEvents(prev => prev.map(e => {
+      if (e.id === targetEv.id) return { ...e, date: myDate, startTime: myStart, endTime: myEnd };
+      if (e.id === myEv.id) return { ...e, date: targetDate, startTime: targetStart, endTime: targetEnd };
+      return e;
+    }));
+
+    if (!myEv.id.startsWith('demo-') || !targetEv.id.startsWith('demo-')) {
+      try {
+        if (!myEv.id.startsWith('demo-')) {
+          await updateEvent(myEv.id, { date: targetDate, startTime: targetStart, endTime: targetEnd });
+        }
+        if (!targetEv.id.startsWith('demo-')) {
+          await updateEvent(targetEv.id, { date: myDate, startTime: myStart, endTime: myEnd });
+        }
+      } catch (err) {
+        console.warn('Firestore swap:', err);
+      }
+    }
+
+    showToast(`Pomyślnie zamieniono: "${myEv.title}" ⇄ "${targetEv.title}"!`);
   };
 
   // Respond to slot exchange (Accept / Reject)
@@ -693,32 +802,28 @@ export default function App() {
         }}
       />
 
-      {/* 2. Okienko szczegółów wydarzenia matching image 5 */}
+      {/* 2. Okienko szczegółów wydarzenia matching image 5 (czyste, bez zbędnych przycisków wymiany) */}
       <EventDetailModal
         isOpen={detailModalOpen}
         onClose={() => setDetailModalOpen(false)}
         event={selectedEvent}
         onEdit={handleEditFromDetail}
         onDelete={handleDeleteEvent}
-        onOpenExchange={handleProposeSwapWithEvent}
         calendarName={activeEventCal.name}
         calendarColor={activeEventCal.color}
       />
 
-      {/* 3. Wymiana terminów Modal */}
+      {/* 3. Wymiana terminów - dedykowane, proste okienko */}
       <ExchangeModal
         isOpen={exchangeModalOpen}
         onClose={() => {
           setExchangeModalOpen(false);
           setInitialTargetEventForSwap(null);
         }}
-        myEvents={myEvents}
-        exchangeableEvents={exchangeableEvents}
-        exchanges={exchanges}
-        onProposeExchange={handleProposeExchange}
-        onRespondExchange={handleRespondExchange}
+        myEvents={myEvents.filter(e => e.userId === 'user-kodex' || (!e.userId?.startsWith('friend-') && e.id !== 'demo-holiday'))}
+        exchangeableEvents={[...exchangeableEvents, ...myEvents.filter(e => e.userId === 'friend-janek' || e.userId?.startsWith('friend-'))]}
+        onDirectSwap={handleDirectSwap}
         user={user}
-        initialTargetEvent={initialTargetEventForSwap}
       />
 
       {/* 4. Auth Modal - Autentyczny styl Google */}
