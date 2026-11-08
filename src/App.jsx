@@ -790,6 +790,14 @@ export default function App() {
         otherCalendars={otherCalendars}
         onOpenExchangeModal={() => setExchangeModalOpen(true)}
         pendingExchangesCount={pendingExchangesCount}
+        roomCode={roomCode}
+        roomPin={roomPin}
+        participants={participants}
+        onUpdatePin={handleUpdatePin}
+        myEvents={myEvents.filter(e => e.userId === 'user-kodex' || e.userName === currentUserName || (!e.userId?.startsWith('friend-') && e.id !== 'demo-holiday'))}
+        exchangeableEvents={[...exchangeableEvents, ...myEvents.filter(e => (e.userId === 'friend-janek' || e.userId?.startsWith('friend-')) && e.userName !== currentUserName)]}
+        onDirectSwap={handleDirectSwap}
+        currentUser={currentUserName}
       />
 
       {/* Main Container: Sidebar + Rounded Borderless Calendar Canvas */}

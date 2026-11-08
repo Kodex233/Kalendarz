@@ -140,12 +140,12 @@ async function main() {
     console.log(`✓ Dodano do Firebase: ${ev.title} (ID: ${docRef.id}, Użytkownik: ${ev.userName})`);
   }
 
-  // Utwórz pokój kodex z kodem PIN 1234
+  // Utwórz pokój kodex z kodem PIN 1234 (tylko prawdziwy gospodarz, znajomi pojawiają się po dołączeniu)
   await setDoc(doc(db, "calendar_rooms", "kodex"), {
     roomCode: "kodex",
     pin: "1234",
     hostName: "Kodex",
-    participants: ["Kodex", "Kolega Janek"],
+    participants: ["Kodex"],
     updatedAt: serverTimestamp()
   }, { merge: true });
 

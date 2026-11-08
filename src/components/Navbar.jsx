@@ -29,6 +29,7 @@ import {
   subMonths 
 } from 'date-fns';
 import { pl } from 'date-fns/locale';
+import InvitePopover from './InvitePopover';
 
 export default function Navbar({
   currentDate,
@@ -49,13 +50,22 @@ export default function Navbar({
   myCalendars = [],
   otherCalendars = [],
   onOpenExchangeModal,
-  pendingExchangesCount = 0
+  pendingExchangesCount = 0,
+  roomCode = 'kodex',
+  roomPin = '1234',
+  participants = ['Kodex'],
+  onUpdatePin,
+  myEvents = [],
+  exchangeableEvents = [],
+  onDirectSwap,
+  currentUser = 'Kodex'
 }) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
   const [isViewMenuOpen, setIsViewMenuOpen] = useState(false);
   const [isSearchInMenuOpen, setIsSearchInMenuOpen] = useState(false);
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [pickerDate, setPickerDate] = useState(currentDate);
 
   // Advanced search form state matching image 2
@@ -80,6 +90,7 @@ export default function Navbar({
   const viewMenuRef = useRef(null);
   const advancedSearchRef = useRef(null);
   const searchInRef = useRef(null);
+  const invitePopoverRef = useRef(null);
 
   useEffect(() => {
     if (isSearchOpen && searchInputRef.current) {
@@ -97,6 +108,9 @@ export default function Navbar({
       }
       if (searchInRef.current && !searchInRef.current.contains(e.target)) {
         setIsSearchInMenuOpen(false);
+      }
+      if (invitePopoverRef.current && !invitePopoverRef.current.contains(e.target)) {
+        setIsInviteOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -610,20 +624,34 @@ export default function Navbar({
           </svg>
         </button>
 
-        {/* Przycisk Wymiana terminów ze znajomymi */}
-        <button
-          onClick={onOpenExchangeModal}
-          className="relative flex items-center space-x-1.5 px-3.5 h-10 bg-[#282a2d] hover:bg-[#35373a] text-[#e3e3e3] border border-[#3c4043] rounded-full text-sm font-medium transition focus:outline-none"
-          title="Wymiana terminów z kolegą"
-        >
-          <ArrowLeftRight className="w-4 h-4 text-[#fdd663]" />
-          <span className="hidden sm:inline">Wymiana</span>
-          {pendingExchangesCount > 0 && (
-            <span className="w-5 h-5 bg-[#f28b82] text-[#1f1f1f] text-xs font-bold rounded-full flex items-center justify-center -mr-1">
-              {pendingExchangesCount}
-            </span>
-          )}
-        </button>
+        {/* Przycisk Zaproś / Współdzielenie z okienkiem pod spodem */}
+        <div className="relative" ref={invitePopoverRef}>
+          <button
+            onClick={() => setIsInviteOpen(!isInviteOpen)}
+            className="flex items-center space-x-2 px-4 h-10 bg-[#282a2d] hover:bg-[#35373a] text-white border border-[#444746] hover:border-white/50 rounded-full text-sm font-medium transition focus:outline-none shadow-xs"
+            title="Zaproś znajomego do kalendarza i wymieniaj terminy"
+          >
+            {/* Google Material Person Add Icon - biała */}
+            <svg className="w-5 h-5 fill-current text-white shrink-0" viewBox="0 0 24 24">
+              <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+            <span className="text-white font-medium">Zaproś</span>
+          </button>
+
+          {/* Profesjonalne, minimalistyczne okienko pod buttonem */}
+          <InvitePopover
+            isOpen={isInviteOpen}
+            onClose={() => setIsInviteOpen(false)}
+            roomCode={roomCode}
+            currentPin={roomPin}
+            onUpdatePin={onUpdatePin}
+            participants={participants}
+            currentUser={currentUser}
+            myEvents={myEvents}
+            exchangeableEvents={exchangeableEvents}
+            onDirectSwap={onDirectSwap}
+          />
+        </div>
 
         {/* View Switcher Dropdown: border bardziej biały, wysokość h-10 */}
         <div className="relative ml-1" ref={viewMenuRef}>
