@@ -40,7 +40,8 @@ export default function Sidebar({
   onUpdateOtherCalendarColor,
   onDeleteOtherCalendar,
   onAddOtherCalendar,
-  onSearchPerson
+  onSearchPerson,
+  userRole = 'Pełny dostęp'
 }) {
   const [miniDate, setMiniDate] = useState(selectedDate || new Date());
   const [myCalendarsOpen, setMyCalendarsOpen] = useState(true);
@@ -85,9 +86,18 @@ export default function Sidebar({
 
   return (
     <aside className="w-64 bg-[#1e1f20] text-[#e3e3e3] flex flex-col px-3 py-3 select-none shrink-0 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden h-[calc(100vh-4rem)]">
-      {/* 1. Button + Utwórz ▾ without border */}
+      {/* 1. Button + Utwórz ▾ without border (lub status Tylko do odczytu przy roli Przeglądający) */}
       <div className="px-1 mb-8">
-        <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={false} />
+        {userRole === 'Przeglądający' ? (
+          <div className="flex items-center space-x-2.5 px-4 py-3.5 bg-[#282a2d] text-[#9aa0a6] rounded-2xl text-xs font-medium border border-[#444746]/50 select-none shadow-xs">
+            <svg className="w-4 h-4 fill-current text-[#8ab4f8] shrink-0" viewBox="0 0 24 24">
+              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
+            </svg>
+            <span className="text-[#c4c7c5]">Tylko do odczytu</span>
+          </div>
+        ) : (
+          <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={false} />
+        )}
       </div>
 
       {/* Wszystko poniżej buttona Utwórz przesunięte niżej (mb-8 powyżej + space-y-3.5 wewnątrz) */}

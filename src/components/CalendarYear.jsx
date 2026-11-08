@@ -103,28 +103,28 @@ export default function CalendarYear({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-5 mr-4 m-3 ml-2 mt-1 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-y-auto select-none p-6 shadow-2xl relative">
-      {/* 4 columns x 3 rows grid of 12 months */}
-      <div className="grid grid-cols-4 gap-x-8 gap-y-7">
+    <div className="flex-1 flex flex-col h-[calc(100vh-5.2rem)] mb-3 mr-4 m-2 ml-2 mt-1 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-y-auto select-none px-6 py-4 shadow-2xl relative">
+      {/* 4 kolumny miesięcy x 3 wiersze - idealnie dopasowane, bez ucinania z prawej i na dole */}
+      <div className="grid grid-cols-4 gap-x-8 gap-y-5 max-w-7xl mx-auto w-full">
         {monthsData.map(({ monthIndex, name, monthDate, days }) => (
-          <div key={monthIndex} className="flex flex-col space-y-2">
-            {/* Month Name */}
+          <div key={monthIndex} className="flex flex-col space-y-1.5 min-w-0">
+            {/* Nazwa miesiąca: w linii z cyframi */}
             <button
               onClick={() => handleMonthTitleClick(monthDate)}
-              className="text-left text-sm font-semibold text-[#e3e3e3] hover:text-[#8ab4f8] transition cursor-pointer"
+              className="text-left text-[15px] font-semibold text-[#e3e3e3] hover:text-[#8ab4f8] transition cursor-pointer pl-1"
             >
               {name}
             </button>
 
-            {/* Week days row: N P W Ś C P S */}
-            <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-medium text-[#9aa0a6]">
+            {/* Wiersz dni tygodnia: N P W Ś C P S */}
+            <div className="grid grid-cols-7 text-center text-[11px] font-medium text-[#9aa0a6] pb-0.5">
               {['N', 'P', 'W', 'Ś', 'C', 'P', 'S'].map((d, i) => (
                 <div key={i} className="py-0.5">{d}</div>
               ))}
             </div>
 
-            {/* Days grid */}
-            <div className="grid grid-cols-7 gap-1 text-center text-xs">
+            {/* Siatka dni */}
+            <div className="grid grid-cols-7 gap-y-1 text-center text-xs">
               {days.map((day, dIdx) => {
                 const isCurrent = isSameMonth(day, monthDate);
                 const isToday = isSameDay(day, today);
@@ -137,8 +137,8 @@ export default function CalendarYear({
                 if (isToday) {
                   dayClass = 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-xs';
                 } else if (isSelected && isCurrent) {
-                  // Wybrany dzień: niebieskie kółko Google jak na zdjęciu Image 1 i 2
-                  dayClass = 'bg-[#1a73e8] text-white font-medium shadow-xs';
+                  // Wybrany dzień: tło #004a77 i napis #c2e7ff jak w kalendarzu w lewym menu
+                  dayClass = 'bg-[#004a77] text-[#c2e7ff] font-bold shadow-xs';
                 }
 
                 return (
@@ -150,7 +150,7 @@ export default function CalendarYear({
                       e.stopPropagation();
                       handleGoToDay(day);
                     }}
-                    className={`w-6 h-6 mx-auto rounded-full flex items-center justify-center text-[11px] transition ${dayClass} cursor-pointer`}
+                    className={`w-[26px] h-[26px] mx-auto rounded-full flex items-center justify-center text-xs transition ${dayClass} cursor-pointer`}
                     title={format(day, 'd MMMM yyyy', { locale: pl })}
                   >
                     {format(day, 'd')}

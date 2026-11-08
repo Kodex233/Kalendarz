@@ -46,7 +46,7 @@ export default function EventModal({
   const [showLocationInput, setShowLocationInput] = useState(false);
   const [description, setDescription] = useState('');
   const [showDescInput, setShowDescInput] = useState(false);
-  const [selectedCalendarId, setSelectedCalendarId] = useState('kodex');
+  const [selectedCalendarId, setSelectedCalendarId] = useState('kalendarz');
   const [loading, setLoading] = useState(false);
   const [hasDeadline, setHasDeadline] = useState(Boolean(initialData?.deadlineDate));
   const [deadlineDate, setDeadlineDate] = useState(initialData?.deadlineDate || '');
@@ -67,7 +67,7 @@ export default function EventModal({
 
   useEffect(() => {
     if (isOpen) {
-      const slotKey = initialData?.id || `${initialData?.date}_${initialData?.startTime}_${initialData?.slotRect?.top}`;
+      const slotKey = initialData?.id || `${initialData?.date}_${initialData?.startTime}_${initialData?.endTime}_${initialData?.slotRect?.top}`;
       if (lastOpenedSlotRef.current !== slotKey) {
         lastOpenedSlotRef.current = slotKey;
         setTitle(initialData?.title || '');
@@ -81,7 +81,7 @@ export default function EventModal({
         setShowLocationInput(Boolean(initialData?.location));
         setDescription(initialData?.description || '');
         setShowDescInput(Boolean(initialData?.description));
-        setSelectedCalendarId(initialData?.calendarId || 'kodex');
+        setSelectedCalendarId(initialData?.calendarId || 'kalendarz');
         setRepeatRule('Nie powtarza się');
         setHasDeadline(Boolean(initialData?.deadlineDate));
         setDeadlineDate(initialData?.deadlineDate || '');
@@ -92,7 +92,7 @@ export default function EventModal({
       lastOpenedSlotRef.current = null;
       setIsDeadlinePickerOpen(false);
     }
-  }, [isOpen, initialData?.id, initialData?.date, initialData?.startTime, initialData?.slotRect]);
+  }, [isOpen, initialData?.id, initialData?.date, initialData?.startTime, initialData?.endTime, initialData?.slotRect]);
 
   // Close repeat dropdown on click outside
   useEffect(() => {
@@ -146,7 +146,7 @@ export default function EventModal({
     if (onFormChange) onFormChange({ type: val });
   };
 
-  const currentCal = myCalendars.find(c => c.id === selectedCalendarId) || { name: 'kodex', color: '#1a73e8' };
+  const currentCal = myCalendars.find(c => c.id === selectedCalendarId) || { name: 'Kalendarz', color: '#1a73e8' };
 
   // Formatted date chip text (z wielką literą jak na zdjęciu)
   const formattedDateLabel = useMemo(() => {
@@ -313,7 +313,7 @@ export default function EventModal({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Top Header bar with drag handle and action icons */}
-          <div className="flex items-center justify-between px-6 pt-3.5 pb-1 bg-[#1e1f20]">
+          <div className="flex items-center justify-between px-6 pt-3.5 pb-1 bg-[#1e1f20] rounded-t-[28px]">
             {/* Uchwyt do przesuwania (=) */}
             <div className="flex flex-col space-y-1 py-1 cursor-grab active:cursor-grabbing text-[#c4c7c5]">
               <div className="w-4 h-0.5 bg-[#c4c7c5] rounded-full" />

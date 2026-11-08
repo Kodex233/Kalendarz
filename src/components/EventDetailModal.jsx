@@ -20,8 +20,9 @@ export default function EventDetailModal({
   onEdit,
   onDelete,
   onOpenExchange,
-  calendarName = 'kodex',
-  calendarColor = '#1a73e8'
+  calendarName = 'Kalendarz',
+  calendarColor = '#1a73e8',
+  userRole = 'Pełny dostęp'
 }) {
   if (!isOpen || !event) return null;
 
@@ -57,30 +58,34 @@ export default function EventDetailModal({
       >
         {/* Top Right Action Icons: precyzyjne ułożenie i poprawiona ikonka ołówka ze szczeliną */}
         <div className="flex items-center justify-end space-x-1 text-[#c4c7c5] -mr-1">
-          <button
-            onClick={() => {
-              onClose();
-              onEdit(event);
-            }}
-            className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition"
-            title="Edytuj wydarzenie"
-          >
-            {/* Ołówek edycji z wewnętrzną szczeliną zgodny ze zdjęciem Google Material */}
-            <svg className="w-5 h-5 fill-current text-[#c4c7c5] hover:text-white" viewBox="0 0 24 24">
-              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-            </svg>
-          </button>
+          {userRole !== 'Przeglądający' && (
+            <>
+              <button
+                onClick={() => {
+                  onClose();
+                  onEdit(event);
+                }}
+                className="p-2 hover:bg-[#35373a] hover:text-white rounded-full transition cursor-pointer"
+                title="Edytuj wydarzenie"
+              >
+                {/* Ołówek edycji z wewnętrzną szczeliną zgodny ze zdjęciem Google Material */}
+                <svg className="w-5 h-5 fill-current text-[#c4c7c5] hover:text-white" viewBox="0 0 24 24">
+                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                </svg>
+              </button>
 
-          <button
-            onClick={handleDelete}
-            className="p-2 hover:bg-[#35373a] hover:text-[#f28b82] rounded-full transition"
-            title="Usuń wydarzenie"
-          >
-            {/* Kosz ze zdjęcia Google Material */}
-            <svg className="w-5 h-5 fill-current text-[#c4c7c5] hover:text-[#f28b82] transition" viewBox="0 0 24 24">
-              <path d="M15 4V3H9v1H4v2h1v13c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V6h1V4h-5zm2 15H7V6h10v13zM9 8h2v9H9zm4 0h2v9h-2z" />
-            </svg>
-          </button>
+              <button
+                onClick={handleDelete}
+                className="p-2 hover:bg-[#35373a] hover:text-[#f28b82] rounded-full transition cursor-pointer"
+                title="Usuń wydarzenie"
+              >
+                {/* Kosz ze zdjęcia Google Material */}
+                <svg className="w-5 h-5 fill-current text-[#c4c7c5] hover:text-[#f28b82] transition" viewBox="0 0 24 24">
+                  <path d="M15 4V3H9v1H4v2h1v13c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V6h1V4h-5zm2 15H7V6h10v13zM9 8h2v9H9zm4 0h2v9h-2z" />
+                </svg>
+              </button>
+            </>
+          )}
 
           <button
             onClick={() => {

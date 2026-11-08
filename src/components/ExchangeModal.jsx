@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { buildShareUrl } from '../utils/networkUrl';
 import { 
   X, 
   ArrowLeftRight, 
@@ -54,10 +55,8 @@ export default function ExchangeModal({
   const myEvent = myEvents.find(e => e.id === selectedMyEventId) || myEvents[0];
   const targetEvent = exchangeableEvents.find(e => e.id === selectedTargetEventId) || exchangeableEvents[0];
 
-  // Generuj link do udostępnienia dla kolegi
-  const shareableUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(roomCode)}&pin=${encodeURIComponent(roomPin)}`
-    : `https://kalendarz.pl/?room=${roomCode}&pin=${roomPin}`;
+  // Generuj link do udostępnienia dla kolegi (bez PIN-u w URL)
+  const shareableUrl = buildShareUrl(roomCode);
 
   const handleCopyLink = () => {
     if (navigator.clipboard) {
@@ -149,7 +148,7 @@ export default function ExchangeModal({
                 {copiedLink ? (
                   <>
                     <CheckCheck className="w-4 h-4" />
-                    <span>Skopiowano!</span>
+                    <span>Link skopiowany!</span>
                   </>
                 ) : (
                   <>

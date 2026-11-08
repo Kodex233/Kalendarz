@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   format, 
   startOfWeek, 
@@ -94,6 +94,209 @@ export default function CalendarWeek({
   // Separate all-day events vs timed events
   const allDayEvents = events.filter(e => e.calendarId === 'swieta' || e.isAllDay);
   const timedEvents = events.filter(e => e.calendarId !== 'swieta' && !e.isAllDay);
+
+  // Stan aktywnego przeciągania myszką (tworzenie wydarzenia przez przeciąganie w dół przez kratki)
+  const [dragState, setDragState] = useState(null);
+  const dragRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      dragRef.current = null;
+    };
+  }, []);
+
+  const handleColumnMouseDown = (e, day, dIdx) => {
+    if (e.button !== 0) return; // Tylko lewy przycisk myszy
+    e.preventDefault();
+
+    const colElement = e.currentTarget;
+    const colRect = colElement.getBoundingClientRect();
+    const offsetY = Math.max(0, Math.min(colRect.height, e.clientY - colRect.top));
+
+    // Zaokrąglenie do 15 minut (48px na godzinę -> 12px na 15 min)
+    const rawMinutes = (offsetY / 48) * 60;
+    const snappedStartMinutes = Math.min(23 * 60 + 45, Math.floor(rawMinutes / 15) * 15);
+    const initialEndMinutes = Math.min(24 * 60, snappedStartMinutes + 60);
+
+    const newDragInfo = {
+      isDragging: true,
+      day,
+      dayIndex: dIdx,
+      dateStr: format(day, 'yyyy-MM-dd'),
+      startMinutes: snappedStartMinutes,
+      currentMinutes: initialEndMinutes,
+      colRect,
+      startClientY: e.clientY,
+      hasMoved: false
+    };
+
+    dragRef.current = newDragInfo;
+    setDragState(newDragInfo);
+
+    const handleMouseMove = (moveEvent) => {
+      if (!dragRef.current) return;
+      const info = dragRef.current;
+      const deltaY = moveEvent.clientY - info.startClientY;
+      if (Math.abs(deltaY) > 5) {
+        info.hasMoved = true;
+      }
+
+      const curOffsetY = Math.max(0, Math.min(info.colRect.height, moveEvent.clientY - info.colRect.top));
+      const curRawMinutes = (curOffsetY / 48) * 60;
+      let curSnapped = Math.max(0, Math.min(24 * 60, Math.round(curRawMinutes / 15) * 15));
+
+      if (curSnapped === info.startMinutes) {
+        curSnapped = deltaY >= 0 ? Math.min(24 * 60, info.startMinutes + 30) : Math.max(0, info.startMinutes - 30);
+      }
+
+      info.currentMinutes = curSnapped;
+      setDragState({ ...info });
+    };
+
+    const handleMouseUp = () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+
+      const info = dragRef.current;
+      dragRef.current = null;
+      setDragState(null);
+
+      if (!info) return;
+
+      let minM = Math.min(info.startMinutes, info.currentMinutes);
+      let maxM = Math.max(info.startMinutes, info.currentMinutes);
+
+      if (maxM - minM < 15) {
+        maxM = minM + 60;
+      }
+
+      const startH = Math.floor(minM / 60);
+      const startMin = minM % 60;
+      const endH = Math.floor(maxM / 60);
+      const endMin = maxM % 60;
+
+      const startTime = `${startH.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`;
+      const endTime = `${endH.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
+
+      const topPx = (minM / 60) * 48;
+      const heightPx = Math.max(28, ((maxM - minM) / 60) * 48);
+      const slotRect = {
+        top: info.colRect.top + topPx,
+        bottom: info.colRect.top + topPx + heightPx,
+        height: heightPx,
+        left: info.colRect.left,
+        right: info.colRect.right,
+        width: info.colRect.width
+      };
+
+      onSelectSlot(info.day, startTime, {
+        startTime,
+        endTime,
+        dayIndex: info.dayIndex,
+        slotRect
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleColumnTouchStart = (e, day, dIdx) => {
+    if (!e.touches || e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    const colElement = e.currentTarget;
+    const colRect = colElement.getBoundingClientRect();
+    const offsetY = Math.max(0, Math.min(colRect.height, touch.clientY - colRect.top));
+
+    const rawMinutes = (offsetY / 48) * 60;
+    const snappedStartMinutes = Math.min(23 * 60 + 45, Math.floor(rawMinutes / 15) * 15);
+    const initialEndMinutes = Math.min(24 * 60, snappedStartMinutes + 60);
+
+    const newDragInfo = {
+      isDragging: true,
+      day,
+      dayIndex: dIdx,
+      dateStr: format(day, 'yyyy-MM-dd'),
+      startMinutes: snappedStartMinutes,
+      currentMinutes: initialEndMinutes,
+      colRect,
+      startClientY: touch.clientY,
+      hasMoved: false
+    };
+
+    dragRef.current = newDragInfo;
+    setDragState(newDragInfo);
+
+    const handleTouchMove = (moveEvent) => {
+      if (!dragRef.current || !moveEvent.touches || moveEvent.touches.length !== 1) return;
+      const curTouch = moveEvent.touches[0];
+      const deltaY = curTouch.clientY - dragRef.current.startClientY;
+      if (Math.abs(deltaY) > 8) {
+        dragRef.current.hasMoved = true;
+        if (moveEvent.cancelable) moveEvent.preventDefault();
+      }
+
+      const curOffsetY = Math.max(0, Math.min(dragRef.current.colRect.height, curTouch.clientY - dragRef.current.colRect.top));
+      const curRawMinutes = (curOffsetY / 48) * 60;
+      let curSnapped = Math.max(0, Math.min(24 * 60, Math.round(curRawMinutes / 15) * 15));
+
+      if (curSnapped === dragRef.current.startMinutes) {
+        curSnapped = deltaY >= 0 ? Math.min(24 * 60, dragRef.current.startMinutes + 30) : Math.max(0, dragRef.current.startMinutes - 30);
+      }
+
+      dragRef.current.currentMinutes = curSnapped;
+      setDragState({ ...dragRef.current });
+    };
+
+    const handleTouchEnd = () => {
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchEnd);
+
+      const info = dragRef.current;
+      dragRef.current = null;
+      setDragState(null);
+
+      if (!info) return;
+
+      let minM = Math.min(info.startMinutes, info.currentMinutes);
+      let maxM = Math.max(info.startMinutes, info.currentMinutes);
+
+      if (maxM - minM < 15) {
+        maxM = minM + 60;
+      }
+
+      const startH = Math.floor(minM / 60);
+      const startMin = minM % 60;
+      const endH = Math.floor(maxM / 60);
+      const endMin = maxM % 60;
+
+      const startTime = `${startH.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`;
+      const endTime = `${endH.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
+
+      const topPx = (minM / 60) * 48;
+      const heightPx = Math.max(28, ((maxM - minM) / 60) * 48);
+      const slotRect = {
+        top: info.colRect.top + topPx,
+        bottom: info.colRect.top + topPx + heightPx,
+        height: heightPx,
+        left: info.colRect.left,
+        right: info.colRect.right,
+        width: info.colRect.width
+      };
+
+      onSelectSlot(info.day, startTime, {
+        startTime,
+        endTime,
+        dayIndex: info.dayIndex,
+        slotRect
+      });
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchcancel', handleTouchEnd);
+  };
 
   const handleDayHeaderClick = (day) => {
     if (onSelectDate) onSelectDate(day);
@@ -239,29 +442,17 @@ export default function CalendarWeek({
               return (
                 <div 
                   key={dIdx} 
-                  className={`relative h-full ${isLastColumn ? 'border-r-0' : 'border-r border-white/20'}`}
+                  onMouseDown={(e) => handleColumnMouseDown(e, day, dIdx)}
+                  onTouchStart={(e) => handleColumnTouchStart(e, day, dIdx)}
+                  className={`relative h-full select-none cursor-pointer ${isLastColumn ? 'border-r-0' : 'border-r border-white/20'}`}
                 >
-                  {/* 24 Hour slots: przekazanie współrzędnych klikniętej kratki dla pozycjonowania okienka */}
+                  {/* 24 Hour slots: siatka godzinowa */}
                   {Array.from({ length: HOURS_COUNT }).map((_, hIdx) => {
                     const isLast = hIdx === HOURS_COUNT - 1;
                     return (
                       <div 
                         key={hIdx} 
-                        onClick={(e) => {
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          onSelectSlot(day, `${hIdx.toString().padStart(2, '0')}:00`, {
-                            dayIndex: dIdx,
-                            slotRect: {
-                              top: rect.top,
-                              bottom: rect.bottom,
-                              left: rect.left,
-                              right: rect.right,
-                              width: rect.width,
-                              height: rect.height
-                            }
-                          });
-                        }}
-                        className={`h-12 border-t border-white/15 hover:bg-[#1f2022] cursor-pointer transition ${
+                        className={`h-12 border-t border-white/15 hover:bg-[#1f2022]/40 transition pointer-events-none ${
                           isLast ? 'border-b border-white/15' : ''
                         }`}
                       />
@@ -279,8 +470,41 @@ export default function CalendarWeek({
                     </div>
                   )}
 
+                  {/* Podgląd podczas aktywnego przeciągania myszką w dół po siatce (1:1 z obrazem użytkownika) */}
+                  {dragState && dragState.dateStr === dateStr && (() => {
+                    const minM = Math.min(dragState.startMinutes, dragState.currentMinutes);
+                    const maxM = Math.max(dragState.startMinutes, dragState.currentMinutes);
+                    const topPx = (minM / 60) * 48;
+                    const heightPx = Math.max(28, ((maxM - minM) / 60) * 48);
+
+                    const startH = Math.floor(minM / 60);
+                    const startMin = minM % 60;
+                    const endH = Math.floor(maxM / 60);
+                    const endMin = maxM % 60;
+                    const sStr = `${startH.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`;
+                    const eStr = `${endH.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
+
+                    return (
+                      <div
+                        style={{
+                          top: `${topPx}px`,
+                          height: `${heightPx}px`,
+                          backgroundColor: '#e8710a'
+                        }}
+                        className="absolute left-1 right-2 rounded-lg px-2.5 py-1 text-xs font-medium overflow-hidden shadow-2xl z-30 text-white pointer-events-none select-none border border-white/20 animate-in fade-in duration-75"
+                      >
+                        <div className="font-semibold truncate leading-tight">
+                          (Bez tytułu)
+                        </div>
+                        <div className="text-[10px] opacity-90 truncate leading-tight mt-0.5">
+                          {formatTimeRangeCompact(sStr, eStr)}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {/* Podgląd dodawanego wydarzenia (Image 4): (Bez tytułu) z godziną w kafelku obok okienka */}
-                  {creatingEvent && creatingEvent.date === dateStr && (() => {
+                  {creatingEvent && creatingEvent.date === dateStr && !dragState && (() => {
                     let topPx = 48;
                     let heightPx = 48;
                     if (creatingEvent.startTime) {
@@ -343,6 +567,12 @@ export default function CalendarWeek({
                     return (
                       <div
                         key={event.id}
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                        }}
+                        onTouchStart={(e) => {
+                          e.stopPropagation();
+                        }}
                         onClick={(e) => {
                           e.stopPropagation();
                           onSelectEvent(event);

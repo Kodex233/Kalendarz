@@ -1,23 +1,25 @@
-import React, { useState } from 'react';
-import { Users, Lock, ArrowRight, X, AlertCircle, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, AlertCircle } from 'lucide-react';
+import { checkPinRateLimit } from '../utils/security';
 
 export default function JoinRoomModal({
   isOpen,
   onClose,
   initialRoomCode = 'kodex',
-  initialPin = '',
   onJoinSuccess
 }) {
   const [roomCode, setRoomCode] = useState(initialRoomCode);
   const [userName, setUserName] = useState('');
-  const [pin, setPin] = useState(initialPin);
+  const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  React.useEffect(() => {
+  // Przy każdym otwarciu okna pole na PIN jest czyste i puste
+  useEffect(() => {
     if (initialRoomCode) setRoomCode(initialRoomCode);
-    if (initialPin) setPin(initialPin);
-  }, [initialRoomCode, initialPin]);
+    setPin('');
+    setError('');
+  }, [initialRoomCode, isOpen]);
 
   if (!isOpen) return null;
 
@@ -28,7 +30,14 @@ export default function JoinRoomModal({
       return;
     }
     if (!pin.trim()) {
-      setError('Wpisz kod PIN dostępu od znajomego.');
+      setError('Wpisz kod PIN dostępu od właściciela kalendarza.');
+      return;
+    }
+
+    // Zabezpieczenie anty-bot / anty-wtyczka: sprawdzenie limitu prób
+    const rateCheck = checkPinRateLimit();
+    if (!rateCheck.allowed) {
+      setError(rateCheck.message);
       return;
     }
 
@@ -40,6 +49,7 @@ export default function JoinRoomModal({
         userName: userName.trim(),
         pin: pin.trim()
       });
+      setPin('');
       onClose();
     } catch (err) {
       setError(err.message || 'Nieprawidłowy kod PIN lub błąd połączenia.');
@@ -49,29 +59,32 @@ export default function JoinRoomModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+    <div 
+      className="fixed inset-0 z-50 bg-[#131314] flex items-center justify-center p-4 animate-in fade-in duration-150"
+      onClick={onClose}
+    >
       <div 
-        className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[440px] overflow-hidden border border-[#3c4043] animate-in zoom-in-95 duration-150 p-7 relative"
+        className="bg-[#282a2d] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[440px] overflow-hidden border border-[#444746]/60 animate-in zoom-in-95 duration-150 p-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          onClick={onClose}
-          className="absolute right-5 top-5 p-2 text-[#9aa0a6] hover:bg-[#282a2d] hover:text-[#e3e3e3] rounded-full transition"
-          title="Zamknij"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* Header w stylu Google z przyciskiem X w rogu (bez żadnych ikonek w nagłówku) */}
+        <div className="flex items-center justify-between pb-2">
+          <h2 className="text-[20px] font-normal text-[#e3e3e3] font-['Google_Sans','Product_Sans',sans-serif]">
+            Dołącz do kalendarza
+          </h2>
 
-        {/* Icon */}
-        <div className="w-12 h-12 rounded-2xl bg-[#8ab4f8]/15 text-[#8ab4f8] flex items-center justify-center mb-4">
-          <Users className="w-6 h-6 stroke-[2.2]" />
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 hover:bg-[#35373a] text-[#c4c7c5] hover:text-white rounded-full transition cursor-pointer -mr-1"
+            title="Zamknij"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        <h2 className="text-xl font-normal text-[#e3e3e3] font-['Google_Sans','Product_Sans',sans-serif]">
-          Dołącz do kalendarza znajomego
-        </h2>
-        <p className="text-xs text-[#9aa0a6] mt-1.5 leading-relaxed">
-          Wpisz swoje imię oraz kod PIN otrzymany od znajomego, aby przeglądać pełny kalendarz i wymieniać się terminami na żywo.
+        <p className="text-xs text-[#9aa0a6] mt-1 leading-relaxed">
+          Wpisz swoje imię oraz kod PIN, aby przeglądać wspólny kalendarz i dodawać wydarzenia w czasie rzeczywistym.
         </p>
 
         {error && (
@@ -83,53 +96,76 @@ export default function JoinRoomModal({
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-[#9aa0a6] mb-1.5">
-              Twoje imię lub nazwa (np. Janek):
+            <label className="block text-xs font-medium text-[#c4c7c5] mb-1.5">
+              Twoje imię lub pseudonim:
             </label>
             <input
               type="text"
               required
-              placeholder="np. Kolega Janek"
+              placeholder="np. Kasia"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
-              className="w-full bg-[#131314] border border-[#444746] focus:border-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#747775] focus:outline-none transition"
+              className="w-full bg-[#1e1f20] border border-[#444746] focus:border-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#747775] focus:outline-none transition"
               autoFocus
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#9aa0a6] mb-1.5">
-              Kod PIN dostępu (od właściciela kalendarza):
+            <label className="block text-xs font-medium text-[#c4c7c5] mb-1.5">
+              Kod kalendarza:
             </label>
-            <div className="relative">
-              <input
-                type="text"
-                required
-                maxLength={8}
-                placeholder="np. 482910"
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-                className="w-full bg-[#131314] border border-[#444746] focus:border-[#8ab4f8] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#747775] font-mono tracking-wider focus:outline-none transition"
-              />
-              <Lock className="w-4 h-4 text-[#9aa0a6] absolute left-3.5 top-3 pointer-events-none" />
-            </div>
+            <input
+              type="text"
+              required
+              placeholder="kodex"
+              value={roomCode}
+              onChange={(e) => setRoomCode(e.target.value)}
+              className="w-full bg-[#1e1f20] border border-[#444746] focus:border-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#747775] focus:outline-none transition"
+            />
           </div>
 
-          <div className="pt-2 flex items-center justify-end space-x-3">
+          <div>
+            <label className="block text-xs font-medium text-[#c4c7c5] mb-1.5">
+              Kod PIN dostępu:
+            </label>
+            <input
+              type="password"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              required
+              maxLength={6}
+              autoComplete="new-password"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              data-form-type="other"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              placeholder="Wpisz 6-cyfrowy PIN"
+              value={pin}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                setPin(val);
+              }}
+              className="w-full bg-[#1e1f20] border border-[#444746] focus:border-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#747775] font-mono tracking-widest focus:outline-none transition"
+            />
+          </div>
+
+          {/* Przyciski w stylu Google: bez bordera na buttonie, bez strzałki */}
+          <div className="pt-3 flex items-center justify-end space-x-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 text-sm font-medium text-[#c4c7c5] hover:bg-[#282a2d] hover:text-white rounded-full transition"
+              className="px-5 py-2.5 text-sm font-medium text-[#8ab4f8] hover:bg-[#8ab4f8]/10 rounded-full transition cursor-pointer"
             >
               Anuluj
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2.5 bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#062e6f] font-semibold rounded-full text-sm transition shadow-sm disabled:opacity-50 flex items-center space-x-1.5 active:scale-95"
+              className="px-7 py-2.5 bg-[#0b57d0] hover:bg-[#1b66c9] text-white text-sm font-medium rounded-full transition shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
             >
-              <span>{loading ? 'Łączenie...' : 'Dołącz do kalendarza'}</span>
-              <ArrowRight className="w-4 h-4" />
+              {loading ? 'Łączenie...' : 'Dołącz'}
             </button>
           </div>
         </form>

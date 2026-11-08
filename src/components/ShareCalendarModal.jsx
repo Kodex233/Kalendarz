@@ -1,26 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-
-/**
- * Generuje 6-cyfrowy kod PIN rotowany co 15 minut
- */
-export function generate15MinPin(roomCode = 'kodex') {
-  const intervalIndex = Math.floor(Date.now() / (15 * 60 * 1000));
-  let hash = 0;
-  const str = `${roomCode}_${intervalIndex}_kalendarz_pin6`;
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i);
-    hash |= 0;
-  }
-  const positive = Math.abs(hash);
-  const pinNum = 100000 + (positive % 900000);
-  return String(pinNum);
-}
-
-export function getRemainingSecondsIn15Min() {
-  const now = Date.now();
-  const nextInterval = (Math.floor(now / (15 * 60 * 1000)) + 1) * 15 * 60 * 1000;
-  return Math.max(0, Math.floor((nextInterval - now) / 1000));
-}
+import { buildShareUrl } from '../utils/networkUrl';
+import { generateSecurePin } from '../utils/security';
 
 export default function ShareCalendarModal({
   isOpen,
@@ -40,23 +20,9 @@ export default function ShareCalendarModal({
   const [generalAccess, setGeneralAccess] = useState('restricted'); // 'restricted' | 'pin'
   const [isAccessDropdownOpen, setIsAccessDropdownOpen] = useState(false);
   const [activeRoleDropdownIndex, setActiveRoleDropdownIndex] = useState(null);
-  const [remainingSecs, setRemainingSecs] = useState(getRemainingSecondsIn15Min());
 
   const accessDropdownRef = useRef(null);
   const roleDropdownRef = useRef(null);
-
-  // Odliczanie czasu ważności PIN-u (15 min)
-  useEffect(() => {
-    if (!isOpen) return;
-    const timer = setInterval(() => {
-      const left = getRemainingSecondsIn15Min();
-      setRemainingSecs(left);
-      if (left === 0 && onUpdatePin) {
-        onUpdatePin(generate15MinPin(roomCode));
-      }
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [isOpen, roomCode, onUpdatePin]);
 
   // Obsługa kliknięć poza menu kontekstowe
   useEffect(() => {
@@ -74,15 +40,9 @@ export default function ShareCalendarModal({
 
   if (!isOpen) return null;
 
-  const minutes = Math.floor(remainingSecs / 60);
-  const seconds = remainingSecs % 60;
-  const timeFormatted = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-
-  const pinToDisplay = currentPin || generate15MinPin(roomCode);
-
-  const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(roomCode)}&pin=${encodeURIComponent(pinToDisplay)}`
-    : `https://kalendarz.pl/?room=${roomCode}&pin=${pinToDisplay}`;
+  const pinToDisplay = currentPin || '849201';
+  // Link NIGDY nie zawiera PIN-u na końcu - tylko czysty adres pokoju
+  const shareUrl = buildShareUrl(roomCode);
 
   const handleCopyLink = () => {
     if (navigator.clipboard) {
@@ -101,7 +61,7 @@ export default function ShareCalendarModal({
   };
 
   const handleRegeneratePin = () => {
-    const randomPin = String(Math.floor(100000 + Math.random() * 900000));
+    const randomPin = generateSecurePin();
     if (onUpdatePin) onUpdatePin(randomPin);
   };
 
@@ -127,11 +87,13 @@ export default function ShareCalendarModal({
     if (!onUpdateParticipants) return;
     const updated = [...participants];
     if (newRole === 'remove') {
+      const removed = updated[index];
       updated.splice(index, 1);
+      onUpdateParticipants(updated, { removedName: removed?.name });
     } else {
       updated[index] = { ...updated[index], role: newRole };
+      onUpdateParticipants(updated, { changedName: updated[index]?.name, newRole });
     }
-    onUpdateParticipants(updated);
     setActiveRoleDropdownIndex(null);
   };
 
@@ -415,7 +377,7 @@ export default function ShareCalendarModal({
                 </span>
               ) : (
                 <span className="text-xs text-[#9aa0a6]">
-                  (ważny: {timeFormatted})
+                  (kliknij, aby skopiować)
                 </span>
               )}
             </div>
@@ -431,13 +393,14 @@ export default function ShareCalendarModal({
           </div>
         </div>
 
-        {/* 5. Footer: Kopiuj link (z lewej) oraz Gotowe (z prawej) - 1:1 Image 1 */}
+        {/* 5. Footer: Kopiuj link (z lewej) oraz Gotowe (z prawej) */}
         <div className="mt-7 pt-1 flex items-center justify-between">
           {/* Przycisk Kopiuj link */}
           <button
             type="button"
             onClick={handleCopyLink}
-            className="flex items-center space-x-2 px-5 py-2.5 rounded-full border border-[#8e918f] hover:border-white text-[#8ab4f8] hover:bg-[#8ab4f8]/10 text-sm font-medium transition active:scale-95"
+            className="flex items-center space-x-2 px-5 py-2.5 rounded-full border border-[#8e918f] hover:border-white text-[#8ab4f8] hover:bg-[#8ab4f8]/10 text-sm font-medium transition active:scale-95 cursor-pointer"
+            title="Kopiuj link"
           >
             <svg className="w-4 h-4 fill-current text-[#8ab4f8]" viewBox="0 0 24 24">
               <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
@@ -445,11 +408,11 @@ export default function ShareCalendarModal({
             <span>{copiedLink ? 'Link skopiowany!' : 'Kopiuj link'}</span>
           </button>
 
-          {/* Przycisk Gotowe (niebieski pill Google Image 1) */}
+          {/* Przycisk Gotowe */}
           <button
             type="button"
             onClick={onClose}
-            className="px-7 py-2.5 bg-[#0b57d0] hover:bg-[#1b66c9] text-white rounded-full text-sm font-medium transition shadow-md active:scale-95"
+            className="px-7 py-2.5 bg-[#0b57d0] hover:bg-[#1b66c9] text-white rounded-full text-sm font-medium transition shadow-md active:scale-95 cursor-pointer"
           >
             Gotowe
           </button>

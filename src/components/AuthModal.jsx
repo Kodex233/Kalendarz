@@ -85,7 +85,7 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-[#131314] flex items-center justify-center p-4">
       {/* Authentic Google Sign-in Card */}
       <div className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[460px] overflow-hidden border border-[#3c4043] animate-in fade-in zoom-in-95 duration-150 p-9 relative">
         <button

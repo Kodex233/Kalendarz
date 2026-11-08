@@ -21,29 +21,28 @@ import EventModal from './components/EventModal';
 import EventDetailModal from './components/EventDetailModal';
 import ExchangeModal from './components/ExchangeModal';
 import AuthModal from './components/AuthModal';
-import ShareCalendarModal, { generate15MinPin } from './components/ShareCalendarModal';
+import ShareCalendarModal from './components/ShareCalendarModal';
+import { generateSecurePin, verifyPin, checkPinRateLimit, recordFailedPinAttempt, resetPinRateLimit } from './utils/security';
 import { auth, onAuthStateChanged, logoutUser, db } from './firebase/config';
 import { collection, getDocs } from 'firebase/firestore';
 import JoinRoomModal from './components/JoinRoomModal';
 import { 
   createOrUpdateRoom,
+  ensureRoom,
   getRoomData,
   joinRoom,
+  updateRoomParticipants,
+  removeParticipantFromRoom,
   subscribeToRoom,
   subscribeToRoomEvents,
   saveRoomEvent,
   swapRoomEventsInFirestore,
-  subscribeToUserEvents, 
-  subscribeToExchangeableEvents, 
-  subscribeToExchanges,
-  createEvent,
-  updateEvent,
   deleteEvent
 } from './firebase/eventsService';
 
 // Default starter calendars matching user screenshots
 const INITIAL_MY_CALENDARS = [
-  { id: 'kodex', name: 'kodex', color: '#1a73e8', checked: true },
+  { id: 'kalendarz', name: 'Kalendarz', color: '#1a73e8', checked: true },
   { id: 'familijne', name: 'Familijne', color: '#5f6368', checked: true },
   { id: 'zadania', name: 'Lista zadań', color: '#4285f4', checked: true },
   { id: 'urodziny', name: 'Urodziny', color: '#34a853', checked: true },
@@ -51,100 +50,57 @@ const INITIAL_MY_CALENDARS = [
 
 const INITIAL_OTHER_CALENDARS = [
   { id: 'swieta', name: 'Święta w Polsce', color: '#1e8e3e', checked: true },
-  { id: 'inne', name: 'Kalendarz kolegi (Janek)', color: '#f6bf26', checked: true },
+  { id: 'inne', name: 'Wspólny kalendarz', color: '#f6bf26', checked: true },
 ];
 
-// Default starter demo events: pełny kalendarz Twój oraz kolegi
+export const OFFICIAL_POLISH_HOLIDAYS = [
+  // 2026
+  { id: 'hol-2026-01-01', title: 'Nowy Rok', date: '2026-01-01', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Święto państwowe' },
+  { id: 'hol-2026-01-06', title: 'Święto Trzech Króli', date: '2026-01-06', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Objawienie Pańskie' },
+  { id: 'hol-2026-02-14', title: 'Walentynki', date: '2026-02-14', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Dzień Zakochanych' },
+  { id: 'hol-2026-04-05', title: 'Wielkanoc', date: '2026-04-05', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Niedziela Wielkanocna' },
+  { id: 'hol-2026-04-06', title: 'Poniedziałek Wielkanocny', date: '2026-04-06', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Poniedziałek Wielkanocny' },
+  { id: 'hol-2026-05-01', title: 'Święto Pracy', date: '2026-05-01', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Międzynarodowy Dzień Solidarności Ludzi Pracy' },
+  { id: 'hol-2026-05-02', title: 'Dzień Flagi RP', date: '2026-05-02', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Dzień Flagi Rzeczypospolitej Polskiej' },
+  { id: 'hol-2026-05-03', title: 'Święto Konstytucji 3 Maja', date: '2026-05-03', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Narodowe Święto Trzeciego Maja' },
+  { id: 'hol-2026-05-24', title: 'Zielone Świątki', date: '2026-05-24', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Zesłanie Ducha Świętego' },
+  { id: 'hol-2026-06-04', title: 'Boże Ciało', date: '2026-06-04', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Uroczystość Najświętszego Ciała i Krwi Chrystusa' },
+  { id: 'hol-2026-08-15', title: 'Wniebowzięcie NMP / Święto Wojska Polskiego', date: '2026-08-15', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Święto Wojska Polskiego i Wniebowzięcie NMP' },
+  { id: 'hol-2026-11-01', title: 'Wszystkich Świętych', date: '2026-11-01', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Uroczystość Wszystkich Świętych' },
+  { id: 'hol-2026-11-02', title: 'Dzień Zaduszny', date: '2026-11-02', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Wspomnienie Wszystkich Wiernych Zmarłych' },
+  { id: 'hol-2026-11-11', title: 'Dzień Niepodległości', date: '2026-11-11', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Narodowe Święto Niepodległości' },
+  { id: 'hol-2026-12-24', title: 'Wigilia Bożego Narodzenia', date: '2026-12-24', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Wigilia' },
+  { id: 'hol-2026-12-25', title: 'Boże Narodzenie', date: '2026-12-25', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Pierwszy dzień Bożego Narodzenia' },
+  { id: 'hol-2026-12-26', title: 'Drugi dzień Bożego Narodzenia', date: '2026-12-26', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Święto św. Szczepana' },
+  { id: 'hol-2026-12-31', title: 'Sylwester', date: '2026-12-31', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Ostatni dzień roku' },
+  // 2027
+  { id: 'hol-2027-01-01', title: 'Nowy Rok', date: '2027-01-01', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Święto państwowe' },
+  { id: 'hol-2027-01-06', title: 'Święto Trzech Króli', date: '2027-01-06', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Objawienie Pańskie' },
+  { id: 'hol-2027-03-28', title: 'Wielkanoc', date: '2027-03-28', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Niedziela Wielkanocna' },
+  { id: 'hol-2027-03-29', title: 'Poniedziałek Wielkanocny', date: '2027-03-29', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Poniedziałek Wielkanocny' },
+  { id: 'hol-2027-05-01', title: 'Święto Pracy', date: '2027-05-01', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Święto państwowe' },
+  { id: 'hol-2027-05-03', title: 'Święto Konstytucji 3 Maja', date: '2027-05-03', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Święto państwowe' },
+  { id: 'hol-2027-11-11', title: 'Dzień Niepodległości', date: '2027-11-11', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Narodowe Święto Niepodległości' },
+  { id: 'hol-2027-12-25', title: 'Boże Narodzenie', date: '2027-12-25', isAllDay: true, calendarId: 'swieta', customBg: '#1e8e3e', description: 'Święta Bożego Narodzenia' }
+];
+
+// Domyślne czyste wydarzenie startowe w pokoju
 const INITIAL_DEMO_EVENTS = [
   {
-    id: 'demo-holiday',
-    title: 'Dzień Niepodległości',
-    date: '2026-11-11',
-    startTime: '08:00',
-    endTime: '20:00',
-    color: 'green',
-    calendarId: 'swieta',
-    customBg: '#34a853',
-    description: 'Święto państwowe w Polsce',
-    isAllDay: true,
-    isExchangeable: false,
-    userId: 'system',
-    userEmail: 'swieta@kalendarz.pl'
-  },
-  {
-    id: 'demo-1',
+    id: 'starter-1',
     title: 'Spotkanie projektowe',
     date: '2026-11-08',
     startTime: '10:30',
     endTime: '11:30',
-    color: 'blue',
-    calendarId: 'kodex',
+    color: '#1a73e8',
+    calendarId: 'kalendarz',
     customBg: '#1a73e8',
     description: 'Omówienie harmonogramu i terminów',
     isExchangeable: true,
     userId: 'user-kodex',
     userName: 'Kodex',
-    userEmail: 'kodex233@gmail.com'
-  },
-  {
-    id: 'demo-2',
-    title: 'Dyżur poranny - Kolega Janek',
-    date: '2026-11-09',
-    startTime: '08:00',
-    endTime: '11:00',
-    color: 'teal',
-    calendarId: 'inne',
-    customBg: '#00897b',
-    description: 'Dyżur techniczny poniedziałek',
-    isExchangeable: true,
-    userId: 'friend-janek',
-    userName: 'Kolega Janek',
-    userEmail: 'janek@firma.pl'
-  },
-  {
-    id: 'demo-3',
-    title: 'Konsultacje semestralne - Kolega Janek',
-    date: '2026-11-10',
-    startTime: '12:00',
-    endTime: '13:30',
-    color: 'yellow',
-    calendarId: 'inne',
-    customBg: '#f6bf26',
-    description: 'Konsultacje semestralne w sali 204',
-    isExchangeable: true,
-    userId: 'friend-janek',
-    userName: 'Kolega Janek',
-    userEmail: 'janek@firma.pl'
-  },
-  {
-    id: 'demo-4',
-    title: 'Warsztaty frontend - Kolega Janek',
-    date: '2026-11-11',
-    startTime: '14:00',
-    endTime: '16:00',
-    color: 'purple',
-    calendarId: 'inne',
-    customBg: '#8e24aa',
-    description: 'Prezentacja komponentów i architektury',
-    isExchangeable: true,
-    userId: 'friend-janek',
-    userName: 'Kolega Janek',
-    userEmail: 'janek@firma.pl'
-  },
-  {
-    id: 'demo-5',
-    title: 'Dyżur piątkowy - Kolega Janek',
-    date: '2026-11-13',
-    startTime: '10:00',
-    endTime: '13:00',
-    color: 'red',
-    calendarId: 'inne',
-    customBg: '#e67c73',
-    description: 'Dyżur weekendowy support',
-    isExchangeable: true,
-    userId: 'friend-janek',
-    userName: 'Kolega Janek',
-    userEmail: 'janek@firma.pl'
+    userEmail: 'kodex233@gmail.com',
+    roomCode: 'kodex'
   }
 ];
 
@@ -184,12 +140,24 @@ export default function App() {
   // Calendars state
   const [myCalendars, setMyCalendars] = useState(() => {
     const saved = localStorage.getItem('kalendarz_my_calendars');
-    return saved ? JSON.parse(saved) : INITIAL_MY_CALENDARS;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.map(c => (c.id === 'kodex' || c.name === 'kodex') ? { ...c, id: 'kalendarz', name: 'Kalendarz' } : c);
+      } catch (e) {}
+    }
+    return INITIAL_MY_CALENDARS;
   });
 
   const [otherCalendars, setOtherCalendars] = useState(() => {
     const saved = localStorage.getItem('kalendarz_other_calendars');
-    return saved ? JSON.parse(saved) : INITIAL_OTHER_CALENDARS;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.map(c => c.id === 'inne' && c.name.includes('Janek') ? { ...c, name: 'Wspólny kalendarz' } : c);
+      } catch (e) {}
+    }
+    return INITIAL_OTHER_CALENDARS;
   });
 
   useEffect(() => {
@@ -223,41 +191,72 @@ export default function App() {
 
   // Multi-device Room Sharing & PIN state
   const [roomCode, setRoomCode] = useState('kodex');
-  const [roomPin, setRoomPin] = useState(() => generate15MinPin('kodex'));
+  const [roomPin, setRoomPin] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('kalendarz_owner_pin');
+      if (saved) return saved;
+    }
+    return generateSecurePin();
+  });
   const [participants, setParticipants] = useState(['Kodex']);
-  const [detailedParticipants, setDetailedParticipants] = useState([
-    { name: 'Kolega Janek', email: 'janek@firma.pl', role: 'Pełny dostęp', isOwner: false }
-  ]);
-  const [currentUserName, setCurrentUserName] = useState('Kodex');
-  const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [joinModalOpen, setJoinModalOpen] = useState(false);
-  const [urlJoinParams, setUrlJoinParams] = useState({ room: 'kodex', pin: '' });
-
-  // 1. Sprawdź parametry URL na starcie (?room=kodex&pin=1234)
-  useEffect(() => {
+  const [detailedParticipants, setDetailedParticipants] = useState([]);
+  const [currentUserName, setCurrentUserName] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const r = params.get('room');
-      const p = params.get('pin');
+      if (r) {
+        const saved = localStorage.getItem(`room_${r}_user`);
+        return saved || '';
+      }
+    }
+    return 'Kodex';
+  });
+  const [userRole, setUserRole] = useState('Właściciel'); // 'Właściciel' | 'Pełny dostęp' | 'Edytor' | 'Przeglądający'
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [joinModalOpen, setJoinModalOpen] = useState(false);
+  const [urlJoinParams, setUrlJoinParams] = useState({ room: 'kodex' });
+
+  // Autoryzacja dostępu: tylko właściciel ('Kodex') lub zaakceptowany uczestnik z kodem PIN
+  const isAuthorized = Boolean(
+    currentUserName && (
+      currentUserName === 'Kodex' || 
+      participants.includes(currentUserName)
+    )
+  );
+
+  // 1. Sprawdź parametry URL na starcie (?room=kodex)
+  // W skopiowanym linku NIE MA hasła, a jeśli ktoś otworzy stary link z &pin=, natychmiast go czyścimy
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      const r = url.searchParams.get('room');
+
+      // Bezpieczeństwo: usuń PIN z paska adresu URL jeśli tam się znajdował
+      if (url.searchParams.has('pin')) {
+        url.searchParams.delete('pin');
+        window.history.replaceState(null, '', url.pathname + (url.search ? url.search : ''));
+      }
 
       if (r) {
-        setUrlJoinParams({ room: r, pin: p || '' });
+        setUrlJoinParams({ room: r });
         setRoomCode(r);
-        if (p) setRoomPin(p);
 
         const savedUser = localStorage.getItem(`room_${r}_user`);
         if (!savedUser) {
-          // Nowa osoba z innego komputera wchodząca z linku: pytamy o imię i PIN
+          // Nowa osoba z innego urządzenia wchodząca z linku: wymuszenie dołączenia kodem PIN
           setJoinModalOpen(true);
         } else {
           setCurrentUserName(savedUser);
         }
       } else {
-        // Domyślna inicjalizacja pokoju w Firestore
-        createOrUpdateRoom('kodex', { pin: '1234', hostName: 'Kodex', participants: ['Kodex'] })
+        // Bezpieczna inicjalizacja pokoju w Firestore z silnym kryptograficznym hashem
+        const savedOwnerPin = localStorage.getItem('kalendarz_owner_pin') || generateSecurePin();
+        localStorage.setItem('kalendarz_owner_pin', savedOwnerPin);
+        setRoomPin(savedOwnerPin);
+        createOrUpdateRoom('kodex', { pin: savedOwnerPin, hostName: 'Kodex' })
           .catch(e => console.warn('Room init:', e));
 
-        // Zapewnij obecność początkowych wydarzeń w pokoju Firestore
+        // Zapewnij obecność początkowego wydarzenia w pokoju Firestore jeśli kolekcja jest pusta
         getDocs(collection(db, 'events')).then(snap => {
           if (!snap || snap.size === 0) {
             INITIAL_DEMO_EVENTS.forEach(ev => {
@@ -274,17 +273,61 @@ export default function App() {
     if (!roomCode) return;
     const unsubRoom = subscribeToRoom(roomCode, (roomData) => {
       if (roomData) {
-        if (roomData.pin) setRoomPin(roomData.pin);
-        if (roomData.participants) setParticipants(roomData.participants);
+        if (roomData.participants) {
+          setParticipants(roomData.participants);
+
+          // Jeśli użytkownik był dołączony, ale gospodarz usunął go z uczestników:
+          if (currentUserName && currentUserName !== 'Kodex' && !roomData.participants.includes(currentUserName)) {
+            localStorage.removeItem(`room_${roomCode}_user`);
+            setCurrentUserName('');
+            setMyEvents([]);
+            setExchangeableEvents([]);
+            setJoinModalOpen(true);
+            showToast('Twój dostęp do tego kalendarza został cofnięty przez właściciela.');
+            return;
+          }
+
+          // Wyświetlaj wyłącznie realne osoby zarejestrowane w Firestore wraz z ich rolą
+          const pData = roomData.participantsData || {};
+          const realOthers = roomData.participants
+            .filter(p => p !== 'Kodex' && p !== currentUserName)
+            .map(p => ({
+              name: p,
+              email: pData[p]?.email || (p.includes('@') ? p : `${p.toLowerCase().replace(/\s+/g, '')}@gmail.com`),
+              role: pData[p]?.role || 'Pełny dostęp',
+              isOwner: false
+            }));
+          setDetailedParticipants(realOthers);
+
+          // Zaktualizuj rolę bieżącego użytkownika (zarówno gospodarza jak i gościa)
+          if (currentUserName) {
+            if (currentUserName === 'Kodex') {
+              setUserRole('Właściciel');
+            } else {
+              const myAssignedRole = pData[currentUserName]?.role || 'Pełny dostęp';
+              setUserRole(myAssignedRole);
+            }
+          }
+        }
       }
     });
 
     const unsubEvents = subscribeToRoomEvents(roomCode, (roomEvents) => {
-      if (roomEvents && roomEvents.length > 0) {
-        const mine = roomEvents.filter(e => e.userName === currentUserName || (!e.userName && e.userId === 'user-kodex'));
-        const others = roomEvents.filter(e => e.userName !== currentUserName && e.userId !== 'user-kodex');
-        if (mine.length > 0) setMyEvents(mine);
-        if (others.length > 0) setExchangeableEvents(others);
+      if (roomEvents) {
+        // Wszystkie wydarzenia z tego pokoju: podział na własne i pozostałych uczestników
+        const normCurrent = (currentUserName || 'kodex').trim().toLowerCase();
+        const mine = roomEvents.filter(e => {
+          const author = (e.userName || (e.userId === 'user-kodex' ? 'kodex' : '')).trim().toLowerCase();
+          if (!author) return normCurrent === 'kodex';
+          return author === normCurrent;
+        });
+        const others = roomEvents.filter(e => {
+          const author = (e.userName || (e.userId === 'user-kodex' ? 'kodex' : '')).trim().toLowerCase();
+          if (!author) return normCurrent !== 'kodex';
+          return author !== normCurrent;
+        });
+        setMyEvents(mine);
+        setExchangeableEvents(others);
       }
     });
 
@@ -294,56 +337,13 @@ export default function App() {
     };
   }, [roomCode, currentUserName]);
 
-  // Track Firebase Auth state & load Firestore data
+  // Track Firebase Auth state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      if (!currentUser) {
-        setMyEvents(INITIAL_DEMO_EVENTS.filter(e => e.userId === 'user-kodex' || e.userId === 'system'));
-        setExchangeableEvents(INITIAL_DEMO_EVENTS.filter(e => e.userId !== 'user-kodex' && e.userId !== 'system'));
-      }
     });
-
-    // Sync from Firestore directly so real Firebase data is immediately active
-    getDocs(collection(db, 'events')).then(snap => {
-      if (snap && snap.size > 0) {
-        const events = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        const mine = events.filter(e => e.userId === 'user-kodex');
-        const friend = events.filter(e => e.userId === 'friend-janek' || e.userId?.startsWith('friend-'));
-        if (mine.length > 0) {
-          setMyEvents([...INITIAL_DEMO_EVENTS.filter(e => e.userId === 'system'), ...mine]);
-        }
-        if (friend.length > 0) {
-          setExchangeableEvents(friend);
-        }
-      }
-    }).catch(err => console.warn('Firestore load:', err));
-
     return () => unsubscribe();
   }, []);
-
-  // Subscribe to Firestore events when user is logged in
-  useEffect(() => {
-    if (!user || user.uid.startsWith('user-') || user.uid.startsWith('friend-')) return;
-
-    const unsubMyEvents = subscribeToUserEvents(user.uid, (events) => {
-      setMyEvents([...INITIAL_DEMO_EVENTS.filter(e => e.userId === 'system'), ...events]);
-    });
-
-    const unsubExchangeable = subscribeToExchangeableEvents(user.uid, (events) => {
-      setExchangeableEvents(events);
-    });
-
-    const unsubExchanges = subscribeToExchanges(user.email, user.uid, (exchList) => {
-      setExchanges(exchList);
-    });
-
-    return () => {
-      unsubMyEvents();
-      unsubExchangeable();
-      unsubExchanges();
-    };
-  }, [user]);
 
   // Stepping navigation handlers `< >` that step by the active view
   const handlePrevDate = () => {
@@ -447,12 +447,16 @@ export default function App() {
 
   // Open Create Event Modal with specific type
   const handleOpenCreateModal = (type = 'Wydarzenie') => {
+    if (userRole === 'Przeglądający') {
+      showToast('Masz uprawnienia tylko do odczytu (Przeglądający). Nie możesz dodawać wydarzeń.');
+      return;
+    }
     setEventType(type);
     setSelectedEvent({
       date: format(currentDate, 'yyyy-MM-dd'),
       startTime: '10:30',
       endTime: '11:30',
-      calendarId: 'kodex',
+      calendarId: 'kalendarz',
       dayIndex: 2,
       isNew: true
     });
@@ -461,13 +465,21 @@ export default function App() {
 
   // Open Create Event Modal for a clicked slot on weekly grid
   const handleSelectSlot = (date, timeStr, slotInfo = {}) => {
+    if (userRole === 'Przeglądający') {
+      showToast('Masz uprawnienia tylko do odczytu (Przeglądający). Nie możesz dodawać wydarzeń.');
+      return;
+    }
     const [h] = timeStr.split(':').map(Number);
     const endH = (h + 1) % 24;
+
+    const finalStartTime = slotInfo.startTime || `${h.toString().padStart(2, '0')}:00`;
+    const finalEndTime = slotInfo.endTime || `${endH.toString().padStart(2, '0')}:00`;
+
     setSelectedEvent({
       date: format(date, 'yyyy-MM-dd'),
-      startTime: `${h.toString().padStart(2, '0')}:00`,
-      endTime: `${endH.toString().padStart(2, '0')}:00`,
-      calendarId: 'kodex',
+      startTime: finalStartTime,
+      endTime: finalEndTime,
+      calendarId: 'kalendarz',
       dayIndex: slotInfo.dayIndex ?? 2,
       slotRect: slotInfo.slotRect,
       isNew: true,
@@ -485,69 +497,69 @@ export default function App() {
 
   // Open Edit mode from Detail Modal
   const handleEditFromDetail = (event) => {
+    if (userRole === 'Przeglądający') {
+      showToast('Masz uprawnienia tylko do odczytu (Przeglądający). Nie możesz edytować wydarzeń.');
+      return;
+    }
     setSelectedEvent(event);
     setEventType(event.type || 'Wydarzenie');
     setCreateModalOpen(true);
   };
 
-  // Save Event
+  // Save Event - zapisuje lokalnie i natychmiast w Firestore pokoju
   const handleSaveEvent = async (eventData) => {
-    const currentUid = user?.uid || 'user-kodex';
-    const currentEmail = user?.email || 'kodex233@gmail.com';
-    const currentName = user?.displayName || 'Kodex';
+    if (userRole === 'Przeglądający') {
+      showToast('Masz uprawnienia tylko do odczytu (Przeglądający). Nie możesz zapisywać wydarzeń.');
+      return;
+    }
+    const currentUid = user?.uid || (currentUserName === 'Kodex' ? 'user-kodex' : `user-${currentUserName.toLowerCase().replace(/\s+/g, '')}`);
+    const currentEmail = user?.email || `${(currentUserName || 'kodex').toLowerCase().replace(/\s+/g, '')}@gmail.com`;
+    const currentName = user?.displayName || currentUserName || 'Kodex';
+    const cleanCalId = (eventData.calendarId === 'kodex' ? 'kalendarz' : eventData.calendarId) || 'kalendarz';
 
-    // Local / Demo mode or test users
-    if (!user || user.uid.startsWith('user-') || user.uid.startsWith('friend-')) {
-      if (selectedEvent && selectedEvent.id) {
-        setMyEvents(prev => prev.map(e => e.id === selectedEvent.id ? { ...e, ...eventData } : e));
-      } else {
-        const newEv = {
+    try {
+      if (selectedEvent && selectedEvent.id && !selectedEvent.id.startsWith('demo-') && !selectedEvent.id.startsWith('starter-')) {
+        await saveRoomEvent(roomCode, {
+          ...selectedEvent,
           ...eventData,
-          id: 'demo-' + Date.now(),
+          calendarId: cleanCalId,
+          userName: selectedEvent.userName || currentName,
+          userEmail: selectedEvent.userEmail || currentEmail,
+          userId: selectedEvent.userId || currentUid,
+          roomCode
+        });
+      } else {
+        const newEvData = {
+          ...eventData,
+          calendarId: cleanCalId,
           userId: currentUid,
           userEmail: currentEmail,
           userName: currentName,
-          calendarId: eventData.calendarId || 'kodex'
+          isExchangeable: eventData.isExchangeable ?? false,
+          roomCode
         };
-        setMyEvents(prev => [...prev, newEv]);
-      }
-      showToast('Wydarzenie zostało zapisane');
-      return;
-    }
-
-    // Real Firebase Firestore
-    try {
-      if (selectedEvent && selectedEvent.id && selectedEvent.userId === user.uid) {
-        await updateEvent(selectedEvent.id, eventData);
-      } else {
-        await createEvent({
-          ...eventData,
-          userId: user.uid,
-          userEmail: user.email,
-          userName: user.displayName || user.email.split('@')[0],
-          calendarId: eventData.calendarId || 'kodex'
-        });
+        await saveRoomEvent(roomCode, newEvData);
       }
       showToast('Wydarzenie zostało zapisane');
     } catch (err) {
-      console.error(err);
-      alert('Nie udało się zapisać w Firestore: ' + err.message);
+      console.warn('Błąd zapisu w Firestore:', err);
+      showToast('Błąd zapisu wydarzenia w bazie');
     }
   };
 
   // Delete Event
   const handleDeleteEvent = async (eventId) => {
-    // Optimistically update local state immediately
-    setMyEvents(prev => prev.filter(e => e.id !== eventId));
-    setExchangeableEvents(prev => prev.filter(e => e.id !== eventId));
+    if (userRole === 'Przeglądający') {
+      showToast('Masz uprawnienia tylko do odczytu (Przeglądający). Nie możesz usuwać wydarzeń.');
+      return;
+    }
     setCreateModalOpen(false);
     setDetailModalOpen(false);
-    showToast('Wydarzenie zostało usunięte');
 
-    // If logged into real Firebase and event is not a local demo event
-    if (user && !user.uid.startsWith('user-') && !eventId.startsWith('demo-')) {
+    if (eventId) {
       try {
         await deleteEvent(eventId);
+        showToast('Wydarzenie zostało usunięte');
       } catch (err) {
         console.warn('Firestore deletion failed:', err);
       }
@@ -577,17 +589,37 @@ export default function App() {
   };
 
   const handleJoinRoom = async ({ roomCode: rCode, userName: uName, pin: uPin }) => {
+    // 1. Zabezpieczenie anty-bot: limit prób logowania i ochrona przed wtyczkami automatycznymi
+    const rateCheck = checkPinRateLimit();
+    if (!rateCheck.allowed) {
+      throw new Error(rateCheck.message);
+    }
+
     const room = await getRoomData(rCode);
     if (!room) {
       throw new Error(`Nie znaleziono pokoju o kodzie "${rCode}".`);
     }
-    if (room.pin && String(room.pin) !== String(uPin)) {
+
+    // 2. Kryptograficzna weryfikacja PIN-u (PBKDF2-50000 z unikalną solą)
+    let isValidPin = false;
+    if (room.pinHash && room.pinSalt) {
+      isValidPin = await verifyPin(uPin, room.pinHash, room.pinSalt);
+    } else if (room.pin) {
+      // Wsteczna kompatybilność: po zalogowaniu natychmiast migrujemy pokój na bezpieczny hash
+      isValidPin = String(room.pin) === String(uPin);
+      if (isValidPin) {
+        createOrUpdateRoom(rCode, { pin: uPin }).catch(() => {});
+      }
+    }
+
+    if (!isValidPin) {
+      recordFailedPinAttempt();
       throw new Error('Nieprawidłowy kod PIN dostępu do tego kalendarza!');
     }
 
+    resetPinRateLimit();
     await joinRoom(rCode, uName);
     setRoomCode(rCode);
-    setRoomPin(uPin);
     setCurrentUserName(uName);
     localStorage.setItem(`room_${rCode}_user`, uName);
 
@@ -600,15 +632,42 @@ export default function App() {
     showToast(`Połączono z kalendarzem "${rCode}" jako ${uName}!`);
   };
 
-  const handleUpdateParticipants = (newParticipants) => {
+  const handleUpdateParticipants = async (newParticipants, options = {}) => {
     setDetailedParticipants(newParticipants);
-    createOrUpdateRoom(roomCode, {
-      participants: ['Kodex', ...newParticipants.map(p => p.name)]
-    }).catch(e => console.warn(e));
+    const updatedData = {};
+    newParticipants.forEach(p => {
+      updatedData[p.name] = {
+        name: p.name,
+        email: p.email || `${p.name.toLowerCase().replace(/\s+/g, '')}@gmail.com`,
+        role: p.role || 'Pełny dostęp'
+      };
+    });
+
+    const updatePayload = {
+      participants: ['Kodex', ...newParticipants.map(p => p.name)],
+      participantsData: {
+        Kodex: { name: 'Kodex', role: 'Właściciel', email: 'kodex233@gmail.com' },
+        ...updatedData
+      }
+    };
+
+    // Jeśli usunięto użytkownika: natychmiast wygeneruj nowy silny PIN, aby usunięta osoba nie mogła ponownie dołączyć!
+    if (options.removedName) {
+      const newPin = generateSecurePin();
+      updatePayload.pin = newPin;
+      setRoomPin(newPin);
+      localStorage.setItem('kalendarz_owner_pin', newPin);
+      showToast(`Usunięto dostęp dla "${options.removedName}". Wygenerowano nowy kod PIN: ${newPin}`);
+    } else if (options.changedName && options.newRole) {
+      showToast(`Zmieniono rolę dla "${options.changedName}" na: ${options.newRole}`);
+    }
+
+    await createOrUpdateRoom(roomCode, updatePayload);
   };
 
   const handleUpdatePin = async (newPin) => {
     setRoomPin(newPin);
+    localStorage.setItem('kalendarz_owner_pin', newPin);
     await createOrUpdateRoom(roomCode, { pin: newPin });
     showToast(`Kod PIN zmieniony na: ${newPin}`);
   };
@@ -696,6 +755,8 @@ export default function App() {
 
   // Filter events based on active checked calendars and search queries + advanced filters
   const visibleEvents = useMemo(() => {
+    if (!isAuthorized) return [];
+
     const isSearchAll = advancedFilters.searchIn === 'Wszystkie kalendarze';
     const activeCalendarIds = new Set([
       ...myCalendars.filter(c => isSearchAll || c.checked).map(c => c.id),
@@ -708,18 +769,34 @@ export default function App() {
 
     let combined = [...myEvents, ...exchangeableEvents];
 
-    // Filter by calendar visibility
+    // Dołącz oficjalne polskie święta, gdy zaznaczony jest kalendarz "Święta w Polsce"
+    if (activeCalendarIds.has('swieta')) {
+      const swietaColor = calendarColorMap['swieta'] || '#1e8e3e';
+      OFFICIAL_POLISH_HOLIDAYS.forEach(hol => {
+        if (!combined.some(e => e.date === hol.date && (e.calendarId === 'swieta' || e.title === hol.title))) {
+          combined.push({
+            ...hol,
+            customBg: swietaColor
+          });
+        }
+      });
+    }
+
+    // Filter by calendar visibility - pokazuje wszystkie wydarzenia pokoju
     combined = combined.filter(e => {
-      const calId = e.calendarId || 'kodex';
-      return activeCalendarIds.has(calId);
+      const calId = e.calendarId || 'kalendarz';
+      return activeCalendarIds.has(calId) || 
+             (calId === 'kodex' && (activeCalendarIds.has('kalendarz') || activeCalendarIds.has('kodex'))) ||
+             (calId === 'kalendarz' && (activeCalendarIds.has('kalendarz') || activeCalendarIds.has('kodex'))) ||
+             activeCalendarIds.has('inne');
     });
 
     // Attach custom background color from calendar if applicable
     combined = combined.map(e => {
-      const calId = e.calendarId || 'kodex';
+      const calId = e.calendarId || 'kalendarz';
       return {
         ...e,
-        customBg: e.customBg || calendarColorMap[calId] || null
+        customBg: e.customBg || e.color || calendarColorMap[calId] || calendarColorMap['kalendarz'] || '#1a73e8'
       };
     });
 
@@ -781,16 +858,77 @@ export default function App() {
     }
 
     return combined;
-  }, [myEvents, exchangeableEvents, myCalendars, otherCalendars, searchQuery, personSearchQuery, advancedFilters]);
+  }, [isAuthorized, myEvents, exchangeableEvents, myCalendars, otherCalendars, searchQuery, personSearchQuery, advancedFilters]);
 
   const activeEventCal = selectedEvent ? (
-    myCalendars.find(c => c.id === selectedEvent.calendarId) || { name: 'kodex', color: '#1a73e8' }
-  ) : { name: 'kodex', color: '#1a73e8' };
+    myCalendars.find(c => c.id === selectedEvent.calendarId) || { name: 'Kalendarz', color: '#1a73e8' }
+  ) : { name: 'Kalendarz', color: '#1a73e8' };
 
   const pendingExchangesCount = exchanges.filter(ex => 
     (ex.targetUserId === (user?.uid || 'user-kodex') || (ex.targetUserEmail && (user?.email || 'kodex233@gmail.com') && ex.targetUserEmail?.toLowerCase() === (user?.email || 'kodex233@gmail.com').toLowerCase())) &&
     ex.status === 'pending'
   ).length;
+
+  // Ekran blokady / dołączania dla osób nieautoryzowanych (podczas logowania nie widać kalendarza!)
+  if (!isAuthorized) {
+    return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#131314] text-[#e3e3e3] p-4 select-none relative font-['Roboto',sans-serif]">
+        {/* Google Calendar minimal branded logo */}
+        <div className="flex items-center space-x-3 mb-6">
+          <div className="w-10 h-10 rounded-lg bg-[#1a73e8] flex items-center justify-center text-white font-bold text-lg shadow-md">
+            {format(currentDate, 'd')}
+          </div>
+          <span className="text-2xl font-normal text-[#e3e3e3] font-['Google_Sans',sans-serif] tracking-tight">
+            Kalendarz
+          </span>
+        </div>
+
+        {/* Lock Screen Card */}
+        <div className="bg-[#1e1f20] border border-[#444746]/50 rounded-[28px] p-8 max-w-[440px] w-full text-center shadow-2xl space-y-4">
+          <div className="w-14 h-14 mx-auto rounded-full bg-[#282a2d] border border-[#444746]/40 flex items-center justify-center text-[#8ab4f8]">
+            <svg className="w-7 h-7 fill-current text-[#8ab4f8]" viewBox="0 0 24 24">
+              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-normal font-['Google_Sans',sans-serif] text-white">
+            Kalendarz prywatny
+          </h2>
+          <p className="text-sm text-[#9aa0a6] leading-relaxed">
+            Ten kalendarz jest zabezpieczony. Aby uzyskać dostęp do wydarzeń i harmonogramu, musisz dołączyć podając poprawny kod PIN dostępu.
+          </p>
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => setJoinModalOpen(true)}
+              className="px-8 py-2.5 bg-[#0b57d0] hover:bg-[#1b66c9] text-white rounded-full text-sm font-medium transition shadow-md active:scale-95 cursor-pointer"
+            >
+              Dołącz do kalendarza
+            </button>
+          </div>
+        </div>
+
+        {/* Modal dołączania bezpośrednio na czystym tle (zero widocznego kalendarza) */}
+        <JoinRoomModal
+          isOpen={joinModalOpen}
+          onClose={() => setJoinModalOpen(false)}
+          initialRoomCode={urlJoinParams.room || roomCode}
+          onJoinSuccess={handleJoinRoom}
+        />
+
+        {toast && (
+          <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-[#e3e3e3] text-[#1f1f1f] px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-6 text-sm font-medium animate-in fade-in slide-in-from-bottom-2 duration-150">
+            <span>{toast.message}</span>
+            <button 
+              onClick={() => setToast(null)}
+              className="p-1 text-[#5f6368] hover:text-[#1f1f1f] hover:bg-black/10 rounded-full transition"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-screen flex flex-col bg-[#1e1f20] text-[#e3e3e3] overflow-hidden">
@@ -823,8 +961,8 @@ export default function App() {
         roomPin={roomPin}
         participants={participants}
         onUpdatePin={handleUpdatePin}
-        myEvents={myEvents.filter(e => e.userId === 'user-kodex' || e.userName === currentUserName || (!e.userId?.startsWith('friend-') && e.id !== 'demo-holiday'))}
-        exchangeableEvents={[...exchangeableEvents, ...myEvents.filter(e => (e.userId === 'friend-janek' || e.userId?.startsWith('friend-')) && e.userName !== currentUserName)]}
+        myEvents={myEvents}
+        exchangeableEvents={exchangeableEvents}
         onDirectSwap={handleDirectSwap}
         currentUser={currentUserName}
       />
@@ -847,9 +985,10 @@ export default function App() {
           onDeleteOtherCalendar={handleDeleteOtherCalendar}
           onAddOtherCalendar={handleAddOtherCalendar}
           onSearchPerson={setPersonSearchQuery}
+          userRole={userRole}
         />
 
-        {/* Calendar Container: bez niepotrzebnych animacji przy zmianie widoków i kliknięciu w roku */}
+        {/* Calendar Canvas */}
         <div 
           className={`flex-1 flex overflow-hidden ${
             slideDirection === 'next'
@@ -947,6 +1086,7 @@ export default function App() {
         onDelete={handleDeleteEvent}
         calendarName={activeEventCal.name}
         calendarColor={activeEventCal.color}
+        userRole={userRole}
       />
 
       {/* 3. Wymiana terminów - z linkiem do skopiowania, kodem PIN i synchronizacją na żywo */}
@@ -972,7 +1112,6 @@ export default function App() {
         isOpen={joinModalOpen}
         onClose={() => setJoinModalOpen(false)}
         initialRoomCode={urlJoinParams.room}
-        initialPin={urlJoinParams.pin}
         onJoinSuccess={handleJoinRoom}
       />
 
@@ -980,7 +1119,7 @@ export default function App() {
       <ShareCalendarModal
         isOpen={shareModalOpen}
         onClose={() => setShareModalOpen(false)}
-        calendarName="kodex"
+        calendarName="Kalendarz"
         ownerName={user?.displayName ? `${user.displayName} (you)` : 'kodex (you)'}
         ownerEmail={user?.email || 'kodex233@gmail.com'}
         roomCode={roomCode}

@@ -11,26 +11,106 @@ import {
   onSnapshot,
   serverTimestamp,
   orderBy,
-  runTransaction
+  runTransaction,
+  deleteField
 } from "firebase/firestore";
 import { db } from "./config";
+import { generatePinSalt, hashPin, generateSecurePin } from "../utils/security";
 
 const EVENTS_COLLECTION = "events";
 const EXCHANGES_COLLECTION = "exchanges";
 const ROOMS_COLLECTION = "calendar_rooms";
 
 /**
- * Utwórz lub zaktualizuj pokój współdzielonego kalendarza (PIN, link, uczestnicy)
+ * Zapewnij, że pokój istnieje w Firestore z bezpiecznym kryptograficznym hashem (PBKDF2)
+ * Czysty PIN NIGDY nie jest przetrzymywany w bazie Firestore, dzięki czemu żadna wtyczka
+ * ani skrypt zewnętrzny nie może go odczytać.
  */
-export const createOrUpdateRoom = async (roomCode, { pin, hostName, participants = [] }) => {
+export const ensureRoom = async (roomCode, { pin, hostName = 'Kodex' }) => {
   const roomRef = doc(db, ROOMS_COLLECTION, roomCode);
-  await setDoc(roomRef, {
-    roomCode,
-    pin: String(pin),
-    hostName: hostName || 'Kodex',
-    participants: participants.length > 0 ? participants : [hostName || 'Kodex'],
-    updatedAt: serverTimestamp()
-  }, { merge: true });
+  const snap = await getDoc(roomRef);
+  const actualPin = pin || generateSecurePin();
+  const salt = generatePinSalt();
+  const pinHash = await hashPin(actualPin, salt);
+
+  if (!snap.exists()) {
+    const initialData = {
+      roomCode,
+      pinHash,
+      pinSalt: salt,
+      hostName,
+      participants: [hostName],
+      participantsData: {
+        'Kodex': { name: 'Kodex', role: 'Właściciel', email: 'kodex233@gmail.com' }
+      },
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+    await setDoc(roomRef, initialData);
+    return { ...initialData, plainPin: actualPin };
+  } else {
+    const existing = snap.data();
+    // Migracja / ulepszenie bezpieczeństwa: jeśli w bazie jest jeszcze czysty pin lub brak hasha
+    if (!existing.pinHash || existing.pin) {
+      const pinToHash = pin || existing.pin || actualPin;
+      const newSalt = generatePinSalt();
+      const newHash = await hashPin(pinToHash, newSalt);
+      await updateDoc(roomRef, {
+        pinHash: newHash,
+        pinSalt: newSalt,
+        pin: deleteField(), // Usunięcie czystego tekstu PIN z bazy!
+        updatedAt: serverTimestamp()
+      });
+      return { ...existing, pinHash: newHash, pinSalt: newSalt, plainPin: pinToHash };
+    }
+    return existing;
+  }
+};
+
+/**
+ * Utwórz lub zaktualizuj pokój współdzielonego kalendarza (PIN, link, uczestnicy, role)
+ * Gdy podany jest nowy PIN, zostaje on zahashowany (PBKDF2-50000), a plain PIN jest usuwany.
+ */
+export const createOrUpdateRoom = async (roomCode, { pin, hostName, participants, participantsData }) => {
+  const roomRef = doc(db, ROOMS_COLLECTION, roomCode);
+  const snap = await getDoc(roomRef);
+
+  let pinHash = undefined;
+  let pinSalt = undefined;
+  if (pin !== undefined && pin !== null) {
+    pinSalt = generatePinSalt();
+    pinHash = await hashPin(String(pin), pinSalt);
+  }
+
+  if (!snap.exists()) {
+    const defaultPin = pin || generateSecurePin();
+    const defaultSalt = pinSalt || generatePinSalt();
+    const defaultHash = pinHash || await hashPin(defaultPin, defaultSalt);
+
+    await setDoc(roomRef, {
+      roomCode,
+      pinHash: defaultHash,
+      pinSalt: defaultSalt,
+      hostName: hostName || 'Kodex',
+      participants: (participants && participants.length > 0) ? participants : [hostName || 'Kodex'],
+      participantsData: participantsData || {
+        'Kodex': { name: 'Kodex', role: 'Właściciel', email: 'kodex233@gmail.com' }
+      },
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+  } else {
+    const updateData = { updatedAt: serverTimestamp() };
+    if (pinHash !== undefined && pinSalt !== undefined) {
+      updateData.pinHash = pinHash;
+      updateData.pinSalt = pinSalt;
+      updateData.pin = deleteField(); // Skasuj plain PIN z Firestore
+    }
+    if (hostName) updateData.hostName = hostName;
+    if (participants !== undefined) updateData.participants = participants;
+    if (participantsData !== undefined) updateData.participantsData = participantsData;
+    await updateDoc(roomRef, updateData);
+  }
   return roomRef;
 };
 
@@ -47,23 +127,77 @@ export const getRoomData = async (roomCode) => {
 };
 
 /**
- * Dołącz do pokoju jako uczestnik
+ * Dołącz do pokoju jako uczestnik i zapisz w Firestore z przypisaną rolą
  */
-export const joinRoom = async (roomCode, participantName) => {
+export const joinRoom = async (roomCode, participantName, participantEmail, initialRole = 'Pełny dostęp') => {
   const roomRef = doc(db, ROOMS_COLLECTION, roomCode);
   const snap = await getDoc(roomRef);
   if (!snap.exists()) {
-    throw new Error('Pokój o podanym kodzie nie istnieje.');
+    throw new Error(`Pokój o kodzie "${roomCode}" nie istnieje.`);
   }
   const data = snap.data();
   const currentParticipants = data.participants || [];
-  if (!currentParticipants.includes(participantName)) {
-    await updateDoc(roomRef, {
-      participants: [...currentParticipants, participantName],
-      updatedAt: serverTimestamp()
-    });
+  const currentParticipantsData = data.participantsData || {};
+  const cleanName = participantName.trim();
+  const cleanEmail = participantEmail || `${cleanName.toLowerCase().replace(/\s+/g, '')}@gmail.com`;
+
+  let updatedParticipants = currentParticipants;
+  if (!currentParticipants.includes(cleanName)) {
+    updatedParticipants = [...currentParticipants, cleanName];
   }
-  return data;
+
+  const existingRole = currentParticipantsData[cleanName]?.role;
+  const updatedParticipantsData = {
+    ...currentParticipantsData,
+    [cleanName]: {
+      name: cleanName,
+      email: cleanEmail,
+      role: existingRole || initialRole
+    }
+  };
+
+  await updateDoc(roomRef, {
+    participants: updatedParticipants,
+    participantsData: updatedParticipantsData,
+    updatedAt: serverTimestamp()
+  });
+
+  return { ...data, participants: updatedParticipants, participantsData: updatedParticipantsData };
+};
+
+/**
+ * Zaktualizuj listę uczestników i ich role w Firestore
+ */
+export const updateRoomParticipants = async (roomCode, participants, participantsData) => {
+  const roomRef = doc(db, ROOMS_COLLECTION, roomCode);
+  const updatePayload = {
+    participants,
+    updatedAt: serverTimestamp()
+  };
+  if (participantsData) {
+    updatePayload.participantsData = participantsData;
+  }
+  await updateDoc(roomRef, updatePayload);
+};
+
+/**
+ * Usuń uczestnika z pokoju w Firestore
+ */
+export const removeParticipantFromRoom = async (roomCode, participantName) => {
+  const roomRef = doc(db, ROOMS_COLLECTION, roomCode);
+  const snap = await getDoc(roomRef);
+  if (!snap.exists()) return;
+  const data = snap.data();
+  const currentParticipants = data.participants || [];
+  const currentParticipantsData = { ...(data.participantsData || {}) };
+  delete currentParticipantsData[participantName];
+
+  const updated = currentParticipants.filter(p => p !== participantName);
+  await updateDoc(roomRef, {
+    participants: updated,
+    participantsData: currentParticipantsData,
+    updatedAt: serverTimestamp()
+  });
 };
 
 /**
@@ -106,21 +240,29 @@ export const subscribeToRoomEvents = (roomCode, callback) => {
  * Zapisz lub zaktualizuj wydarzenie w pokoju
  */
 export const saveRoomEvent = async (roomCode, eventData) => {
-  if (eventData.id && !eventData.id.startsWith('demo-')) {
+  const cleanData = {};
+  Object.keys(eventData || {}).forEach(k => {
+    if (k !== 'id' && eventData[k] !== undefined) {
+      cleanData[k] = eventData[k];
+    }
+  });
+  if (!cleanData.calendarId || cleanData.calendarId === 'kodex') {
+    cleanData.calendarId = 'kalendarz';
+  }
+  cleanData.roomCode = roomCode || 'kodex';
+
+  if (eventData.id && !eventData.id.startsWith('demo-') && !eventData.id.startsWith('starter-')) {
     const ref = doc(db, EVENTS_COLLECTION, eventData.id);
     await setDoc(ref, {
-      ...eventData,
-      roomCode,
+      ...cleanData,
       updatedAt: serverTimestamp()
     }, { merge: true });
     return eventData.id;
   } else {
-    const cleanData = { ...eventData };
-    delete cleanData.id;
     const ref = await addDoc(collection(db, EVENTS_COLLECTION), {
       ...cleanData,
-      roomCode,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
     });
     return ref.id;
   }
