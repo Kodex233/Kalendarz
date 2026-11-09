@@ -231,14 +231,14 @@ export default function ShareCalendarModal({
             {/* Właściciel: kodex (you) z grubym gradientowym borderem i odstępem jak na zdjęciu */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                {/* Avatar z borderem jak na zdjęciu: subtelny fioletowy gradient tylko w prawym górnym rogu */}
+                {/* Avatar z borderem dokładnie jak na zbliżeniu: fioletowy w prawym górnym, niebieski na dole */}
                 <div 
                   className="w-[46px] h-[46px] rounded-full p-[2.5px] flex items-center justify-center shrink-0 shadow-sm"
                   style={{
-                    background: 'linear-gradient(225deg, #a5b4fc 0%, #60a5fa 15%, #1a73e8 35%, #1a73e8 100%)'
+                    background: 'linear-gradient(225deg, #c4b5fd 0%, #a78bfa 28%, #60a5fa 55%, #3b82f6 80%, #2563eb 100%)'
                   }}
                 >
-                  <div className="w-full h-full rounded-full p-[3px] bg-[#282a2d] flex items-center justify-center">
+                  <div className="w-full h-full rounded-full p-[2.5px] bg-[#282a2d] flex items-center justify-center">
                     <div className="w-full h-full rounded-full bg-[#e8710a] text-white flex items-center justify-center font-bold text-sm select-none">
                       k
                     </div>
