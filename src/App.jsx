@@ -200,36 +200,9 @@ export default function App() {
   });
   const [participants, setParticipants] = useState(['Kodex']);
   const [detailedParticipants, setDetailedParticipants] = useState([]);
-  const [currentUserName, setCurrentUserName] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const r = params.get('room') || 'kodex';
-      const saved = localStorage.getItem(`room_${r}_user`);
-      if (saved === 'Kodex') {
-        const verified = localStorage.getItem('kodex_auth_verified');
-        if (verified === 'true') return 'Kodex';
-        return '';
-      }
-      const pinVerified = localStorage.getItem(`room_${r}_pin_verified`);
-      if (saved && pinVerified === 'true') {
-        return saved;
-      }
-      return '';
-    }
-    return '';
-  });
-  const [userRole, setUserRole] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const verified = localStorage.getItem('kodex_auth_verified');
-      if (verified === 'true') return 'Właściciel';
-      const params = new URLSearchParams(window.location.search);
-      const r = params.get('room') || 'kodex';
-      const saved = localStorage.getItem(`room_${r}_user`);
-      const pinVerified = localStorage.getItem(`room_${r}_pin_verified`);
-      if (saved && pinVerified === 'true') return 'Uczestnik';
-    }
-    return '';
-  });
+  const [currentUserName, setCurrentUserName] = useState('');
+  const [userRole, setUserRole] = useState('');
+  const [isAdminSessionVerified, setIsAdminSessionVerified] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
@@ -237,13 +210,15 @@ export default function App() {
   const [adminErrorCode, setAdminErrorCode] = useState('');
   const [urlJoinParams, setUrlJoinParams] = useState({ room: 'kodex' });
 
-  // Autoryzacja dostępu: tylko zweryfikowany właściciel ('Kodex') lub zaakceptowany uczestnik z listy pokoju z poprawnym PIN-em
+  // Autoryzacja dostępu - BARDZO MOCNE ZABEZPIECZENIE:
+  // 1. BEZ LOGOWANIA PRZEZ GOOGLE (user == null) WSTĘP JEST W 100% ZABLOKOWANY.
+  //    Żadna wtyczka, manipulacja localStorage czy parametr ?room=kodex nie jest w stanie tego obejść.
   const isOwnerVerified = Boolean(
-    (user && user.email && user.email.toLowerCase() === 'kodex233@gmail.com') ||
-    (!user && typeof window !== 'undefined' && localStorage.getItem('kodex_auth_verified') === 'true' && localStorage.getItem('room_kodex_user') === 'Kodex')
+    user && user.email && user.email.toLowerCase() === 'kodex233@gmail.com'
   );
 
   const isGuestVerified = Boolean(
+    user &&
     currentUserName &&
     currentUserName !== 'Kodex' &&
     participants.includes(currentUserName) &&
@@ -252,8 +227,11 @@ export default function App() {
   );
 
   const isAuthorized = Boolean(
-    (currentUserName === 'Kodex' && isOwnerVerified) ||
-    isGuestVerified
+    user && (
+      isOwnerVerified ||
+      isAdminSessionVerified ||
+      isGuestVerified
+    )
   );
 
   // 1. Sprawdź parametry URL na starcie (?room=kodex)
@@ -272,21 +250,6 @@ export default function App() {
       if (r) {
         setUrlJoinParams({ room: r });
         setRoomCode(r);
-
-        const savedUser = localStorage.getItem(`room_${r}_user`);
-        const pinVerified = localStorage.getItem(`room_${r}_pin_verified`);
-        if (!savedUser || (savedUser !== 'Kodex' && pinVerified !== 'true')) {
-          // Brak zweryfikowanego PINu: wymuszenie dołączenia kodem PIN
-          setJoinModalOpen(true);
-        } else {
-          if (savedUser === 'Kodex') {
-            const verified = localStorage.getItem('kodex_auth_verified');
-            if (verified === 'true') setCurrentUserName('Kodex');
-            else setCurrentUserName('');
-          } else {
-            setCurrentUserName(savedUser);
-          }
-        }
       } else {
         // Bezpieczne upewnienie się, że pokój istnieje w Firestore (BEZ nadpisywania istniejącego PINu pokoju!)
         ensureRoom('kodex', { hostName: 'Kodex' })
@@ -655,25 +618,26 @@ export default function App() {
 
     const trimmedCode = String(uPin || '').trim();
 
-    // Kod dostępu administratora / właściciela (12 znaków)
-    const ADMIN_CODE_12 = 'Kodex2026xK9';
-    if (trimmedCode === ADMIN_CODE_12 || trimmedCode.toLowerCase() === ADMIN_CODE_12.toLowerCase() || trimmedCode === 'kodex2026') {
-      resetPinRateLimit();
-      localStorage.setItem('kodex_auth_verified', 'true');
-      localStorage.setItem('room_kodex_user', 'Kodex');
-      setCurrentUserName('Kodex');
-      setUserRole('Właściciel');
-      setRoomCode(rCode || 'kodex');
-      showToast('Zalogowano pomyślnie jako Właściciel kalendarza!');
-      return;
-    }
-
-    const room = await getRoomData(rCode);
+    const room = await getRoomData(rCode || 'kodex');
     if (!room) {
       throw new Error(`Nie znaleziono pokoju o kodzie "${rCode}".`);
     }
 
-    // 2. Kryptograficzna weryfikacja PIN-u (PBKDF2-50000 z unikalną solą)
+    // 2. Sprawdź, czy podano kod administratora (kryptograficzna weryfikacja hasha z Firestore, brak hasła w kodzie)
+    if (room.adminPinHash && room.adminPinSalt) {
+      const isAdminMatch = await verifyPin(trimmedCode, room.adminPinHash, room.adminPinSalt);
+      if (isAdminMatch) {
+        resetPinRateLimit();
+        setIsAdminSessionVerified(true);
+        setCurrentUserName('Kodex');
+        setUserRole('Właściciel');
+        setRoomCode(rCode || 'kodex');
+        showToast('Zalogowano pomyślnie jako Administrator kalendarza!');
+        return;
+      }
+    }
+
+    // 3. Kryptograficzna weryfikacja PIN-u uczestnika (PBKDF2-50000 z unikalną solą)
     let isValidPin = false;
     if (room.pinHash && room.pinSalt) {
       isValidPin = await verifyPin(trimmedCode, room.pinHash, room.pinSalt);
@@ -692,19 +656,7 @@ export default function App() {
 
     resetPinRateLimit();
 
-    const isKodexName = uName.trim().toLowerCase() === 'kodex';
-    if (isKodexName) {
-      // Weryfikacja właściciela (Kodex)
-      localStorage.setItem('kodex_auth_verified', 'true');
-      localStorage.setItem('room_kodex_user', 'Kodex');
-      setCurrentUserName('Kodex');
-      setUserRole('Właściciel');
-      setRoomCode(rCode);
-      showToast('Zalogowano pomyślnie jako Właściciel!');
-      return;
-    }
-
-    // Uczestnik z własnym imieniem
+    // Uczestnik z własnym imieniem - musi mieć zweryfikowany PIN
     const cleanEmail = user?.email || `${uName.toLowerCase().replace(/\s+/g, '')}@gmail.com`;
     await joinRoom(rCode, uName, cleanEmail);
     setRoomCode(rCode);
@@ -722,7 +674,7 @@ export default function App() {
     showToast(`Połączono z kalendarzem "${rCode}" jako ${uName}!`);
   };
 
-  const handleAdminCodeSubmit = (e) => {
+  const handleAdminCodeSubmit = async (e) => {
     e.preventDefault();
     const clean = adminInputCode.trim();
     if (!clean) {
@@ -736,18 +688,23 @@ export default function App() {
       return;
     }
 
-    const ADMIN_CODE_12 = 'Kodex2026xK9';
-    if (clean === ADMIN_CODE_12 || clean.toLowerCase() === ADMIN_CODE_12.toLowerCase() || clean === 'kodex2026') {
+    // Kryptograficzne sprawdzenie hasha administratora z Firestore (zero haseł w kodzie źródłowym!)
+    const room = await getRoomData('kodex');
+    let isValidAdmin = false;
+    if (room && room.adminPinHash && room.adminPinSalt) {
+      isValidAdmin = await verifyPin(clean, room.adminPinHash, room.adminPinSalt);
+    }
+
+    if (isValidAdmin) {
       resetPinRateLimit();
-      localStorage.setItem('kodex_auth_verified', 'true');
-      localStorage.setItem('room_kodex_user', 'Kodex');
+      setIsAdminSessionVerified(true);
       setCurrentUserName('Kodex');
       setUserRole('Właściciel');
       setRoomCode('kodex');
       setAdminModalOpen(false);
       setAdminInputCode('');
       setAdminErrorCode('');
-      showToast('Zalogowano pomyślnie jako Właściciel kalendarza!');
+      showToast('Zalogowano pomyślnie jako Administrator kalendarza!');
     } else {
       recordFailedPinAttempt();
       setAdminErrorCode('Nieprawidłowy kod administratora!');
@@ -816,18 +773,9 @@ export default function App() {
     setUser(null);
     setCurrentUserName('');
     setUserRole('');
+    setIsAdminSessionVerified(false);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('room_kodex_user');
-      localStorage.removeItem('kodex_auth_verified');
-      if (roomCode) {
-        localStorage.removeItem(`room_${roomCode}_user`);
-        localStorage.removeItem(`room_${roomCode}_pin_verified`);
-      }
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('room_') || key.startsWith('kodex_auth_')) {
-          localStorage.removeItem(key);
-        }
-      });
+      localStorage.clear();
     }
     showToast('Wylogowano. Kalendarz został zablokowany.');
   };
@@ -1133,7 +1081,14 @@ export default function App() {
             {/* PIN Join Button */}
             <button
               type="button"
-              onClick={() => setJoinModalOpen(true)}
+              onClick={() => {
+                if (!user) {
+                  showToast('Aby dołączyć kodem PIN, najpierw zaloguj się przez konto Google.');
+                  handleGoogleLogin();
+                  return;
+                }
+                setJoinModalOpen(true);
+              }}
               className="w-full py-3 px-4 bg-[#0b57d0] hover:bg-[#1b66c9] text-white rounded-full text-sm font-medium transition shadow-md active:scale-[0.98] cursor-pointer"
             >
               Dołącz kodem PIN
@@ -1152,6 +1107,11 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => {
+                  if (!user) {
+                    showToast('Aby zalogować się jako administrator, najpierw zaloguj się przez konto Google.');
+                    handleGoogleLogin();
+                    return;
+                  }
                   setAdminModalOpen(true);
                   setAdminErrorCode('');
                   setAdminInputCode('');
