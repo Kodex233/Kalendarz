@@ -1030,13 +1030,13 @@ export default function App() {
   if (!isAuthorized) {
     return (
       <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-[#0d0e12] text-[#e3e3e3] p-4 select-none relative font-['Roboto',sans-serif] overflow-hidden">
-        {/* Gemini Atmospheric Cosmic Sapphire Background Glow */}
+        {/* Gemini Atmospheric Cosmic Sapphire Background Glow z płynną zmianą kolorów */}
         <div 
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none gemini-aurora-glow"
           style={{
             background: `
-              radial-gradient(ellipse 85% 65% at 65% 38%, rgba(28, 68, 158, 0.45) 0%, rgba(18, 42, 105, 0.28) 35%, rgba(11, 22, 60, 0.12) 65%, transparent 85%),
-              radial-gradient(circle 500px at 50% 50%, rgba(30, 75, 170, 0.25) 0%, rgba(14, 28, 70, 0.12) 50%, transparent 80%)
+              radial-gradient(ellipse 85% 65% at 65% 38%, rgba(28, 68, 158, 0.48) 0%, rgba(18, 42, 105, 0.3) 35%, rgba(11, 22, 60, 0.14) 65%, transparent 85%),
+              radial-gradient(circle 550px at 50% 50%, rgba(30, 75, 170, 0.28) 0%, rgba(14, 28, 70, 0.14) 50%, transparent 80%)
             `
           }}
         />
@@ -1053,8 +1053,8 @@ export default function App() {
           </span>
         </div>
 
-        {/* Lock Screen Card: tło bez bordera */}
-        <div className="bg-[#1e1f20] rounded-[28px] p-8 max-w-[440px] w-full text-center shadow-2xl space-y-5 relative z-10">
+        {/* Lock Screen Card: tło bez bordera, lekko szersze, aby przyciski mieściły się idealnie */}
+        <div className="bg-[#1e1f20] rounded-[28px] p-8 max-w-[464px] w-full text-center shadow-2xl space-y-5 relative z-10">
           <div>
             <h2 className="text-2xl font-normal font-['Google_Sans',sans-serif] text-white">
               Kalendarz prywatny
@@ -1096,12 +1096,12 @@ export default function App() {
               Dołącz kodem PIN
             </button>
 
-            {/* Dwa przyciski obok siebie (po 50% szerokości): Logowanie e-mail oraz Dołącz jako admin */}
-            <div className="flex items-center space-x-2.5 pt-1">
+            {/* Dwa przyciski bliżej siebie (space-x-1.5), każdy po 50% szerokości */}
+            <div className="flex items-center space-x-1.5 pt-1">
               <button
                 type="button"
                 onClick={() => setAuthModalOpen(true)}
-                className="w-1/2 py-2.5 px-3 bg-transparent hover:bg-[#282a2d] border border-[#3c4043] hover:border-[#444746] text-[#c4c7c5] hover:text-[#e3e3e3] rounded-full text-xs sm:text-sm font-medium transition shadow-sm active:scale-[0.98] cursor-pointer text-center truncate"
+                className="w-1/2 py-2.5 px-3 bg-transparent hover:bg-[#282a2d] border border-[#3c4043] hover:border-[#444746] text-[#c4c7c5] hover:text-[#e3e3e3] rounded-full text-xs sm:text-[13px] font-medium transition shadow-sm active:scale-[0.98] cursor-pointer text-center whitespace-nowrap"
               >
                 Logowanie przez e-mail
               </button>
@@ -1113,7 +1113,7 @@ export default function App() {
                   setAdminErrorCode('');
                   setAdminInputCode('');
                 }}
-                className="w-1/2 py-2.5 px-3 bg-transparent hover:bg-[#282a2d] border border-[#3c4043] hover:border-[#444746] text-[#c4c7c5] hover:text-[#e3e3e3] rounded-full text-xs sm:text-sm font-medium transition shadow-sm active:scale-[0.98] cursor-pointer text-center truncate"
+                className="w-1/2 py-2.5 px-3 bg-transparent hover:bg-[#282a2d] border border-[#3c4043] hover:border-[#444746] text-[#c4c7c5] hover:text-[#e3e3e3] rounded-full text-xs sm:text-[13px] font-medium transition shadow-sm active:scale-[0.98] cursor-pointer text-center whitespace-nowrap"
               >
                 Dołącz jako admin
               </button>
