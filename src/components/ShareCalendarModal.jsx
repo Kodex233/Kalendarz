@@ -228,19 +228,11 @@ export default function ShareCalendarModal({
               );
             })}
 
-            {/* Właściciel: kodex (you) z oznaczeniem Google przy avatarze, napisem w borderze i osobną ikonką w borderze */}
+            {/* Właściciel: kodex (you) z czystym obramowaniem avatara i napisem Właściciel w borderze */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <div className="w-9 h-9 rounded-full bg-[#e8710a] text-white flex items-center justify-center font-bold text-sm select-none shrink-0 ring-2 ring-[#a8c7fa] ring-offset-2 ring-offset-[#282a2d]">
-                    k
-                  </div>
-                  {/* Google style verified badge */}
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#0b57d0] text-white rounded-full flex items-center justify-center ring-2 ring-[#282a2d]" title="Właściciel">
-                    <svg className="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24">
-                      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
-                    </svg>
-                  </div>
+                <div className="w-9 h-9 rounded-full bg-[#e8710a] text-white flex items-center justify-center font-bold text-sm select-none shrink-0 border-2 border-[#a8c7fa]">
+                  k
                 </div>
                 <div>
                   <p className="text-sm font-normal text-[#e3e3e3] leading-snug">
@@ -252,19 +244,11 @@ export default function ShareCalendarModal({
                 </div>
               </div>
 
-              {/* Napis Właściciel w borderze i osobny border z ikonką informującą o roli właściciela */}
-              <div className="flex items-center space-x-1.5 pr-1 select-none">
+              {/* Napis Właściciel w borderze bez zbędnych dodatkowych ikonek */}
+              <div className="flex items-center pr-1 select-none">
                 <span className="text-xs text-[#e3e3e3] border border-[#747775] px-2.5 py-1 rounded-full font-medium">
                   Właściciel
                 </span>
-                <div 
-                  className="w-7 h-7 flex items-center justify-center rounded-full border border-[#747775] text-[#a8c7fa]"
-                  title="Właściciel kalendarza"
-                >
-                  <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
-                  </svg>
-                </div>
               </div>
             </div>
 
@@ -510,11 +494,11 @@ export default function ShareCalendarModal({
 
         {/* 5. Footer: Kopiuj link (z lewej) oraz Gotowe (z prawej) */}
         <div className="mt-7 pt-1 flex items-center justify-between">
-          {/* Przycisk Kopiuj link: bez borderu, hover to kolor napisu z większą przezroczystością */}
+          {/* Przycisk Kopiuj link: z oryginalnym eleganckim borderem */}
           <button
             type="button"
             onClick={handleCopyLink}
-            className="flex items-center space-x-2 px-5 py-2.5 rounded-full border-0 text-[#8ab4f8] hover:bg-[#8ab4f8]/20 text-sm font-medium transition active:scale-95 cursor-pointer"
+            className="flex items-center space-x-2 px-5 py-2.5 rounded-full border border-[#8e918f] hover:border-white text-[#8ab4f8] hover:bg-[#8ab4f8]/10 text-sm font-medium transition active:scale-95 cursor-pointer"
             title="Kopiuj link"
           >
             <svg className="w-4 h-4 fill-current text-[#8ab4f8]" viewBox="0 0 24 24">

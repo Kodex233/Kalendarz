@@ -16,6 +16,7 @@ import {
   RotateCcw,
   Calendar as CalendarIcon,
   UserPlus,
+  Share2,
   BookOpen,
   Sparkles,
   MessageSquare
@@ -631,8 +632,8 @@ export default function Navbar({
           className="flex items-center space-x-2 px-4 h-10 bg-[#282a2d] hover:bg-[#35373a] text-white rounded-full text-sm font-medium transition focus:outline-none cursor-pointer border-0 shadow-none"
           title="Udostępnij kalendarz i zarządzaj uprawnieniami"
         >
-          {/* Elegancka, profesjonalna ikonka UserPlus ze spójnym obrysem */}
-          <UserPlus className="w-4 h-4 text-white shrink-0" />
+          {/* Ikonka udostępniania (trzy połączone węzły ze zdjęcia) */}
+          <Share2 className="w-4 h-4 text-white shrink-0 stroke-[2.2]" />
           <span className="text-white font-medium">Zaproś</span>
           {pendingRequestsCount > 0 && (
             <span className="ml-1 px-1.5 py-0.5 bg-[#ea4335] text-white text-[11px] font-bold rounded-full animate-pulse">
