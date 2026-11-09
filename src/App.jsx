@@ -210,7 +210,11 @@ export default function App() {
         if (verified === 'true') return 'Kodex';
         return '';
       }
-      return saved || '';
+      const pinVerified = localStorage.getItem(`room_${r}_pin_verified`);
+      if (saved && pinVerified === 'true') {
+        return saved;
+      }
+      return '';
     }
     return '';
   });
@@ -221,7 +225,8 @@ export default function App() {
       const params = new URLSearchParams(window.location.search);
       const r = params.get('room') || 'kodex';
       const saved = localStorage.getItem(`room_${r}_user`);
-      if (saved) return 'Uczestnik';
+      const pinVerified = localStorage.getItem(`room_${r}_pin_verified`);
+      if (saved && pinVerified === 'true') return 'Uczestnik';
     }
     return '';
   });
@@ -232,17 +237,23 @@ export default function App() {
   const [adminErrorCode, setAdminErrorCode] = useState('');
   const [urlJoinParams, setUrlJoinParams] = useState({ room: 'kodex' });
 
-  // Autoryzacja dostępu: tylko zweryfikowany właściciel ('Kodex') lub zaakceptowany uczestnik z listy pokoju
+  // Autoryzacja dostępu: tylko zweryfikowany właściciel ('Kodex') lub zaakceptowany uczestnik z listy pokoju z poprawnym PIN-em
   const isOwnerVerified = Boolean(
     (user && user.email && user.email.toLowerCase() === 'kodex233@gmail.com') ||
-    (typeof window !== 'undefined' && localStorage.getItem('kodex_auth_verified') === 'true')
+    (!user && typeof window !== 'undefined' && localStorage.getItem('kodex_auth_verified') === 'true' && localStorage.getItem('room_kodex_user') === 'Kodex')
+  );
+
+  const isGuestVerified = Boolean(
+    currentUserName &&
+    currentUserName !== 'Kodex' &&
+    participants.includes(currentUserName) &&
+    typeof window !== 'undefined' &&
+    localStorage.getItem(`room_${roomCode}_pin_verified`) === 'true'
   );
 
   const isAuthorized = Boolean(
-    currentUserName && (
-      (currentUserName === 'Kodex' && isOwnerVerified) ||
-      (currentUserName !== 'Kodex' && participants.includes(currentUserName))
-    )
+    (currentUserName === 'Kodex' && isOwnerVerified) ||
+    isGuestVerified
   );
 
   // 1. Sprawdź parametry URL na starcie (?room=kodex)
@@ -263,8 +274,9 @@ export default function App() {
         setRoomCode(r);
 
         const savedUser = localStorage.getItem(`room_${r}_user`);
-        if (!savedUser) {
-          // Nowa osoba z innego urządzenia wchodząca z linku: wymuszenie dołączenia kodem PIN
+        const pinVerified = localStorage.getItem(`room_${r}_pin_verified`);
+        if (!savedUser || (savedUser !== 'Kodex' && pinVerified !== 'true')) {
+          // Brak zweryfikowanego PINu: wymuszenie dołączenia kodem PIN
           setJoinModalOpen(true);
         } else {
           if (savedUser === 'Kodex') {
@@ -371,11 +383,25 @@ export default function App() {
           setUserRole('Właściciel');
           localStorage.setItem('room_kodex_user', 'Kodex');
           localStorage.setItem('kodex_auth_verified', 'true');
+        } else {
+          // Użytkownik inny niż kodex233@gmail.com (np. pudaiwo@gmail.com lub dowolny gość):
+          // Usuwamy ewentualne uprawnienia właściciela i wymagamy zweryfikowanego PIN-u!
+          localStorage.removeItem('kodex_auth_verified');
+          localStorage.removeItem('room_kodex_user');
+          const gName = currentUser.displayName || currentUser.email.split('@')[0];
+          const pinVerified = typeof window !== 'undefined' && localStorage.getItem(`room_${roomCode}_pin_verified`) === 'true';
+          if (participants.includes(gName) && pinVerified) {
+            setCurrentUserName(gName);
+            setUserRole('Uczestnik');
+          } else {
+            setCurrentUserName('');
+            setUserRole('');
+          }
         }
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [roomCode, participants]);
 
   // Stepping navigation handlers `< >` that step by the active view
   const handlePrevDate = () => {
@@ -685,6 +711,7 @@ export default function App() {
     setCurrentUserName(uName);
     setUserRole('Pełny dostęp');
     localStorage.setItem(`room_${rCode}_user`, uName);
+    localStorage.setItem(`room_${rCode}_pin_verified`, 'true');
 
     setDetailedParticipants(prev => {
       if (prev.some(p => p.name === uName)) return prev;
@@ -742,21 +769,31 @@ export default function App() {
         return;
       }
 
-      // Inny użytkownik konta Google
+      // Inny użytkownik konta Google (np. pudaiwo@gmail.com lub dowolny gość)
+      // Wyczyść ewentualne uprawnienia właściciela
+      localStorage.removeItem('kodex_auth_verified');
+      localStorage.removeItem('room_kodex_user');
+
       const gName = gUser.displayName || gUser.email.split('@')[0];
-      if (participants.includes(gName) || participants.includes(gUser.displayName) || participants.includes(gUser.email)) {
-        const matched = participants.includes(gName) ? gName : (participants.includes(gUser.displayName) ? gUser.displayName : gUser.email);
-        setCurrentUserName(matched);
-        localStorage.setItem(`room_${roomCode}_user`, matched);
-        showToast(`Witaj ponownie, ${matched}!`);
+      const pinVerified = typeof window !== 'undefined' && localStorage.getItem(`room_${roomCode}_pin_verified`) === 'true';
+
+      if (participants.includes(gName) && pinVerified) {
+        setCurrentUserName(gName);
+        setUserRole('Uczestnik');
+        localStorage.setItem(`room_${roomCode}_user`, gName);
+        showToast(`Witaj ponownie, ${gName}!`);
       } else {
+        // Każda osoba inna niż kodex233@gmail.com MUSI podać kod PIN!
+        setCurrentUserName('');
+        setUserRole('');
         setUrlJoinParams(prev => ({
           ...prev,
+          room: roomCode,
           suggestedName: gName,
           suggestedEmail: gUser.email
         }));
         setJoinModalOpen(true);
-        showToast(`Zalogowano przez Google (${gUser.email}). Podaj kod PIN, aby dołączyć.`);
+        showToast(`Zalogowano (${gUser.email}). Podaj kod PIN kalendarza, aby uzyskać dostęp.`);
       }
     } catch (err) {
       console.warn('Google login error:', err);
@@ -784,7 +821,13 @@ export default function App() {
       localStorage.removeItem('kodex_auth_verified');
       if (roomCode) {
         localStorage.removeItem(`room_${roomCode}_user`);
+        localStorage.removeItem(`room_${roomCode}_pin_verified`);
       }
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('room_') || key.startsWith('kodex_auth_')) {
+          localStorage.removeItem(key);
+        }
+      });
     }
     showToast('Wylogowano. Kalendarz został zablokowany.');
   };
@@ -1202,24 +1245,11 @@ export default function App() {
           </div>
         )}
 
-        {/* Modal logowania e-mail / testowego */}
+        {/* Modal logowania e-mail */}
         <AuthModal
           isOpen={authModalOpen}
           onClose={() => setAuthModalOpen(false)}
-          onTestLogin={(mockUser) => {
-            setUser(mockUser);
-            if (mockUser.email && mockUser.email.toLowerCase() === 'kodex233@gmail.com') {
-              setCurrentUserName('Kodex');
-              setUserRole('Właściciel');
-              localStorage.setItem('room_kodex_user', 'Kodex');
-              localStorage.setItem('kodex_auth_verified', 'true');
-            } else {
-              const uName = mockUser.displayName || mockUser.email.split('@')[0];
-              setCurrentUserName(uName);
-              setUserRole('Uczestnik');
-              localStorage.setItem(`room_${roomCode}_user`, uName);
-            }
-          }}
+          onGoogleLogin={handleGoogleLogin}
         />
 
         {toast && (
@@ -1437,7 +1467,7 @@ export default function App() {
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
-        onTestLogin={(mockUser) => setUser(mockUser)}
+        onGoogleLogin={handleGoogleLogin}
       />
     </div>
   );

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, AlertCircle, ArrowRight, UserCheck } from 'lucide-react';
 import { loginWithGoogle, loginWithEmail, registerWithEmail } from '../firebase/config';
 
-export default function AuthModal({ isOpen, onClose, onTestLogin }) {
+export default function AuthModal({ isOpen, onClose, onGoogleLogin }) {
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,22 +13,20 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
 
   if (!isOpen) return null;
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleClick = async () => {
     setError('');
     setErrorDetails('');
     setLoading(true);
     try {
-      await loginWithGoogle();
+      if (onGoogleLogin) {
+        await onGoogleLogin();
+      } else {
+        await loginWithGoogle();
+      }
       onClose();
     } catch (err) {
       console.warn('Google login error:', err);
-      if (err.code === 'auth/operation-not-allowed') {
-        setError('Logowanie przez Google wymaga włączenia dostawcy Google w konsoli Firebase Auth.');
-        setErrorDetails('Włącz dostawcę Google w Firebase Console -> Authentication -> Sign-in method, lub zaloguj się poniższym przyciskiem testowym.');
-      } else if (err.code === 'auth/unauthorized-domain') {
-        setError('Domena localhost nie jest dodana do autoryzowanych domen w Firebase.');
-        setErrorDetails('Dodaj localhost w Firebase Console -> Authentication -> Settings -> Authorized domains.');
-      } else if (err.code === 'auth/popup-blocked') {
+      if (err.code === 'auth/popup-blocked') {
         setError('Przeglądarka zablokowała wyskakujące okienko Google.');
         setErrorDetails('Zezwól na wyskakujące okienka dla tej witryny.');
       } else if (err.code === 'auth/popup-closed-by-user') {
@@ -70,18 +68,6 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDirectGoogleSimulation = (chosenEmail, chosenName) => {
-    if (onTestLogin) {
-      onTestLogin({
-        uid: 'user-' + chosenEmail.replace(/[^a-zA-Z0-9]/g, '_'),
-        email: chosenEmail,
-        displayName: chosenName,
-        photoURL: null
-      });
-    }
-    onClose();
   };
 
   return (
@@ -139,21 +125,12 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
                 {errorDetails}
               </p>
             )}
-            <div className="pt-1 pl-6">
-              <button
-                type="button"
-                onClick={() => handleDirectGoogleSimulation('kodex233@gmail.com', 'Kodex')}
-                className="px-3 py-1.5 bg-[#8ab4f8] text-[#041e49] font-medium rounded-lg text-xs hover:bg-[#aecbfa] transition"
-              >
-                Zaloguj teraz jako kodex233@gmail.com
-              </button>
-            </div>
           </div>
         )}
 
         {/* Official Google Sign-In Button: zgodny z ekranem głównym (jasnoszary, bez bordera) */}
         <button
-          onClick={handleGoogleLogin}
+          onClick={handleGoogleClick}
           disabled={loading}
           className="w-full flex items-center justify-center space-x-3 py-3 px-4 bg-[#35373a] hover:bg-[#434649] rounded-full text-[#e3e3e3] font-medium text-sm transition shadow-sm disabled:opacity-50 active:scale-[0.98] cursor-pointer mb-5"
         >
