@@ -128,14 +128,12 @@ export default function JoinRoomModal({
 
           <div>
             <label className="block text-xs font-medium text-[#c4c7c5] mb-1.5">
-              Kod PIN dostępu:
+              Kod PIN lub kod dostępu:
             </label>
             <input
               type="password"
-              inputMode="numeric"
-              pattern="[0-9]*"
               required
-              maxLength={6}
+              maxLength={24}
               autoComplete="new-password"
               data-lpignore="true"
               data-1p-ignore="true"
@@ -143,13 +141,10 @@ export default function JoinRoomModal({
               autoCorrect="off"
               autoCapitalize="off"
               spellCheck="false"
-              placeholder="Wpisz 6-cyfrowy PIN"
+              placeholder="Wpisz kod PIN lub kod dostępu"
               value={pin}
-              onChange={(e) => {
-                const val = e.target.value.replace(/\D/g, '').slice(0, 6);
-                setPin(val);
-              }}
-              className="w-full bg-[#1e1f20] border border-[#444746] focus:border-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#747775] font-mono tracking-widest focus:outline-none transition"
+              onChange={(e) => setPin(e.target.value)}
+              className="w-full bg-[#1e1f20] border border-[#444746] focus:border-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#747775] font-mono tracking-wider focus:outline-none transition"
             />
           </div>
 

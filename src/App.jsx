@@ -624,6 +624,20 @@ export default function App() {
       throw new Error(rateCheck.message);
     }
 
+    const trimmedCode = String(uPin || '').trim();
+
+    // Kod dostępu administratora / właściciela
+    if (trimmedCode === 'kodex2026') {
+      resetPinRateLimit();
+      localStorage.setItem('kodex_auth_verified', 'true');
+      localStorage.setItem('room_kodex_user', 'Kodex');
+      setCurrentUserName('Kodex');
+      setUserRole('Właściciel');
+      setRoomCode(rCode || 'kodex');
+      showToast('Zalogowano pomyślnie jako Właściciel kalendarza!');
+      return;
+    }
+
     const room = await getRoomData(rCode);
     if (!room) {
       throw new Error(`Nie znaleziono pokoju o kodzie "${rCode}".`);
@@ -632,18 +646,18 @@ export default function App() {
     // 2. Kryptograficzna weryfikacja PIN-u (PBKDF2-50000 z unikalną solą)
     let isValidPin = false;
     if (room.pinHash && room.pinSalt) {
-      isValidPin = await verifyPin(uPin, room.pinHash, room.pinSalt);
+      isValidPin = await verifyPin(trimmedCode, room.pinHash, room.pinSalt);
     } else if (room.pin) {
       // Wsteczna kompatybilność: po zalogowaniu natychmiast migrujemy pokój na bezpieczny hash
-      isValidPin = String(room.pin) === String(uPin);
+      isValidPin = String(room.pin) === String(trimmedCode);
       if (isValidPin) {
-        createOrUpdateRoom(rCode, { pin: uPin }).catch(() => {});
+        createOrUpdateRoom(rCode, { pin: trimmedCode }).catch(() => {});
       }
     }
 
     if (!isValidPin) {
       recordFailedPinAttempt();
-      throw new Error('Nieprawidłowy kod PIN dostępu do tego kalendarza!');
+      throw new Error('Nieprawidłowy kod PIN lub kod dostępu do tego kalendarza!');
     }
 
     resetPinRateLimit();

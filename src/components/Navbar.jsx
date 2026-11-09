@@ -725,29 +725,41 @@ export default function Navbar({
         {/* User Auth Info */}
         {(user || currentUser) ? (
           <div className="flex items-center space-x-2 pl-2">
-            <div 
-              className="w-9 h-9 rounded-full bg-[#d93025] text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-[#3c4043] cursor-pointer"
-              title={user ? (user.displayName || user.email) : currentUser}
-            >
-              {user ? (user.displayName ? user.displayName[0].toUpperCase() : (user.email ? user.email[0].toUpperCase() : 'K')) : (currentUser ? currentUser[0].toUpperCase() : 'U')}
-            </div>
+            {user?.photoURL ? (
+              <img 
+                src={user.photoURL}
+                alt={user.displayName || user.email || 'Google Avatar'}
+                referrerPolicy="no-referrer"
+                className="w-9 h-9 rounded-full ring-2 ring-[#3c4043] object-cover shadow-sm cursor-pointer"
+                title={user.displayName ? `${user.displayName} (${user.email})` : user.email}
+              />
+            ) : (
+              <div 
+                className="w-9 h-9 rounded-full bg-[#1a73e8] text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-[#3c4043] cursor-pointer"
+                title={user ? (user.displayName || user.email) : currentUser}
+              >
+                {user ? (user.displayName ? user.displayName[0].toUpperCase() : (user.email ? user.email[0].toUpperCase() : 'K')) : (currentUser ? currentUser[0].toUpperCase() : 'U')}
+              </div>
+            )}
             <span className="text-xs text-[#c4c7c5] font-medium hidden sm:inline">
               {currentUser || (user ? (user.displayName || user.email) : '')}
             </span>
             <button
               onClick={onLogout}
-              className="p-2 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
+              className="px-3 py-1.5 bg-[#282a2d] hover:bg-[#35373a] text-[#c4c7c5] hover:text-white rounded-full transition flex items-center space-x-1.5 text-xs font-medium cursor-pointer"
               title="Wyloguj się / Zablokuj kalendarz"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Wyloguj</span>
             </button>
           </div>
         ) : (
           <button
-            onClick={onOpenAuth}
-            className="px-6 h-10 flex items-center justify-center bg-[#a8c7fa] hover:bg-[#b8d4ff] text-[#062e6f] font-medium rounded-full text-sm transition shadow-sm active:scale-95 ml-1"
+            onClick={onLogout || onOpenAuth}
+            className="px-4 py-2 flex items-center space-x-1 bg-[#282a2d] hover:bg-[#35373a] text-[#e3e3e3] font-medium rounded-full text-xs transition shadow-sm active:scale-95 ml-1"
           >
-            Zaloguj się
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Wyloguj</span>
           </button>
         )}
       </div>
