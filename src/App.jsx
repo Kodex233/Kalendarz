@@ -1053,8 +1053,8 @@ export default function App() {
           </span>
         </div>
 
-        {/* Lock Screen Card: tło bez bordera, lekko szersze, aby przyciski mieściły się idealnie */}
-        <div className="bg-[#1e1f20] rounded-[28px] p-8 max-w-[464px] w-full text-center shadow-2xl space-y-5 relative z-10">
+        {/* Lock Screen Card: tło bez bordera */}
+        <div className="bg-[#1e1f20] rounded-[28px] p-8 max-w-[440px] w-full text-center shadow-2xl space-y-5 relative z-10">
           <div>
             <h2 className="text-2xl font-normal font-['Google_Sans',sans-serif] text-white">
               Kalendarz prywatny
@@ -1096,8 +1096,8 @@ export default function App() {
               Dołącz kodem PIN
             </button>
 
-            {/* Dwa przyciski bliżej siebie (space-x-1.5), każdy po 50% szerokości */}
-            <div className="flex items-center space-x-1.5 pt-1">
+            {/* Dwa przyciski obok siebie (po 50% szerokości): Logowanie e-mail oraz Dołącz jako admin */}
+            <div className="flex items-center space-x-2.5 pt-1">
               <button
                 type="button"
                 onClick={() => setAuthModalOpen(true)}
