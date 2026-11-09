@@ -1577,6 +1577,10 @@ export default function App() {
         onUpdatePin={handleUpdatePin}
         participants={detailedParticipants}
         onUpdateParticipants={handleUpdateParticipants}
+        accessRequests={accessRequests}
+        onApproveAccess={handleApproveAccess}
+        onRejectAccess={handleRejectAccess}
+        onRevokeAccess={handleRevokeAccess}
       />
 
       {/* 6. Auth Modal - Autentyczny styl Google */}

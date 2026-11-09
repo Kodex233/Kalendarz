@@ -12,7 +12,11 @@ export default function ShareCalendarModal({
   currentPin,
   onUpdatePin,
   participants = [],
-  onUpdateParticipants
+  onUpdateParticipants,
+  accessRequests = [],
+  onApproveAccess,
+  onRejectAccess,
+  onRevokeAccess
 }) {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedPin, setCopiedPin] = useState(false);
@@ -20,6 +24,7 @@ export default function ShareCalendarModal({
   const [generalAccess, setGeneralAccess] = useState('restricted'); // 'restricted' | 'pin'
   const [isAccessDropdownOpen, setIsAccessDropdownOpen] = useState(false);
   const [activeRoleDropdownIndex, setActiveRoleDropdownIndex] = useState(null);
+  const [pendingRoles, setPendingRoles] = useState({});
 
   const accessDropdownRef = useRef(null);
   const roleDropdownRef = useRef(null);
@@ -136,13 +141,90 @@ export default function ShareCalendarModal({
           />
         </div>
 
-        {/* 3. Sekcja: Osoby z dostępem (Image 1) */}
+        {/* 3. Sekcja: Osoby z dostępem */}
         <div className="mt-5">
-          <h3 className="text-sm font-medium text-[#e3e3e3] mb-3">
-            Osoby z dostępem
-          </h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-[#e3e3e3]">
+              Osoby z dostępem
+            </h3>
+            {pendingRequests.length > 0 && (
+              <span className="text-xs bg-[#ea4335] text-white px-2 py-0.5 rounded-full font-semibold animate-pulse">
+                {pendingRequests.length} do zatwierdzenia
+              </span>
+            )}
+          </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+            {/* Oczekujące prośby o dostęp (ZAAKCEPTUJ / ODRZUĆ obok roli) */}
+            {pendingRequests.map((req, pIdx) => {
+              const reqEmail = (req.email || '').toLowerCase().trim();
+              const reqRole = pendingRoles[reqEmail] || 'Pełny dostęp';
+
+              return (
+                <div key={`req-${pIdx}`} className="flex items-center justify-between p-2 rounded-xl bg-[#1e1f20] border border-[#fbbc04]/30 relative animate-in fade-in">
+                  <div className="flex items-center space-x-3 min-w-0">
+                    {req.photoURL ? (
+                      <img src={req.photoURL} alt={req.name} referrerPolicy="no-referrer" className="w-9 h-9 rounded-full ring-2 ring-[#fbbc04]/50 object-cover shrink-0" />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-[#fbbc04] text-[#131314] flex items-center justify-center font-bold text-sm shrink-0">
+                        {(req.name || reqEmail)?.[0]?.toUpperCase() || 'U'}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="flex items-center space-x-1.5">
+                        <p className="text-sm font-medium text-[#e3e3e3] truncate">
+                          {req.name || reqEmail.split('@')[0]}
+                        </p>
+                        <span className="text-[10px] bg-[#fbbc04]/20 text-[#fbbc04] px-1.5 py-0.2 rounded font-semibold uppercase">
+                          Oczekuje
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#9aa0a6] truncate font-mono">
+                        {reqEmail}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Rola + Zaakceptuj i Odrzuć OBOK ROLI */}
+                  <div className="flex items-center space-x-1.5 shrink-0 pl-2">
+                    <select
+                      value={reqRole}
+                      onChange={(e) => setPendingRoles(prev => ({ ...prev, [reqEmail]: e.target.value }))}
+                      className="bg-[#282a2d] border border-[#444746] hover:border-[#747775] text-[#e3e3e3] rounded-md px-2 py-1 text-xs focus:outline-none cursor-pointer"
+                    >
+                      <option value="Pełny dostęp">Pełny dostęp</option>
+                      <option value="Edytor">Edytor</option>
+                      <option value="Przeglądający">Przeglądający</option>
+                    </select>
+
+                    <button
+                      type="button"
+                      onClick={() => onApproveAccess && onApproveAccess(reqEmail, req.name, reqRole)}
+                      className="flex items-center space-x-1 px-3 py-1 bg-[#0b57d0] hover:bg-[#1b66c9] text-white text-xs font-medium rounded-full transition shadow-sm active:scale-95 cursor-pointer"
+                      title="Zaakceptuj dostęp"
+                    >
+                      <svg className="w-3.5 h-3.5 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Zaakceptuj</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onRejectAccess && onRejectAccess(reqEmail)}
+                      className="flex items-center space-x-1 px-2.5 py-1 bg-[#4c1f24] hover:bg-[#5c272d] text-[#f28b82] text-xs font-medium rounded-full transition active:scale-95 cursor-pointer"
+                      title="Odrzuć prośbę"
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      <span>Odrzuć</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+
             {/* Właściciel: kodex (you) */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">

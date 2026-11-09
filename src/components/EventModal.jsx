@@ -61,6 +61,26 @@ export default function EventModal({
   const repeatMenuRef = useRef(null);
   const lastOpenedSlotRef = useRef(null);
 
+  const dateInputRef = useRef(null);
+  const startTimeInputRef = useRef(null);
+  const endTimeInputRef = useRef(null);
+  const taskDateInputRef = useRef(null);
+  const taskStartTimeInputRef = useRef(null);
+  const taskEndTimeInputRef = useRef(null);
+
+  const openPicker = (ref) => {
+    if (ref?.current) {
+      if (typeof ref.current.showPicker === 'function') {
+        try {
+          ref.current.showPicker();
+          return;
+        } catch (e) {}
+      }
+      ref.current.focus();
+      ref.current.click();
+    }
+  };
+
   useEffect(() => {
     setActiveTab(eventType || 'Wydarzenie');
   }, [eventType]);
@@ -482,52 +502,55 @@ export default function EventModal({
                   <Clock className="w-5 h-5 text-[#c4c7c5] mt-1 shrink-0" />
                   <div className="space-y-1">
                     <div className="flex items-center flex-wrap gap-2 text-sm text-[#e3e3e3]">
-                      <div className="relative">
-                        <button
-                          type="button"
-                          className="px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal capitalize flex items-center transition"
-                        >
+                      <div 
+                        onClick={() => openPicker(taskDateInputRef)}
+                        className="relative cursor-pointer group"
+                      >
+                        <div className="px-4 py-2 bg-[#303134] group-hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal capitalize flex items-center transition select-none">
                           {formattedDateLabel}
-                        </button>
+                        </div>
                         <input
+                          ref={taskDateInputRef}
                           type="date"
                           value={date}
                           onChange={(e) => handleDateChange(e.target.value)}
-                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 [color-scheme:dark]"
                         />
                       </div>
 
                       {!isAllDay && (
                         <>
-                          <div className="relative">
-                            <button
-                              type="button"
-                              className="px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition"
-                            >
+                          <div 
+                            onClick={() => openPicker(taskStartTimeInputRef)}
+                            className="relative cursor-pointer group"
+                          >
+                            <div className="px-4 py-2 bg-[#303134] group-hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition select-none">
                               {formatTime12h(startTime)}
-                            </button>
+                            </div>
                             <input
+                              ref={taskStartTimeInputRef}
                               type="time"
                               value={startTime}
                               onChange={(e) => handleStartTimeChange(e.target.value)}
-                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 [color-scheme:dark]"
                             />
                           </div>
 
-                          <span className="text-[#9aa0a6]">–</span>
+                          <span className="text-[#9aa0a6] select-none">–</span>
 
-                          <div className="relative">
-                            <button
-                              type="button"
-                              className="px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition"
-                            >
+                          <div 
+                            onClick={() => openPicker(taskEndTimeInputRef)}
+                            className="relative cursor-pointer group"
+                          >
+                            <div className="px-4 py-2 bg-[#303134] group-hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition select-none">
                               {formatTime12h(endTime)}
-                            </button>
+                            </div>
                             <input
+                              ref={taskEndTimeInputRef}
                               type="time"
                               value={endTime}
                               onChange={(e) => handleEndTimeChange(e.target.value)}
-                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 [color-scheme:dark]"
                             />
                           </div>
                         </>
@@ -795,33 +818,60 @@ export default function EventModal({
                     <Clock className="w-5 h-5 text-[#c4c7c5] mt-1 shrink-0" />
                     <div className="flex-1 space-y-2.5">
                       <div className="flex items-center flex-wrap gap-2 text-sm text-[#e3e3e3]">
-                        {/* Bezpośredni natywny wybór daty w stylu Google */}
-                        <input
-                          type="date"
-                          value={date}
-                          onChange={(e) => handleDateChange(e.target.value)}
-                          className="px-3.5 py-2 bg-[#303134] hover:bg-[#3c4043] border border-[#5f6368]/60 focus:border-[#8ab4f8] text-[#e3e3e3] rounded-md text-sm font-normal transition cursor-pointer focus:outline-none [color-scheme:dark]"
-                        />
+                        {/* Wybór daty w identycznym stylu jak w Zadaniu */}
+                        <div 
+                          onClick={() => openPicker(dateInputRef)}
+                          className="relative cursor-pointer group"
+                        >
+                          <div className="px-4 py-2 bg-[#303134] group-hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal capitalize flex items-center transition select-none">
+                            {formattedDateLabel}
+                          </div>
+                          <input
+                            ref={dateInputRef}
+                            type="date"
+                            value={date}
+                            onChange={(e) => handleDateChange(e.target.value)}
+                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 [color-scheme:dark]"
+                          />
+                        </div>
 
                         {!isAllDay && (
                           <>
                             {/* Czas od */}
-                            <input
-                              type="time"
-                              value={startTime}
-                              onChange={(e) => handleStartTimeChange(e.target.value)}
-                              className="px-3 py-2 bg-[#303134] hover:bg-[#3c4043] border border-[#5f6368]/60 focus:border-[#8ab4f8] text-[#e3e3e3] rounded-md text-sm font-normal transition cursor-pointer focus:outline-none [color-scheme:dark]"
-                            />
+                            <div 
+                              onClick={() => openPicker(startTimeInputRef)}
+                              className="relative cursor-pointer group"
+                            >
+                              <div className="px-4 py-2 bg-[#303134] group-hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition select-none">
+                                {formatTime12h(startTime)}
+                              </div>
+                              <input
+                                ref={startTimeInputRef}
+                                type="time"
+                                value={startTime}
+                                onChange={(e) => handleStartTimeChange(e.target.value)}
+                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 [color-scheme:dark]"
+                              />
+                            </div>
 
-                            <span className="text-[#9aa0a6]">–</span>
+                            <span className="text-[#9aa0a6] select-none">–</span>
 
                             {/* Czas do */}
-                            <input
-                              type="time"
-                              value={endTime}
-                              onChange={(e) => handleEndTimeChange(e.target.value)}
-                              className="px-3 py-2 bg-[#303134] hover:bg-[#3c4043] border border-[#5f6368]/60 focus:border-[#8ab4f8] text-[#e3e3e3] rounded-md text-sm font-normal transition cursor-pointer focus:outline-none [color-scheme:dark]"
-                            />
+                            <div 
+                              onClick={() => openPicker(endTimeInputRef)}
+                              className="relative cursor-pointer group"
+                            >
+                              <div className="px-4 py-2 bg-[#303134] group-hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition select-none">
+                                {formatTime12h(endTime)}
+                              </div>
+                              <input
+                                ref={endTimeInputRef}
+                                type="time"
+                                value={endTime}
+                                onChange={(e) => handleEndTimeChange(e.target.value)}
+                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 [color-scheme:dark]"
+                              />
+                            </div>
                           </>
                         )}
                       </div>

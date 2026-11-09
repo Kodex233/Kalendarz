@@ -621,37 +621,10 @@ export default function Navbar({
           </svg>
         </button>
 
-        {/* Przycisk Zarządzania Dostępem (Zezwól / Odrzuć) */}
-        {onOpenAccessModal && (
-          pendingRequestsCount > 0 ? (
-            <button
-              onClick={onOpenAccessModal}
-              className="flex items-center space-x-1.5 px-3.5 h-10 bg-[#ea4335] hover:bg-[#d93025] text-white rounded-full text-xs sm:text-sm font-medium transition shadow-md animate-pulse cursor-pointer shrink-0"
-              title="Oczekujące prośby o dostęp do kalendarza"
-            >
-              <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
-                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
-              </svg>
-              <span className="font-semibold">Prośby ({pendingRequestsCount})</span>
-            </button>
-          ) : (
-            <button
-              onClick={onOpenAccessModal}
-              className="flex items-center space-x-1.5 px-3.5 h-10 bg-[#282a2d] hover:bg-[#35373a] text-[#c4c7c5] hover:text-white border border-[#444746] hover:border-white/50 rounded-full text-xs sm:text-sm font-medium transition cursor-pointer shrink-0"
-              title="Zarządzaj dostępem (Zezwól / Odrzuć)"
-            >
-              <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
-                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
-              </svg>
-              <span className="hidden sm:inline">Dostęp</span>
-            </button>
-          )
-        )}
-
-        {/* Przycisk Zaproś do kalendarza (otwiera autentyczny modal Google Share) */}
+        {/* Przycisk Zaproś do kalendarza (otwiera modal Google Share z akceptacją i odrzucaniem dostępu) */}
         <button
           onClick={onOpenShareModal}
-          className="flex items-center space-x-2 px-4 h-10 bg-[#282a2d] hover:bg-[#35373a] text-white border border-[#444746] hover:border-white/50 rounded-full text-sm font-medium transition focus:outline-none shadow-xs"
+          className="flex items-center space-x-2 px-4 h-10 bg-[#282a2d] hover:bg-[#35373a] text-white rounded-full text-sm font-medium transition focus:outline-none cursor-pointer border-0 shadow-none"
           title="Udostępnij kalendarz i zarządzaj uprawnieniami"
         >
           {/* Biała ikonka Google Material Person Add */}
@@ -659,6 +632,11 @@ export default function Navbar({
             <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
           </svg>
           <span className="text-white font-medium">Zaproś</span>
+          {pendingRequestsCount > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 bg-[#ea4335] text-white text-[11px] font-bold rounded-full animate-pulse">
+              {pendingRequestsCount}
+            </span>
+          )}
         </button>
 
         {/* View Switcher Dropdown: border bardziej biały, wysokość h-10 */}

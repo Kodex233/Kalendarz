@@ -133,15 +133,62 @@ export default function CalendarWeek({
     dragRef.current = newDragInfo;
     setDragState(newDragInfo);
 
+    let autoScrollRaf = null;
+    let latestClientY = e.clientY;
+
+    const checkAutoScroll = () => {
+      if (!dragRef.current || !containerRef.current) return;
+      const container = containerRef.current;
+      const cRect = container.getBoundingClientRect();
+
+      const bottomThreshold = cRect.bottom - 60;
+      const topThreshold = cRect.top + 60;
+
+      let scrollDelta = 0;
+      if (latestClientY > bottomThreshold) {
+        const dist = latestClientY - bottomThreshold;
+        scrollDelta = Math.min(25, Math.max(4, dist * 0.45));
+      } else if (latestClientY < topThreshold) {
+        const dist = topThreshold - latestClientY;
+        scrollDelta = -Math.min(25, Math.max(4, dist * 0.45));
+      }
+
+      if (scrollDelta !== 0) {
+        container.scrollTop += scrollDelta;
+
+        const updatedColRect = colElement.getBoundingClientRect();
+        const curOffsetY = Math.max(0, Math.min(updatedColRect.height, latestClientY - updatedColRect.top));
+        const curRawMinutes = (curOffsetY / 48) * 60;
+        let curSnapped = Math.max(0, Math.min(24 * 60, Math.round(curRawMinutes / 15) * 15));
+
+        if (curSnapped === dragRef.current.startMinutes) {
+          curSnapped = (latestClientY - dragRef.current.startClientY) >= 0
+            ? Math.min(24 * 60, dragRef.current.startMinutes + 30)
+            : Math.max(0, dragRef.current.startMinutes - 30);
+        }
+
+        dragRef.current.currentMinutes = curSnapped;
+        dragRef.current.colRect = updatedColRect;
+        setDragState({ ...dragRef.current });
+      }
+
+      autoScrollRaf = requestAnimationFrame(checkAutoScroll);
+    };
+
+    autoScrollRaf = requestAnimationFrame(checkAutoScroll);
+
     const handleMouseMove = (moveEvent) => {
       if (!dragRef.current) return;
+      latestClientY = moveEvent.clientY;
       const info = dragRef.current;
       const deltaY = moveEvent.clientY - info.startClientY;
       if (Math.abs(deltaY) > 5) {
         info.hasMoved = true;
       }
 
-      const curOffsetY = Math.max(0, Math.min(info.colRect.height, moveEvent.clientY - info.colRect.top));
+      const updatedColRect = colElement.getBoundingClientRect();
+      info.colRect = updatedColRect;
+      const curOffsetY = Math.max(0, Math.min(updatedColRect.height, moveEvent.clientY - updatedColRect.top));
       const curRawMinutes = (curOffsetY / 48) * 60;
       let curSnapped = Math.max(0, Math.min(24 * 60, Math.round(curRawMinutes / 15) * 15));
 
@@ -154,6 +201,10 @@ export default function CalendarWeek({
     };
 
     const handleMouseUp = () => {
+      if (autoScrollRaf) {
+        cancelAnimationFrame(autoScrollRaf);
+        autoScrollRaf = null;
+      }
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
 
@@ -178,15 +229,16 @@ export default function CalendarWeek({
       const startTime = `${startH.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`;
       const endTime = `${endH.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
 
+      const finalColRect = colElement.getBoundingClientRect();
       const topPx = (minM / 60) * 48;
       const heightPx = Math.max(28, ((maxM - minM) / 60) * 48);
       const slotRect = {
-        top: info.colRect.top + topPx,
-        bottom: info.colRect.top + topPx + heightPx,
+        top: finalColRect.top + topPx,
+        bottom: finalColRect.top + topPx + heightPx,
         height: heightPx,
-        left: info.colRect.left,
-        right: info.colRect.right,
-        width: info.colRect.width
+        left: finalColRect.left,
+        right: finalColRect.right,
+        width: finalColRect.width
       };
 
       onSelectSlot(info.day, startTime, {
@@ -227,16 +279,63 @@ export default function CalendarWeek({
     dragRef.current = newDragInfo;
     setDragState(newDragInfo);
 
+    let touchScrollRaf = null;
+    let latestTouchY = touch.clientY;
+
+    const checkTouchAutoScroll = () => {
+      if (!dragRef.current || !containerRef.current) return;
+      const container = containerRef.current;
+      const cRect = container.getBoundingClientRect();
+
+      const bottomThreshold = cRect.bottom - 60;
+      const topThreshold = cRect.top + 60;
+
+      let scrollDelta = 0;
+      if (latestTouchY > bottomThreshold) {
+        const dist = latestTouchY - bottomThreshold;
+        scrollDelta = Math.min(25, Math.max(4, dist * 0.45));
+      } else if (latestTouchY < topThreshold) {
+        const dist = topThreshold - latestTouchY;
+        scrollDelta = -Math.min(25, Math.max(4, dist * 0.45));
+      }
+
+      if (scrollDelta !== 0) {
+        container.scrollTop += scrollDelta;
+
+        const updatedColRect = colElement.getBoundingClientRect();
+        const curOffsetY = Math.max(0, Math.min(updatedColRect.height, latestTouchY - updatedColRect.top));
+        const curRawMinutes = (curOffsetY / 48) * 60;
+        let curSnapped = Math.max(0, Math.min(24 * 60, Math.round(curRawMinutes / 15) * 15));
+
+        if (curSnapped === dragRef.current.startMinutes) {
+          curSnapped = (latestTouchY - dragRef.current.startClientY) >= 0
+            ? Math.min(24 * 60, dragRef.current.startMinutes + 30)
+            : Math.max(0, dragRef.current.startMinutes - 30);
+        }
+
+        dragRef.current.currentMinutes = curSnapped;
+        dragRef.current.colRect = updatedColRect;
+        setDragState({ ...dragRef.current });
+      }
+
+      touchScrollRaf = requestAnimationFrame(checkTouchAutoScroll);
+    };
+
+    touchScrollRaf = requestAnimationFrame(checkTouchAutoScroll);
+
     const handleTouchMove = (moveEvent) => {
       if (!dragRef.current || !moveEvent.touches || moveEvent.touches.length !== 1) return;
       const curTouch = moveEvent.touches[0];
+      latestTouchY = curTouch.clientY;
       const deltaY = curTouch.clientY - dragRef.current.startClientY;
       if (Math.abs(deltaY) > 8) {
         dragRef.current.hasMoved = true;
         if (moveEvent.cancelable) moveEvent.preventDefault();
       }
 
-      const curOffsetY = Math.max(0, Math.min(dragRef.current.colRect.height, curTouch.clientY - dragRef.current.colRect.top));
+      const updatedColRect = colElement.getBoundingClientRect();
+      dragRef.current.colRect = updatedColRect;
+      const curOffsetY = Math.max(0, Math.min(updatedColRect.height, curTouch.clientY - updatedColRect.top));
       const curRawMinutes = (curOffsetY / 48) * 60;
       let curSnapped = Math.max(0, Math.min(24 * 60, Math.round(curRawMinutes / 15) * 15));
 
@@ -249,6 +348,10 @@ export default function CalendarWeek({
     };
 
     const handleTouchEnd = () => {
+      if (touchScrollRaf) {
+        cancelAnimationFrame(touchScrollRaf);
+        touchScrollRaf = null;
+      }
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('touchcancel', handleTouchEnd);
@@ -274,15 +377,16 @@ export default function CalendarWeek({
       const startTime = `${startH.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`;
       const endTime = `${endH.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
 
+      const finalColRect = colElement.getBoundingClientRect();
       const topPx = (minM / 60) * 48;
       const heightPx = Math.max(28, ((maxM - minM) / 60) * 48);
       const slotRect = {
-        top: info.colRect.top + topPx,
-        bottom: info.colRect.top + topPx + heightPx,
+        top: finalColRect.top + topPx,
+        bottom: finalColRect.top + topPx + heightPx,
         height: heightPx,
-        left: info.colRect.left,
-        right: info.colRect.right,
-        width: info.colRect.width
+        left: finalColRect.left,
+        right: finalColRect.right,
+        width: finalColRect.width
       };
 
       onSelectSlot(info.day, startTime, {
