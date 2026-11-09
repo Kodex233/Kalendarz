@@ -1030,27 +1030,23 @@ export default function App() {
   if (!isAuthorized) {
     return (
       <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-[#131314] text-[#e3e3e3] p-4 select-none relative font-['Roboto',sans-serif]">
-        {/* Subtle decorative background gradient circles */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#1a73e8]/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Subtle decorative cool light blue background gradient */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-to-tr from-[#1a73e8]/20 via-[#4285f4]/25 to-[#8ab4f8]/20 rounded-full blur-[110px] pointer-events-none" />
 
-        {/* Google Calendar minimal branded logo */}
+        {/* Google Calendar original branded logo */}
         <div className="flex items-center space-x-3 mb-6 relative z-10">
-          <div className="w-11 h-11 rounded-2xl bg-[#1a73e8] flex items-center justify-center text-white font-bold text-xl shadow-lg ring-1 ring-white/20">
-            {format(currentDate, 'd')}
-          </div>
-          <span className="text-2xl font-normal text-[#e3e3e3] font-['Google_Sans',sans-serif] tracking-tight">
+          <img 
+            src="/calendar-logo.png" 
+            alt="Google Kalendarz" 
+            className="w-12 h-12 object-contain drop-shadow-lg" 
+          />
+          <span className="text-[26px] font-normal text-[#e3e3e3] font-['Product_Sans','Google_Sans',sans-serif] tracking-tight">
             Google Kalendarz
           </span>
         </div>
 
-        {/* Lock Screen Card */}
-        <div className="bg-[#1e1f20] border border-[#444746]/60 rounded-[28px] p-8 max-w-[440px] w-full text-center shadow-2xl space-y-5 relative z-10">
-          <div className="w-14 h-14 mx-auto rounded-full bg-[#282a2d] border border-[#444746]/50 flex items-center justify-center text-[#8ab4f8] shadow-inner">
-            <svg className="w-7 h-7 fill-current text-[#8ab4f8]" viewBox="0 0 24 24">
-              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
-            </svg>
-          </div>
-
+        {/* Lock Screen Card: tło bez bordera */}
+        <div className="bg-[#1e1f20] rounded-[28px] p-8 max-w-[440px] w-full text-center shadow-2xl space-y-5 relative z-10">
           <div>
             <h2 className="text-2xl font-normal font-['Google_Sans',sans-serif] text-white">
               Kalendarz prywatny
@@ -1061,11 +1057,11 @@ export default function App() {
           </div>
 
           <div className="space-y-3 pt-2">
-            {/* Google Sign-in Button */}
+            {/* Google Sign-in Button: tło lekko jaśniejsze i bez bordera */}
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center space-x-3 py-3 px-4 bg-[#131314] hover:bg-[#282a2d] border border-[#747775] hover:border-[#8ab4f8] rounded-full text-[#e3e3e3] font-medium text-sm transition shadow-sm active:scale-[0.98] cursor-pointer"
+              className="w-full flex items-center justify-center space-x-3 py-3 px-4 bg-[#282a2d] hover:bg-[#35373a] rounded-full text-[#e3e3e3] font-medium text-sm transition shadow-sm active:scale-[0.98] cursor-pointer"
             >
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -1092,7 +1088,7 @@ export default function App() {
               Dołącz kodem PIN
             </button>
 
-            {/* Admin Join Button */}
+            {/* Admin Join Button: border mniej biały */}
             <button
               type="button"
               onClick={() => {
@@ -1100,7 +1096,7 @@ export default function App() {
                 setAdminErrorCode('');
                 setAdminInputCode('');
               }}
-              className="w-full py-2.5 px-4 bg-transparent hover:bg-[#282a2d] border border-[#747775] text-[#e3e3e3] hover:text-white rounded-full text-sm font-medium transition shadow-sm active:scale-[0.98] cursor-pointer"
+              className="w-full py-2.5 px-4 bg-transparent hover:bg-[#282a2d] border border-[#3c4043] hover:border-[#444746] text-[#c4c7c5] hover:text-[#e3e3e3] rounded-full text-sm font-medium transition shadow-sm active:scale-[0.98] cursor-pointer"
             >
               Dołącz jako admin
             </button>
@@ -1110,9 +1106,9 @@ export default function App() {
             <button
               type="button"
               onClick={() => setAuthModalOpen(true)}
-              className="text-xs text-[#8ab4f8] hover:text-[#aecbfa] hover:underline cursor-pointer"
+              className="px-4 py-2 rounded-full text-xs text-[#8ab4f8] hover:bg-[#8ab4f8]/15 hover:text-[#c2e7ff] transition cursor-pointer font-medium inline-block"
             >
-              Logowanie e-mail lub konto testowe
+              Logowanie przez e-mail
             </button>
           </div>
         </div>
@@ -1133,7 +1129,7 @@ export default function App() {
             onClick={() => setAdminModalOpen(false)}
           >
             <div 
-              className="bg-[#282a2d] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[420px] overflow-hidden border border-[#444746]/60 animate-in zoom-in-95 duration-150 p-6 relative"
+              className="bg-[#282a2d] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[420px] overflow-hidden border border-[#3c4043] animate-in zoom-in-95 duration-150 p-6 relative"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between pb-2">
