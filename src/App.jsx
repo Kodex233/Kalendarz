@@ -616,6 +616,21 @@ export default function App() {
     }
   };
 
+  // Szybka zmiana terminu wydarzenia przy przeciąganiu po siatce kalendarza (Image 2)
+  const handleUpdateEvent = async (updatedEvent) => {
+    if (userRole === 'Przeglądający') {
+      showToast('Masz uprawnienia tylko do odczytu.');
+      return;
+    }
+    try {
+      await saveRoomEvent(roomCode, updatedEvent);
+      showToast('Przesunięto wydarzenie');
+    } catch (err) {
+      console.warn('Błąd aktualizacji wydarzenia:', err);
+      showToast('Błąd aktualizacji wydarzenia');
+    }
+  };
+
   // Delete Event
   const handleDeleteEvent = async (eventId) => {
     if (userRole === 'Przeglądający') {
@@ -1100,13 +1115,13 @@ export default function App() {
   if (!isAuthorized) {
     return (
       <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-[#0d0e12] text-[#e3e3e3] p-4 select-none relative font-['Roboto',sans-serif] overflow-hidden">
-        {/* Gemini Atmospheric Cosmic Glow z wielobarwną płynną zmianą kolorów: mniejszy, subtelny gradient z prawej */}
+        {/* Gemini Atmospheric Cosmic Glow z wielobarwną płynną zmianą kolorów: soczysty, ale zbalansowany z prawej */}
         <div 
           className="absolute inset-0 pointer-events-none gemini-aurora-glow"
           style={{
             background: `
-              radial-gradient(ellipse 35% 25% at 65% 35%, rgba(30, 75, 185, 0.22) 0%, rgba(18, 45, 120, 0.12) 40%, transparent 70%),
-              radial-gradient(circle 260px at 45% 45%, rgba(40, 85, 195, 0.15) 0%, rgba(14, 28, 75, 0.05) 45%, transparent 70%)
+              radial-gradient(ellipse 42% 35% at 68% 28%, rgba(66, 133, 244, 0.44) 0%, rgba(26, 115, 232, 0.20) 45%, transparent 70%),
+              radial-gradient(circle 360px at 45% 45%, rgba(66, 133, 244, 0.22) 0%, rgba(26, 115, 232, 0.08) 50%, transparent 75%)
             `
           }}
         />
@@ -1447,9 +1462,9 @@ export default function App() {
           userRole={userRole}
         />
 
-        {/* Calendar Canvas */}
+        {/* Calendar Canvas - płynne przesuwanie do lewej przy zwijaniu menu */}
         <div 
-          className={`flex-1 flex overflow-hidden ${
+          className={`flex-1 flex overflow-hidden transition-all duration-300 ease-in-out ${
             slideDirection === 'next'
               ? 'calendar-slide-next'
               : slideDirection === 'prev'
@@ -1493,6 +1508,7 @@ export default function App() {
               onViewChange={handleViewChange}
               myCalendars={myCalendars}
               creatingEvent={createModalOpen && selectedEvent?.isNew ? selectedEvent : null}
+              onUpdateEvent={handleUpdateEvent}
             />
           )}
         </div>

@@ -82,12 +82,13 @@ export default function Sidebar({
     onSelectDate(day);
   };
 
-  if (!isOpen) return null;
-
   return (
-    <aside className="w-64 bg-[#1e1f20] text-[#e3e3e3] flex flex-col px-3 py-3 select-none shrink-0 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden h-[calc(100vh-4rem)]">
-      {/* 1. Button + Utwórz ▾ without border (lub status Tylko do odczytu przy roli Przeglądający) */}
-      <div className="px-1 mb-8">
+    <aside className={`transition-[width,opacity,padding,margin] duration-300 ease-in-out bg-[#1e1f20] text-[#e3e3e3] flex flex-col select-none shrink-0 overflow-hidden h-[calc(100vh-4rem)] ${
+      isOpen ? 'w-64 opacity-100 px-3 py-3' : 'w-0 opacity-0 px-0 py-3 pointer-events-none'
+    }`}>
+      <div className="w-64 min-w-[256px] h-full flex flex-col overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        {/* 1. Button + Utwórz ▾ without border (lub status Tylko do odczytu przy roli Przeglądający) */}
+        <div className="px-1 mb-8">
         {userRole === 'Przeglądający' ? (
           <div className="flex items-center space-x-2.5 px-4 py-3.5 bg-[#282a2d] text-[#9aa0a6] rounded-2xl text-xs font-medium border border-[#444746]/50 select-none shadow-xs">
             <svg className="w-4 h-4 fill-current text-[#8ab4f8] shrink-0" viewBox="0 0 24 24">
@@ -398,6 +399,7 @@ export default function Sidebar({
           </div>
         )}
       </div>
+        </div>
       </div>
     </aside>
   );

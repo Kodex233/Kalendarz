@@ -66,7 +66,8 @@ export default function CalendarWeek({
   onSelectDate,
   onViewChange,
   creatingEvent,
-  myCalendars = []
+  myCalendars = [],
+  onUpdateEvent
 }) {
   const containerRef = useRef(null);
   const today = new Date();
@@ -100,9 +101,14 @@ export default function CalendarWeek({
   const [dragState, setDragState] = useState(null);
   const dragRef = useRef(null);
 
+  // Stan przesuwania ISTNIEJĄCEGO wydarzenia po siatce (Image 2 z 4 strzałkami i przyciemnieniem)
+  const [movingEventState, setMovingEventState] = useState(null);
+  const movingEventRef = useRef(null);
+
   useEffect(() => {
     return () => {
       dragRef.current = null;
+      movingEventRef.current = null;
     };
   }, []);
 
@@ -373,6 +379,166 @@ export default function CalendarWeek({
     window.addEventListener('touchcancel', handleTouchEnd);
   };
 
+  // Obsługa przesuwania ISTNIEJĄCEGO wydarzenia po siatce (Image 2)
+  const handleEventMouseDown = (e, event) => {
+    if (e.button !== 0) return; // Tylko lewy przycisk myszy
+    e.stopPropagation();
+    e.preventDefault();
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Oblicz czas rozpoczęcia i trwania wydarzenia
+    const [sh, sm] = (event.startTime || '10:00').split(':').map(Number);
+    const startM = sh * 60 + sm;
+    let endM = startM + 60;
+    if (event.endTime) {
+      const [eh, em] = event.endTime.split(':').map(Number);
+      const diff = (eh * 60 + em) - startM;
+      if (diff > 0) endM = startM + diff;
+    }
+    const durationM = Math.max(15, endM - startM);
+
+    const cRect = container.getBoundingClientRect();
+    const yInContent = (e.clientY - cRect.top) + container.scrollTop;
+    const currentMouseMinutes = (yInContent / 48) * 60;
+    const offsetInEventMinutes = Math.max(0, Math.min(durationM, currentMouseMinutes - startM));
+
+    const currentDayDateStr = event.date || format(currentDate, 'yyyy-MM-dd');
+
+    const moveInfo = {
+      isMoving: true,
+      event,
+      startClientX: e.clientX,
+      startClientY: e.clientY,
+      initialDate: currentDayDateStr,
+      currentDateStr: currentDayDateStr,
+      startMinutes: startM,
+      currentStartMinutes: startM,
+      durationMinutes: durationM,
+      offsetInEventMinutes,
+      hasMoved: false
+    };
+
+    movingEventRef.current = moveInfo;
+
+    let moveRafId = null;
+    let latestClientX = e.clientX;
+    let latestClientY = e.clientY;
+
+    const stepMove = () => {
+      if (!movingEventRef.current || !containerRef.current) return;
+      const currentContainer = containerRef.current;
+      const currentCRect = currentContainer.getBoundingClientRect();
+
+      // Płynne auto-scrollowanie w pionie przy krawędziach góra/dół
+      const bottomThreshold = currentCRect.bottom - 60;
+      const topThreshold = currentCRect.top + 60;
+
+      if (latestClientY > bottomThreshold) {
+        const dist = latestClientY - bottomThreshold;
+        const scrollDelta = Math.min(24, Math.max(4, dist * 0.4));
+        currentContainer.scrollTop += scrollDelta;
+      } else if (latestClientY < topThreshold) {
+        const dist = topThreshold - latestClientY;
+        const scrollDelta = -Math.min(24, Math.max(4, dist * 0.4));
+        currentContainer.scrollTop += scrollDelta;
+      }
+
+      // Oblicz nowy zaokrąglony czas rozpoczęcia (co 15 minut)
+      const curYInContent = (latestClientY - currentCRect.top) + currentContainer.scrollTop;
+      const curRawMinutes = (curYInContent / 48) * 60 - movingEventRef.current.offsetInEventMinutes;
+      const snappedStart = Math.max(0, Math.min(24 * 60 - movingEventRef.current.durationMinutes, Math.round(curRawMinutes / 15) * 15));
+
+      // Oblicz dzień (kolumnę) na podstawie pozycji poziomej kursora
+      let targetDateStr = movingEventRef.current.currentDateStr;
+      const colElements = currentContainer.querySelectorAll('[data-col-date]');
+      if (colElements.length > 0) {
+        for (let i = 0; i < colElements.length; i++) {
+          const colR = colElements[i].getBoundingClientRect();
+          if (latestClientX >= colR.left && latestClientX <= colR.right) {
+            targetDateStr = colElements[i].getAttribute('data-col-date');
+            break;
+          }
+        }
+      }
+
+      let stateChanged = false;
+      if (snappedStart !== movingEventRef.current.currentStartMinutes) {
+        movingEventRef.current.currentStartMinutes = snappedStart;
+        stateChanged = true;
+      }
+      if (targetDateStr !== movingEventRef.current.currentDateStr) {
+        movingEventRef.current.currentDateStr = targetDateStr;
+        stateChanged = true;
+      }
+
+      if (stateChanged && movingEventRef.current.hasMoved) {
+        setMovingEventState({ ...movingEventRef.current });
+      }
+
+      moveRafId = requestAnimationFrame(stepMove);
+    };
+
+    moveRafId = requestAnimationFrame(stepMove);
+
+    const handleMouseMove = (moveEvent) => {
+      if (!movingEventRef.current) return;
+      latestClientX = moveEvent.clientX;
+      latestClientY = moveEvent.clientY;
+      const dist = Math.hypot(moveEvent.clientX - movingEventRef.current.startClientX, moveEvent.clientY - movingEventRef.current.startClientY);
+      if (dist > 4) {
+        if (!movingEventRef.current.hasMoved) {
+          movingEventRef.current.hasMoved = true;
+          setMovingEventState({ ...movingEventRef.current });
+        }
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (moveRafId) {
+        cancelAnimationFrame(moveRafId);
+        moveRafId = null;
+      }
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+
+      const info = movingEventRef.current;
+      movingEventRef.current = null;
+      setMovingEventState(null);
+
+      if (!info) return;
+
+      if (!info.hasMoved) {
+        // Zwykłe kliknięcie bez przeciągania -> otwórz podgląd szczegółów
+        onSelectEvent(info.event);
+        return;
+      }
+
+      // Wydarzenie zostało przesunięte -> oblicz nowe godziny i zapisz
+      const startH = Math.floor(info.currentStartMinutes / 60);
+      const startMin = info.currentStartMinutes % 60;
+      const endMinutes = info.currentStartMinutes + info.durationMinutes;
+      const endH = Math.floor(endMinutes / 60);
+      const endMin = endMinutes % 60;
+
+      const newStartTime = `${startH.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`;
+      const newEndTime = `${endH.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
+
+      if (onUpdateEvent) {
+        onUpdateEvent({
+          ...info.event,
+          date: info.currentDateStr,
+          startTime: newStartTime,
+          endTime: newEndTime
+        });
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
   const handleDayHeaderClick = (day) => {
     if (onSelectDate) onSelectDate(day);
     if (onViewChange) onViewChange('day');
@@ -382,13 +548,13 @@ export default function CalendarWeek({
     <div className="flex-1 flex flex-col h-[calc(100vh-5.5rem)] mb-5 mr-4 m-3 ml-2 mt-1 bg-[#131314] text-[#e3e3e3] rounded-[28px] border-0 overflow-hidden select-none shadow-2xl">
       {/* Top Header: bez kratek między liczbami dni, bez kreski pionowej obok dnia, bez 1. poziomej */}
       <div className="flex bg-[#131314] shrink-0 pt-2 pb-1 pr-1.5">
-        {/* Left top box: When sidebar is collapsed, + button sits right here (bez kreski pionowej) */}
+        {/* Left top box: When sidebar is collapsed, + button sits right here z płynną animacją */}
         <div className="w-16 shrink-0 flex items-center justify-center">
-          {!isSidebarOpen ? (
+          <div className={`transition-all duration-300 ease-in-out ${
+            !isSidebarOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'
+          }`}>
             <CreateDropdown onSelectType={onOpenCreateModal} isCollapsed={true} />
-          ) : (
-            <div className="w-10 h-10" />
-          )}
+          </div>
         </div>
 
         {/* Day columns: W widoku dnia wyrównanie DO LEWEJ, bez kratek między liczbami dni */}
@@ -624,6 +790,48 @@ export default function CalendarWeek({
                     );
                   })()}
 
+                  {/* Klon przesuwanego wydarzenia poruszający się płynnie pod kursorem (Image 2) */}
+                  {movingEventState && movingEventState.currentDateStr === dateStr && (() => {
+                    const topPx = (movingEventState.currentStartMinutes / 60) * 48;
+                    const heightPx = Math.max(28, (movingEventState.durationMinutes / 60) * 48);
+
+                    const startH = Math.floor(movingEventState.currentStartMinutes / 60);
+                    const startMin = movingEventState.currentStartMinutes % 60;
+                    const endMinutes = movingEventState.currentStartMinutes + movingEventState.durationMinutes;
+                    const endH = Math.floor(endMinutes / 60);
+                    const endMin = endMinutes % 60;
+                    const sStr = `${startH.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`;
+                    const eStr = `${endH.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
+
+                    const ev = movingEventState.event;
+                    const isTask = ev.type === 'Zadanie';
+                    const taskCal = myCalendars?.find(c => c.id === 'zadania');
+                    const defaultTaskColor = taskCal?.color || '#1a73e8';
+                    const calColor = myCalendars?.find(c => c.id === ev.calendarId)?.color;
+                    const bgCol = ev.customBg || ev.color || (isTask ? defaultTaskColor : (calColor || '#1a73e8'));
+
+                    return (
+                      <div
+                        style={{
+                          top: `${topPx}px`,
+                          height: `${heightPx}px`,
+                          backgroundColor: bgCol
+                        }}
+                        className="absolute left-1 right-2 rounded-lg px-2.5 py-1 text-xs font-medium overflow-hidden shadow-2xl z-40 text-white pointer-events-none select-none brightness-110 saturate-105 ring-2 ring-white/30 cursor-move"
+                      >
+                        <div className="font-semibold truncate flex items-center space-x-1.5 leading-tight">
+                          {isTask && (
+                            <span className="w-3.5 h-3.5 rounded-full border-2 border-white inline-block shrink-0 shadow-sm" />
+                          )}
+                          <span className="truncate">{ev.title || '(Bez tytułu)'}</span>
+                        </div>
+                        <div className="text-[10px] opacity-95 truncate leading-tight mt-0.5">
+                          {sStr}–{eStr}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {/* Timed Events */}
                   {dayEvents.map((event) => {
                     let topPx = 48;
@@ -646,26 +854,22 @@ export default function CalendarWeek({
                     const defaultTaskColor = taskCal?.color || '#1a73e8';
                     const calColor = myCalendars?.find(c => c.id === event.calendarId)?.color;
                     const bgCol = event.customBg || event.color || (isTask ? defaultTaskColor : (calColor || '#1a73e8'));
+                    const isBeingMoved = movingEventState && movingEventState.event.id === event.id;
 
                     return (
                       <div
                         key={event.id}
-                        onMouseDown={(e) => {
-                          e.stopPropagation();
-                        }}
-                        onTouchStart={(e) => {
-                          e.stopPropagation();
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSelectEvent(event);
-                        }}
+                        onMouseDown={(e) => handleEventMouseDown(e, event)}
                         style={{
                           top: `${topPx}px`,
                           height: `${heightPx}px`,
                           backgroundColor: bgCol
                         }}
-                        className="absolute left-1 right-2 rounded-lg px-2.5 py-1 text-xs font-medium overflow-hidden shadow-md cursor-pointer hover:brightness-110 transition z-10 text-white"
+                        className={`absolute left-1 right-2 rounded-lg px-2.5 py-1 text-xs font-medium overflow-hidden shadow-md cursor-move transition z-10 text-white ${
+                          isBeingMoved 
+                            ? 'opacity-40 brightness-75 select-none' 
+                            : 'hover:brightness-110'
+                        }`}
                       >
                         <div className="font-semibold truncate flex items-center space-x-1.5">
                           {isTask && (

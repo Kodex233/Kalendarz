@@ -14,7 +14,11 @@ import {
   X, 
   Check, 
   RotateCcw,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  UserPlus,
+  BookOpen,
+  Sparkles,
+  MessageSquare
 } from 'lucide-react';
 import { 
   format, 
@@ -86,9 +90,12 @@ export default function Navbar({
     showCompleted: true
   });
 
+  const [isHelpMenuOpen, setIsHelpMenuOpen] = useState(false);
+
   const searchInputRef = useRef(null);
   const monthPickerRef = useRef(null);
   const viewMenuRef = useRef(null);
+  const helpMenuRef = useRef(null);
   const advancedSearchRef = useRef(null);
   const searchInRef = useRef(null);
 
@@ -105,6 +112,9 @@ export default function Navbar({
       }
       if (viewMenuRef.current && !viewMenuRef.current.contains(e.target)) {
         setIsViewMenuOpen(false);
+      }
+      if (helpMenuRef.current && !helpMenuRef.current.contains(e.target)) {
+        setIsHelpMenuOpen(false);
       }
       if (searchInRef.current && !searchInRef.current.contains(e.target)) {
         setIsSearchInMenuOpen(false);
@@ -487,10 +497,10 @@ export default function Navbar({
 
         {/* Navigation starts directly aligned with calendar: shifted slightly left (ml-1.5), Dzisiaj border whiter */}
         <div className="flex items-center space-x-3 ml-1.5">
-          {/* Dzisiaj button: border bardziej biały */}
+          {/* Dzisiaj button: hover tylko tło, bez zmiany borderu */}
           <button
             onClick={onToday}
-            className="px-6 py-2.5 border border-[#8e918f] hover:border-white hover:bg-[#282a2d] rounded-full text-sm font-medium text-[#e3e3e3] transition active:scale-95"
+            className="px-6 py-2.5 border border-[#8e918f] hover:bg-[#282a2d] rounded-full text-sm font-medium text-[#e3e3e3] transition active:scale-95 cursor-pointer"
           >
             Dzisiaj
           </button>
@@ -602,13 +612,67 @@ export default function Navbar({
           </svg>
         </button>
 
-        <button
-          onClick={() => alert('Pomoc i opinie')}
-          className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
-          title="Pomoc"
-        >
-          <HelpCircle className="w-6 h-6" />
-        </button>
+        {/* Pomoc i opinie popover */}
+        <div className="relative" ref={helpMenuRef}>
+          <button
+            onClick={() => setIsHelpMenuOpen(!isHelpMenuOpen)}
+            className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition cursor-pointer"
+            title="Pomoc i opinie"
+          >
+            <HelpCircle className="w-6 h-6" />
+          </button>
+
+          {isHelpMenuOpen && (
+            <div className="absolute right-0 mt-2 w-64 bg-[#1e1f20] border-0 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-100 text-[#e3e3e3]">
+              <button
+                onClick={() => {
+                  alert('Centrum pomocy Kalendarza Google:\n\n• Przeciągaj wydarzenia po siatce, aby zmienić ich czas i dzień\n• Kliknij dowolną kratkę, aby szybko dodać nowe wydarzenie lub zadanie\n• Użyj przycisku "Zaproś", aby zarządzać uprawnieniami współpracowników');
+                  setIsHelpMenuOpen(false);
+                }}
+                className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-[#e3e3e3] hover:bg-[#282a2d] hover:text-white transition cursor-pointer text-left"
+              >
+                <HelpCircle className="w-4 h-4 text-[#c4c7c5]" />
+                <span>Pomoc</span>
+              </button>
+              <button
+                onClick={() => {
+                  alert('Przeszkolenie z obsługi Kalendarza:\n\nSkróty klawiszowe:\n• T - Dzisiaj\n• D - Widok dnia\n• W - Widok tygodnia\n• M - Widok miesiąca\n• Y - Widok roku\n• / - Szukaj');
+                  setIsHelpMenuOpen(false);
+                }}
+                className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-[#e3e3e3] hover:bg-[#282a2d] hover:text-white transition cursor-pointer text-left"
+              >
+                <BookOpen className="w-4 h-4 text-[#c4c7c5]" />
+                <span>Przeszkolenie</span>
+              </button>
+              <button
+                onClick={() => {
+                  alert('Aktualizacje Kalendarza:\n\n• Nowy, płynny tryb przeciągania wydarzeń 60 FPS\n• Ulepszone okno wyboru daty i czasu bez obramowań\n• Nowy motyw wizualny i zabezpieczenia dostępu');
+                  setIsHelpMenuOpen(false);
+                }}
+                className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-[#e3e3e3] hover:bg-[#282a2d] hover:text-white transition cursor-pointer text-left"
+              >
+                <Sparkles className="w-4 h-4 text-[#c4c7c5]" />
+                <span>Aktualizacje</span>
+              </button>
+
+              <div className="border-t border-[#3c4043] my-1.5" />
+
+              <button
+                onClick={() => {
+                  const feedback = prompt('Prześlij opinię do twórców aplikacji:\nCo możemy ulepszyć w Twoim Kalendarzu?');
+                  if (feedback) {
+                    alert('Dziękujemy za przesłanie opinii!');
+                  }
+                  setIsHelpMenuOpen(false);
+                }}
+                className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-[#e3e3e3] hover:bg-[#282a2d] hover:text-white transition cursor-pointer text-left"
+              >
+                <MessageSquare className="w-4 h-4 text-[#c4c7c5]" />
+                <span>Prześlij opinię</span>
+              </button>
+            </div>
+          )}
+        </div>
 
         <button
           onClick={() => alert('Ustawienia kalendarza')}
@@ -627,10 +691,8 @@ export default function Navbar({
           className="flex items-center space-x-2 px-4 h-10 bg-[#282a2d] hover:bg-[#35373a] text-white rounded-full text-sm font-medium transition focus:outline-none cursor-pointer border-0 shadow-none"
           title="Udostępnij kalendarz i zarządzaj uprawnieniami"
         >
-          {/* Biała ikonka Google Material Person Add */}
-          <svg className="w-5 h-5 fill-current text-white shrink-0" viewBox="0 0 24 24">
-            <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-          </svg>
+          {/* Elegancka, profesjonalna ikonka UserPlus ze spójnym obrysem */}
+          <UserPlus className="w-4 h-4 text-white shrink-0" />
           <span className="text-white font-medium">Zaproś</span>
           {pendingRequestsCount > 0 && (
             <span className="ml-1 px-1.5 py-0.5 bg-[#ea4335] text-white text-[11px] font-bold rounded-full animate-pulse">
@@ -639,14 +701,19 @@ export default function Navbar({
           )}
         </button>
 
-        {/* View Switcher Dropdown: border bardziej biały, wysokość h-10 */}
+        {/* View Switcher Dropdown: hover tylko tło, strzałka w stylu Utwórz */}
         <div className="relative ml-1" ref={viewMenuRef}>
           <button
             onClick={() => setIsViewMenuOpen(!isViewMenuOpen)}
-            className="flex items-center space-x-2 px-5 h-10 bg-transparent hover:bg-[#282a2d] border border-[#8e918f] hover:border-white rounded-full text-sm font-medium text-[#e3e3e3] transition focus:outline-none"
+            className="flex items-center space-x-2 px-5 h-10 bg-transparent hover:bg-[#282a2d] border border-[#8e918f] rounded-full text-sm font-medium text-[#e3e3e3] transition focus:outline-none cursor-pointer"
           >
             <span>{VIEW_LABELS[activeView] || 'Tydzień'}</span>
-            <ChevronDown className={`w-4 h-4 text-[#e3e3e3] transition-transform ${isViewMenuOpen ? 'rotate-180' : ''}`} />
+            <svg 
+              className={`w-2.5 h-2 fill-[#c4c7c5] ml-1 shrink-0 transition-transform duration-200 ${isViewMenuOpen ? 'rotate-180' : ''}`} 
+              viewBox="0 0 10 6"
+            >
+              <path d="M0 0l5 6 5-6z" />
+            </svg>
           </button>
 
           {/* View Menu Popover: ciemniejsze tło (#1e1f20), mniejszy radius (rounded-xl), zwiększona szerokość (w-72), 1 linia tekstu */}

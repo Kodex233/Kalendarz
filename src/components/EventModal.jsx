@@ -808,7 +808,7 @@ export default function EventModal({
 
                       {/* Menu opcji powtarzania */}
                       {isRepeatMenuOpen && (
-                        <div className="absolute left-0 top-full mt-1 w-80 bg-[#282a2d] rounded-md shadow-2xl py-1 z-[80] animate-in fade-in zoom-in-95 duration-100 border border-white/10">
+                        <div className="absolute left-0 top-full mt-1 w-80 bg-[#282a2d] rounded-md shadow-2xl py-1 z-[80] animate-in fade-in zoom-in-95 duration-100 border-0">
                           {repeatOptions.map((opt, i) => (
                             <div
                               key={i}
@@ -1113,7 +1113,7 @@ export default function EventModal({
 
                         {/* Menu opcji powtarzania (dokładnie jak na zdjęciu Image 3) */}
                         {isRepeatMenuOpen && (
-                          <div className="absolute left-0 top-full mt-1 w-80 bg-[#282a2d] rounded-md shadow-2xl py-1 z-[80] animate-in fade-in zoom-in-95 duration-100 border border-white/10">
+                          <div className="absolute left-0 top-full mt-1 w-80 bg-[#282a2d] rounded-md shadow-2xl py-1 z-[80] animate-in fade-in zoom-in-95 duration-100 border-0">
                             {repeatOptions.map((opt, i) => (
                               <div
                                 key={i}

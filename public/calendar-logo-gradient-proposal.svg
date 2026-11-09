@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Główny gradient pionowy w stylu przesłanego zrzutu -->
+    <linearGradient id="calBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#80b3ff" />
+      <stop offset="18%" stop-color="#4d92ff" />
+      <stop offset="50%" stop-color="#2979ff" />
+      <stop offset="85%" stop-color="#1a68f0" />
+      <stop offset="100%" stop-color="#1255d6" />
+    </linearGradient>
+
+    <!-- Górny błyszczący akcent (glossy bevel / shine) -->
+    <linearGradient id="calGlossGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#d4e5ff" stop-opacity="0.95" />
+      <stop offset="35%" stop-color="#a8cbff" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#6ba6ff" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Wewnętrzny cień krawędzi -->
+    <filter id="softGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#0a3282" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <!-- Cień pod ikoną -->
+  <rect x="76" y="80" width="360" height="360" rx="96" fill="#000" opacity="0.25" filter="blur(16px)" />
+
+  <!-- Kształt bazowy kalendarza ze zrzutu ekranu (zaokrąglony squircle) -->
+  <g filter="url(#softGlow)">
+    <rect 
+      x="76" 
+      y="76" 
+      width="360" 
+      height="360" 
+      rx="92" 
+      fill="url(#calBgGrad)" 
+    />
+  </g>
+
+  <!-- Górna tafla połysku (gloss shine na górnej krawędzi) -->
+  <path 
+    d="M 168 76 L 344 76 C 412 76 436 100 436 168 L 436 180 C 370 215 142 215 76 180 L 76 168 C 76 100 100 76 168 76 Z" 
+    fill="url(#calGlossGrad)" 
+  />
+
+  <!-- Delikatne ścięcia / wcięcia boczne charakterystyczne dla ikony ze zdjęcia -->
+  <!-- Biała cyfra 31 w stylu Google Sans / Product Sans -->
+  <text 
+    x="256" 
+    y="336" 
+    fill="#ffffff" 
+    font-family="-apple-system, BlinkMacSystemFont, 'Google Sans', 'Product Sans', 'Roboto', sans-serif" 
+    font-size="208" 
+    font-weight="700" 
+    text-anchor="middle"
+    letter-spacing="-6"
+  >31</text>
+</svg>
