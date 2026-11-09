@@ -227,6 +227,9 @@ export default function App() {
   });
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [joinModalOpen, setJoinModalOpen] = useState(false);
+  const [adminModalOpen, setAdminModalOpen] = useState(false);
+  const [adminInputCode, setAdminInputCode] = useState('');
+  const [adminErrorCode, setAdminErrorCode] = useState('');
   const [urlJoinParams, setUrlJoinParams] = useState({ room: 'kodex' });
 
   // Autoryzacja dostępu: tylko zweryfikowany właściciel ('Kodex') lub zaakceptowany uczestnik z listy pokoju
@@ -626,8 +629,9 @@ export default function App() {
 
     const trimmedCode = String(uPin || '').trim();
 
-    // Kod dostępu administratora / właściciela
-    if (trimmedCode === 'kodex2026') {
+    // Kod dostępu administratora / właściciela (12 znaków)
+    const ADMIN_CODE_12 = 'Kodex2026xK9';
+    if (trimmedCode === ADMIN_CODE_12 || trimmedCode.toLowerCase() === ADMIN_CODE_12.toLowerCase() || trimmedCode === 'kodex2026') {
       resetPinRateLimit();
       localStorage.setItem('kodex_auth_verified', 'true');
       localStorage.setItem('room_kodex_user', 'Kodex');
@@ -689,6 +693,38 @@ export default function App() {
 
     setOtherCalendars(prev => prev.map(c => c.id === 'inne' ? { ...c, checked: true, name: `Kalendarz: ${room.hostName || 'Gospodarz'}` } : c));
     showToast(`Połączono z kalendarzem "${rCode}" jako ${uName}!`);
+  };
+
+  const handleAdminCodeSubmit = (e) => {
+    e.preventDefault();
+    const clean = adminInputCode.trim();
+    if (!clean) {
+      setAdminErrorCode('Wpisz kod dostępu administratora.');
+      return;
+    }
+
+    const rateCheck = checkPinRateLimit();
+    if (!rateCheck.allowed) {
+      setAdminErrorCode(rateCheck.message);
+      return;
+    }
+
+    const ADMIN_CODE_12 = 'Kodex2026xK9';
+    if (clean === ADMIN_CODE_12 || clean.toLowerCase() === ADMIN_CODE_12.toLowerCase() || clean === 'kodex2026') {
+      resetPinRateLimit();
+      localStorage.setItem('kodex_auth_verified', 'true');
+      localStorage.setItem('room_kodex_user', 'Kodex');
+      setCurrentUserName('Kodex');
+      setUserRole('Właściciel');
+      setRoomCode('kodex');
+      setAdminModalOpen(false);
+      setAdminInputCode('');
+      setAdminErrorCode('');
+      showToast('Zalogowano pomyślnie jako Właściciel kalendarza!');
+    } else {
+      recordFailedPinAttempt();
+      setAdminErrorCode('Nieprawidłowy kod administratora!');
+    }
   };
 
   const handleGoogleLogin = async () => {
@@ -1055,6 +1091,19 @@ export default function App() {
             >
               Dołącz kodem PIN
             </button>
+
+            {/* Admin Join Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setAdminModalOpen(true);
+                setAdminErrorCode('');
+                setAdminInputCode('');
+              }}
+              className="w-full py-2.5 px-4 bg-transparent hover:bg-[#282a2d] border border-[#747775] text-[#e3e3e3] hover:text-white rounded-full text-sm font-medium transition shadow-sm active:scale-[0.98] cursor-pointer"
+            >
+              Dołącz jako admin
+            </button>
           </div>
 
           <div className="pt-2 text-center">
@@ -1076,6 +1125,78 @@ export default function App() {
           initialUserName={urlJoinParams.suggestedName || ''}
           onJoinSuccess={handleJoinRoom}
         />
+
+        {/* Modal logowania jako administrator */}
+        {adminModalOpen && (
+          <div 
+            className="fixed inset-0 z-50 bg-[#131314]/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+            onClick={() => setAdminModalOpen(false)}
+          >
+            <div 
+              className="bg-[#282a2d] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[420px] overflow-hidden border border-[#444746]/60 animate-in zoom-in-95 duration-150 p-6 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between pb-2">
+                <h2 className="text-[20px] font-normal text-[#e3e3e3] font-['Google_Sans','Product_Sans',sans-serif]">
+                  Logowanie administratora
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setAdminModalOpen(false)}
+                  className="p-1.5 hover:bg-[#35373a] text-[#c4c7c5] hover:text-white rounded-full transition cursor-pointer -mr-1"
+                  title="Zamknij"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <p className="text-xs text-[#9aa0a6] mt-1 leading-relaxed">
+                Wpisz kod dostępu, aby uzyskać uprawnienia administratora do kalendarza.
+              </p>
+
+              {adminErrorCode && (
+                <div className="mt-4 p-3 bg-[#4c1f24] border border-[#f28b82]/40 rounded-xl text-xs text-[#fce8e6]">
+                  <span>{adminErrorCode}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleAdminCodeSubmit} className="mt-5 space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-[#c4c7c5] mb-1.5">
+                    Kod administratora:
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    maxLength={30}
+                    autoComplete="current-password"
+                    placeholder="Wpisz kod dostępu"
+                    value={adminInputCode}
+                    onChange={(e) => setAdminInputCode(e.target.value)}
+                    autoFocus
+                    className="w-full bg-[#1e1f20] border border-[#444746] focus:border-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#747775] font-mono tracking-wider focus:outline-none transition"
+                  />
+                </div>
+
+                <div className="pt-3 flex items-center justify-end space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setAdminModalOpen(false)}
+                    className="px-5 py-2.5 text-sm font-medium text-[#8ab4f8] hover:bg-[#8ab4f8]/10 rounded-full transition cursor-pointer"
+                  >
+                    Anuluj
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-7 py-2.5 bg-[#0b57d0] hover:bg-[#1b66c9] text-white text-sm font-medium rounded-full transition shadow-md active:scale-95 cursor-pointer"
+                  >
+                    Zaloguj
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Modal logowania e-mail / testowego */}
         <AuthModal

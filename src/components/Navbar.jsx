@@ -746,20 +746,19 @@ export default function Navbar({
             </span>
             <button
               onClick={onLogout}
-              className="px-3 py-1.5 bg-[#282a2d] hover:bg-[#35373a] text-[#c4c7c5] hover:text-white rounded-full transition flex items-center space-x-1.5 text-xs font-medium cursor-pointer"
-              title="Wyloguj się / Zablokuj kalendarz"
+              className="w-10 h-10 flex items-center justify-center hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition cursor-pointer"
+              title="Wyloguj się"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Wyloguj</span>
+              <LogOut className="w-5 h-5" />
             </button>
           </div>
         ) : (
           <button
             onClick={onLogout || onOpenAuth}
-            className="px-4 py-2 flex items-center space-x-1 bg-[#282a2d] hover:bg-[#35373a] text-[#e3e3e3] font-medium rounded-full text-xs transition shadow-sm active:scale-95 ml-1"
+            className="w-10 h-10 flex items-center justify-center hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition cursor-pointer ml-1"
+            title="Wyloguj się"
           >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Wyloguj</span>
+            <LogOut className="w-5 h-5" />
           </button>
         )}
       </div>
