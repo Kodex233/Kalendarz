@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { 
   X, 
   Clock, 
@@ -413,43 +413,90 @@ export default function EventModal({
     }
   }, [date]);
 
-  // Dynamiczne pozycjonowanie okienka bezpośrednio obok podglądu klikniętej kratki
-  // (Musi być wywołane przed jakimkolwiek wczesnym return null, zgodnie z Rules of Hooks)
-  const modalStyle = useMemo(() => {
-    if (!initialData?.slotRect) {
-      return {
-        top: '80px',
-        left: '280px'
-      };
+  // Dynamiczne pozycjonowanie okienka bezpośrednio obok podglądu klikniętej kratki (reaguje natychmiast na zmianę daty)
+  const [modalStyle, setModalStyle] = useState(() => {
+    if (initialData?.slotRect) {
+      const { left: slotLeft, right: slotRight, top: slotTop } = initialData.slotRect;
+      const modalWidth = 495;
+      const modalHeight = 560;
+      const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1400;
+      const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 900;
+      let targetLeft = (slotLeft - modalWidth - 10 >= 40) ? (slotLeft - modalWidth - 12) : (slotRight + 12);
+      targetLeft = Math.max(16, Math.min(windowWidth - modalWidth - 16, targetLeft));
+      let targetTop = Math.max(68, Math.min(windowHeight - modalHeight - 32, slotTop - 110));
+      return { top: `${targetTop}px`, left: `${targetLeft}px` };
     }
+    return { top: '80px', left: '280px' };
+  });
 
-    const { left: slotLeft, right: slotRight, top: slotTop } = initialData.slotRect;
+  const updateModalPosition = useCallback(() => {
     const modalWidth = 495;
     const modalHeight = 560;
     const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1400;
     const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 900;
 
+    let targetSlotRect = null;
+    const previewEl = document.getElementById('creating-event-preview');
+    if (previewEl) {
+      const r = previewEl.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) {
+        targetSlotRect = { left: r.left, right: r.right, top: r.top, height: r.height };
+      }
+    }
+
+    if (!targetSlotRect) {
+      const colEl = document.querySelector(`[data-col-date="${date}"]`);
+      if (colEl) {
+        const colRect = colEl.getBoundingClientRect();
+        const [h, m] = (startTime || '10:00').split(':').map(Number);
+        const topPx = Math.max(0, h * 48 + ((m || 0) / 60) * 48);
+        targetSlotRect = {
+          left: colRect.left,
+          right: colRect.right,
+          top: colRect.top + topPx,
+          height: 48
+        };
+      } else if (initialData?.slotRect) {
+        targetSlotRect = initialData.slotRect;
+      }
+    }
+
+    if (!targetSlotRect) return;
+
+    const { left: slotLeft, right: slotRight, top: slotTop } = targetSlotRect;
     let targetLeft = 0;
-    // Jeśli po lewej stronie kratki mieści się okienko: umieść je z lewej od kratki/podglądu
     if (slotLeft - modalWidth - 10 >= 40) {
       targetLeft = slotLeft - modalWidth - 12;
     } else {
-      // W przeciwnym razie umieść je z prawej strony kratki/podglądu
       targetLeft = slotRight + 12;
     }
-
-    // Ograniczenie poziome w granicach ekranu
     targetLeft = Math.max(16, Math.min(windowWidth - modalWidth - 16, targetLeft));
 
-    // Wyrównanie pionowe: przesunięte wyżej, aby dolna część okienka nie była obcięta przy kliknięciu nisko
     let targetTop = slotTop - 110;
     targetTop = Math.max(68, Math.min(windowHeight - modalHeight - 32, targetTop));
 
-    return {
+    setModalStyle({
       top: `${targetTop}px`,
       left: `${targetLeft}px`
+    });
+  }, [date, startTime, initialData?.slotRect]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    updateModalPosition();
+
+    const raf = requestAnimationFrame(updateModalPosition);
+    const t1 = setTimeout(updateModalPosition, 50);
+    const t2 = setTimeout(updateModalPosition, 150);
+
+    window.addEventListener('resize', updateModalPosition);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      window.removeEventListener('resize', updateModalPosition);
     };
-  }, [initialData?.slotRect]);
+  }, [isOpen, date, startTime, updateModalPosition]);
 
   if (!isOpen) return null;
 

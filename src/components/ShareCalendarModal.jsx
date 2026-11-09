@@ -26,6 +26,9 @@ export default function ShareCalendarModal({
   const [activeRoleDropdownIndex, setActiveRoleDropdownIndex] = useState(null);
   const [pendingRoles, setPendingRoles] = useState({});
 
+  // Bezpieczna lista oczekujących próśb o dostęp
+  const pendingRequests = (accessRequests || []).filter(r => r && (r.status === 'pending' || !r.status));
+
   const accessDropdownRef = useRef(null);
   const roleDropdownRef = useRef(null);
 

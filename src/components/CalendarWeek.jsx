@@ -563,6 +563,7 @@ export default function CalendarWeek({
               return (
                 <div 
                   key={dIdx} 
+                  data-col-date={dateStr}
                   onMouseDown={(e) => handleColumnMouseDown(e, day, dIdx)}
                   onTouchStart={(e) => handleColumnTouchStart(e, day, dIdx)}
                   className={`relative h-full select-none cursor-pointer ${isLastColumn ? 'border-r-0' : 'border-r border-white/20'}`}
@@ -648,6 +649,7 @@ export default function CalendarWeek({
 
                     return (
                       <div
+                        id="creating-event-preview"
                         style={{
                           top: `${topPx}px`,
                           height: `${heightPx}px`,

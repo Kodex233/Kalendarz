@@ -520,7 +520,7 @@ export default function Navbar({
                 setPickerDate(currentDate);
                 setIsMonthPickerOpen(!isMonthPickerOpen);
               }}
-              className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-[#282a2d] text-2xl font-normal text-[#e3e3e3] capitalize transition"
+              className="flex items-center space-x-2 px-4 py-1.5 rounded-full hover:bg-[#282a2d] text-2xl font-normal text-[#e3e3e3] capitalize transition cursor-pointer"
             >
               <span>{headerDateLabel}</span>
               <ChevronDown className={`w-5 h-5 text-[#e3e3e3] transition-transform ${isMonthPickerOpen ? 'rotate-180' : ''}`} />

@@ -1100,13 +1100,13 @@ export default function App() {
   if (!isAuthorized) {
     return (
       <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-[#0d0e12] text-[#e3e3e3] p-4 select-none relative font-['Roboto',sans-serif] overflow-hidden">
-        {/* Gemini Atmospheric Cosmic Glow z wielobarwną płynną zmianą kolorów */}
+        {/* Gemini Atmospheric Cosmic Glow z wielobarwną płynną zmianą kolorów: mniejszy, subtelny gradient z prawej */}
         <div 
           className="absolute inset-0 pointer-events-none gemini-aurora-glow"
           style={{
             background: `
-              radial-gradient(ellipse 65% 50% at 60% 35%, rgba(30, 75, 185, 0.46) 0%, rgba(18, 45, 120, 0.26) 35%, rgba(10, 20, 60, 0.1) 60%, transparent 75%),
-              radial-gradient(circle 420px at 45% 45%, rgba(40, 85, 195, 0.25) 0%, rgba(14, 28, 75, 0.1) 45%, transparent 70%)
+              radial-gradient(ellipse 35% 25% at 65% 35%, rgba(30, 75, 185, 0.22) 0%, rgba(18, 45, 120, 0.12) 40%, transparent 70%),
+              radial-gradient(circle 260px at 45% 45%, rgba(40, 85, 195, 0.15) 0%, rgba(14, 28, 75, 0.05) 45%, transparent 70%)
             `
           }}
         />
@@ -1115,11 +1115,11 @@ export default function App() {
         <div className="flex items-center space-x-3 mb-6 relative z-10">
           <img 
             src="/calendar-logo.png" 
-            alt="Google Kalendarz" 
+            alt="Kalendarz Google" 
             className="w-12 h-12 object-contain drop-shadow-lg" 
           />
           <span className="text-[26px] font-normal text-[#e3e3e3] font-['Product_Sans','Google_Sans',sans-serif] tracking-tight">
-            Google Kalendarz
+            Kalendarz Google
           </span>
         </div>
 
@@ -1534,6 +1534,14 @@ export default function App() {
         myCalendars={myCalendars}
         onFormChange={(formData) => {
           setSelectedEvent(prev => prev ? ({ ...prev, ...formData }) : formData);
+          if (formData.date) {
+            try {
+              const newD = new Date(formData.date + 'T00:00:00');
+              if (!isNaN(newD.getTime())) {
+                setCurrentDate(newD);
+              }
+            } catch (e) {}
+          }
         }}
       />
 
