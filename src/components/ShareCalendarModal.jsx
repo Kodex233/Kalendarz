@@ -294,7 +294,7 @@ export default function ShareCalendarModal({
                   {activeRoleDropdownIndex === idx && (
                     <div 
                       ref={roleDropdownRef}
-                      className="absolute right-0 mt-1 w-64 bg-[#282a2d] border border-[#444746] rounded-lg shadow-2xl py-1 z-50 animate-in fade-in zoom-in-95 duration-100"
+                      className="absolute right-0 mt-1 w-64 bg-[#282a2d] border border-[#444746] rounded-lg shadow-2xl py-1 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
                     >
                       <button
                         type="button"
@@ -414,11 +414,11 @@ export default function ShareCalendarModal({
                   : 'Każda osoba w internecie z linkiem i kodem PIN może wyświetlać ten kalendarz'}
               </p>
 
-              {/* Menu wyboru dostępu ogólnego: bez bordera i bez obramowania */}
+              {/* Menu wyboru dostępu ogólnego: bez bordera, subtelny cień, overflow-hidden aby hover nie wychodził poza okienko */}
               {isAccessDropdownOpen && (
                 <div 
                   ref={accessDropdownRef}
-                  className="absolute left-0 mt-1 w-64 bg-[#282a2d] border-0 rounded-xl shadow-[0_8px_28px_rgba(0,0,0,0.7)] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100"
+                  className="absolute left-0 mt-1 w-64 bg-[#282a2d] border-0 rounded-xl shadow-lg py-1 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
                 >
                   <button
                     type="button"
