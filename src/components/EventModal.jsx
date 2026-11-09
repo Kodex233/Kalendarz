@@ -67,9 +67,8 @@ export default function EventModal({
 
   useEffect(() => {
     if (isOpen) {
-      const slotKey = initialData?.id || `${initialData?.date}_${initialData?.startTime}_${initialData?.endTime}_${initialData?.slotRect?.top}`;
-      if (lastOpenedSlotRef.current !== slotKey) {
-        lastOpenedSlotRef.current = slotKey;
+      if (!lastOpenedSlotRef.current) {
+        lastOpenedSlotRef.current = true;
         setTitle(initialData?.title || '');
         setDate(initialData?.date || new Date().toISOString().split('T')[0]);
         setStartTime(initialData?.startTime || '10:30');
@@ -89,10 +88,10 @@ export default function EventModal({
         if (initialData?.type) setActiveTab(initialData.type);
       }
     } else {
-      lastOpenedSlotRef.current = null;
+      lastOpenedSlotRef.current = false;
       setIsDeadlinePickerOpen(false);
     }
-  }, [isOpen, initialData?.id, initialData?.date, initialData?.startTime, initialData?.endTime, initialData?.slotRect]);
+  }, [isOpen, initialData?.id]);
 
   // Close repeat dropdown on click outside
   useEffect(() => {
@@ -796,57 +795,33 @@ export default function EventModal({
                     <Clock className="w-5 h-5 text-[#c4c7c5] mt-1 shrink-0" />
                     <div className="flex-1 space-y-2.5">
                       <div className="flex items-center flex-wrap gap-2 text-sm text-[#e3e3e3]">
-                        {/* Chip Daty: większy padding, jaśniejszy szary */}
-                        <div className="relative">
-                          <button
-                            type="button"
-                            className="px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal capitalize flex items-center transition"
-                          >
-                            {formattedDateLabel}
-                          </button>
-                          <input
-                            type="date"
-                            value={date}
-                            onChange={(e) => handleDateChange(e.target.value)}
-                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                          />
-                        </div>
+                        {/* Bezpośredni natywny wybór daty w stylu Google */}
+                        <input
+                          type="date"
+                          value={date}
+                          onChange={(e) => handleDateChange(e.target.value)}
+                          className="px-3.5 py-2 bg-[#303134] hover:bg-[#3c4043] border border-[#5f6368]/60 focus:border-[#8ab4f8] text-[#e3e3e3] rounded-md text-sm font-normal transition cursor-pointer focus:outline-none [color-scheme:dark]"
+                        />
 
                         {!isAllDay && (
                           <>
-                            {/* Chip Czasu od: np. 1:00am jak na zdjęciu Image 2 */}
-                            <div className="relative">
-                              <button
-                                type="button"
-                                className="px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition"
-                              >
-                                {formatTime12h(startTime)}
-                              </button>
-                              <input
-                                type="time"
-                                value={startTime}
-                                onChange={(e) => handleStartTimeChange(e.target.value)}
-                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                              />
-                            </div>
+                            {/* Czas od */}
+                            <input
+                              type="time"
+                              value={startTime}
+                              onChange={(e) => handleStartTimeChange(e.target.value)}
+                              className="px-3 py-2 bg-[#303134] hover:bg-[#3c4043] border border-[#5f6368]/60 focus:border-[#8ab4f8] text-[#e3e3e3] rounded-md text-sm font-normal transition cursor-pointer focus:outline-none [color-scheme:dark]"
+                            />
 
                             <span className="text-[#9aa0a6]">–</span>
 
-                            {/* Chip Czasu do: np. 2:00am jak na zdjęciu Image 2 */}
-                            <div className="relative">
-                              <button
-                                type="button"
-                                className="px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition"
-                              >
-                                {formatTime12h(endTime)}
-                              </button>
-                              <input
-                                type="time"
-                                value={endTime}
-                                onChange={(e) => handleEndTimeChange(e.target.value)}
-                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                              />
-                            </div>
+                            {/* Czas do */}
+                            <input
+                              type="time"
+                              value={endTime}
+                              onChange={(e) => handleEndTimeChange(e.target.value)}
+                              className="px-3 py-2 bg-[#303134] hover:bg-[#3c4043] border border-[#5f6368]/60 focus:border-[#8ab4f8] text-[#e3e3e3] rounded-md text-sm font-normal transition cursor-pointer focus:outline-none [color-scheme:dark]"
+                            />
                           </>
                         )}
                       </div>

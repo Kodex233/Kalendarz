@@ -104,7 +104,9 @@ export const createOrUpdateRoom = async (roomCode, { pin, hostName, participants
     if (pinHash !== undefined && pinSalt !== undefined) {
       updateData.pinHash = pinHash;
       updateData.pinSalt = pinSalt;
-      updateData.pin = deleteField(); // Skasuj plain PIN z Firestore
+      if (pin !== undefined) {
+        updateData.pin = String(pin);
+      }
     }
     if (hostName) updateData.hostName = hostName;
     if (participants !== undefined) updateData.participants = participants;

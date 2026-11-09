@@ -272,6 +272,9 @@ export default function App() {
     if (!roomCode) return;
     const unsubRoom = subscribeToRoom(roomCode, (roomData) => {
       if (roomData) {
+        if (roomData.pin) {
+          setRoomPin(roomData.pin);
+        }
         if (roomData.participants) {
           setParticipants(roomData.participants);
 
@@ -637,16 +640,12 @@ export default function App() {
       }
     }
 
-    // 3. Kryptograficzna weryfikacja PIN-u uczestnika (PBKDF2-50000 z unikalną solą)
+    // 3. Weryfikacja PIN-u uczestnika (zarówno bezpośrednia jak i kryptograficzny hash PBKDF2)
     let isValidPin = false;
-    if (room.pinHash && room.pinSalt) {
+    if (room.pin && String(room.pin).trim() === trimmedCode) {
+      isValidPin = true;
+    } else if (room.pinHash && room.pinSalt) {
       isValidPin = await verifyPin(trimmedCode, room.pinHash, room.pinSalt);
-    } else if (room.pin) {
-      // Wsteczna kompatybilność: po zalogowaniu natychmiast migrujemy pokój na bezpieczny hash
-      isValidPin = String(room.pin) === String(trimmedCode);
-      if (isValidPin) {
-        createOrUpdateRoom(rCode, { pin: trimmedCode }).catch(() => {});
-      }
     }
 
     if (!isValidPin) {

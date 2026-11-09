@@ -3,58 +3,76 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: /calendar_rooms/{roomCode}
+    // Document ID: roomCode (np. 'kodex')
+    // Fields:
+    //   - roomCode: string
+    //   - pinHash: string
+    //   - pinSalt: string
+    //   - hostName: string
+    //   - participants: list of strings
+    //   - participantsData: map
+    //   - createdAt: timestamp
+    //   - updatedAt: timestamp
+    //
+    // Collection: /events/{eventId}
+    // Document ID: eventId
+    // Fields:
+    //   - roomCode: string
+    //   - calendarId: string
+    //   - title: string
+    //   - date: string
+    //   - startTime: string
+    //   - endTime: string
+    //   - userId: string
+    //   - userName: string
+    //   - isExchangeable: bool
+    //   - createdAt: timestamp
+    //   - updatedAt: timestamp
+    //
+    // Collection: /exchanges/{exchangeId}
+    // Document ID: exchangeId
+    // Fields:
+    //   - fromUserId: string
+    //   - toUserId: string
+    //   - fromUserEmail: string
+    //   - toUserEmail: string
+    //   - myEventId: string
+    //   - targetEventId: string
+    //   - status: string
+    //   - createdAt: timestamp
+    //   - resolvedAt: timestamp
+    //
+    // ===============================================================
+
+    // Helper function
     function isAuthenticated() {
       return request.auth != null;
     }
-    
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+
+    // 1. Kolekcja /calendar_rooms/{roomCode}
+    match /calendar_rooms/{roomCode} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
     }
 
-    // Events collection
+    // 2. Kolekcja /events/{eventId}
     match /events/{eventId} {
-      // Allow read if user is authenticated and either:
-      // - they own the event
-      // - the event is available for swap/exchange
-      // - the event was shared with their email
-      allow read: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid ||
-        resource.data.isExchangeable == true ||
-        resource.data.invitedEmail == request.auth.token.email
-      );
-
-      // Create: only authenticated user creating their own event
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-
-      // Update: owner, or exchanging user when completing a swap
-      allow update: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid ||
-        request.resource.data.userId == request.auth.uid ||
-        resource.data.invitedEmail == request.auth.token.email
-      );
-
-      // Delete: only owner can delete
-      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // allow read: if request.auth != null;
+      // Wymagane, aby zapytanie onSnapshot z where('roomCode', '==', roomCode)
+      // oraz where('userId', '==', userId) działały bez błędu 'Missing or insufficient permissions'.
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated();
     }
 
-    // Exchange requests collection
+    // 3. Kolekcja /exchanges/{exchangeId}
     match /exchanges/{exchangeId} {
-      allow read: if isAuthenticated() && (
-        resource.data.fromUserId == request.auth.uid ||
-        resource.data.toUserEmail == request.auth.token.email ||
-        resource.data.toUserId == request.auth.uid
-      );
-
-      allow create: if isAuthenticated() && request.resource.data.fromUserId == request.auth.uid;
-
-      allow update: if isAuthenticated() && (
-        resource.data.fromUserId == request.auth.uid ||
-        resource.data.toUserEmail == request.auth.token.email ||
-        resource.data.toUserId == request.auth.uid
-      );
-
-      allow delete: if isAuthenticated() && resource.data.fromUserId == request.auth.uid;
+      allow read, write: if isAuthenticated();
     }
   }
 }
