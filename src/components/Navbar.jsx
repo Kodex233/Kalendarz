@@ -740,11 +740,7 @@ export default function Navbar({
 
         {/* User Auth Info */}
         {(user || currentUser) ? (() => {
-          const isAdmin = userRole === 'Właściciel' || 
-                          userRole === 'Admin' || 
-                          currentUser === 'Kodex' || 
-                          (user?.email && user.email.toLowerCase().trim() === 'kodex233@gmail.com') ||
-                          (typeof window !== 'undefined' && localStorage.getItem('kodex_auth_verified') === 'true');
+          const isAdmin = userRole !== 'Przeglądający' && userRole !== 'Edytor';
           const displayName = currentUser || (user ? (user.displayName || user.email?.split('@')[0]) : 'Kodex');
 
           return (
@@ -790,20 +786,14 @@ export default function Navbar({
                 </div>
               )}
 
-              {/* Nazwa lekko wyżej oraz napis admin/user pod spodem, jak w 'Zaproś' (nazwa i rola) */}
-              <div className="flex flex-col justify-center text-left leading-none hidden sm:flex">
-                <span className="text-xs font-medium text-[#e3e3e3] leading-tight select-none">
+              {/* Nazwa oraz rola (Admin / User) stylizowana dokładnie jak email pod nazwą w 'Zaproś' */}
+              <div className="flex flex-col justify-center text-left leading-snug hidden sm:flex">
+                <span className="text-xs font-medium text-[#e3e3e3] leading-snug select-none">
                   {displayName}
                 </span>
-                {isAdmin ? (
-                  <span className="text-[11px] font-semibold leading-tight text-[#8ab4f8] bg-gradient-to-r from-[#4285f4] to-[#d0c4fe] bg-clip-text text-transparent select-none">
-                    Admin
-                  </span>
-                ) : (
-                  <span className="text-[11px] font-normal leading-tight text-[#9aa0a6] select-none">
-                    User
-                  </span>
-                )}
+                <span className="text-xs text-[#9aa0a6] leading-snug select-none">
+                  {isAdmin ? 'Admin' : 'User'}
+                </span>
               </div>
 
               <button

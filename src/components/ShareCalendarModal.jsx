@@ -20,6 +20,7 @@ export default function ShareCalendarModal({
 }) {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedPin, setCopiedPin] = useState(false);
+  const [isSpinningPin, setIsSpinningPin] = useState(false);
   const [newPersonInput, setNewPersonInput] = useState('');
   const [generalAccess, setGeneralAccess] = useState('restricted'); // 'restricted' | 'pin'
   const [isAccessDropdownOpen, setIsAccessDropdownOpen] = useState(false);
@@ -69,8 +70,10 @@ export default function ShareCalendarModal({
   };
 
   const handleRegeneratePin = () => {
+    setIsSpinningPin(true);
     const randomPin = generateSecurePin();
     if (onUpdatePin) onUpdatePin(randomPin);
+    setTimeout(() => setIsSpinningPin(false), 550);
   };
 
   // Dodawanie nowej osoby z inputa
@@ -386,10 +389,11 @@ export default function ShareCalendarModal({
 
             {/* Dropdown dostępu ogólnego */}
             <div className="flex-1 relative">
+              {/* Dropdown dostępu ogólnego: zaokrąglony hover */}
               <button
                 type="button"
                 onClick={() => setIsAccessDropdownOpen(!isAccessDropdownOpen)}
-                className="flex items-center space-x-1.5 hover:bg-[#35373a] px-2 py-1 -ml-2 rounded transition focus:outline-none cursor-pointer"
+                className="inline-flex items-center space-x-1.5 hover:bg-[#35373a] px-3 py-1.5 -ml-2.5 rounded-full transition focus:outline-none cursor-pointer"
               >
                 <span className="text-sm font-normal text-[#e3e3e3]">
                   {generalAccess === 'restricted' ? 'Dostęp ograniczony' : 'Każda osoba mająca link'}
@@ -456,59 +460,91 @@ export default function ShareCalendarModal({
             </div>
           </div>
 
-          {/* Sekcja PIN pod dostępem - duży czytelny napis jak inne nagłówki, podkreślenie na niebiesko */}
-          <div className="mt-4 pt-3 border-t border-[#444746]/40 flex items-center justify-between">
-            <div className="flex items-center space-x-2.5">
-              <span className="text-sm font-medium text-[#e3e3e3]">
-                PIN:
-              </span>
-              <span 
+          {/* Sekcja PIN dostępu: tło bg-[#35373a] jak w 'zaloguj przez google', bez bordera, mniejszy padding */}
+          <div className="mt-4 bg-[#35373a] rounded-[18px] py-2.5 px-4 flex items-center justify-between gap-3 shadow-sm border-0">
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-medium tracking-[0.08em] uppercase text-[#9aa0a6] select-none">
+                PIN dostępu
+              </div>
+              <button 
+                type="button"
                 onClick={handleCopyPin}
                 title="Kliknij, aby skopiować PIN"
-                className="text-base font-bold font-mono tracking-wider cursor-pointer hover:text-[#b8d4ff] transition select-all"
-                style={{
-                  color: '#8ab4f8',
-                  textDecoration: 'underline',
-                  textDecorationColor: '#8ab4f8',
-                  textUnderlineOffset: '4px'
-                }}
+                className="text-[24px] font-bold font-mono tracking-[0.2em] text-[#8ab4f8] hover:text-[#b8d4ff] transition cursor-pointer select-all block leading-tight mt-0.5 bg-transparent border-0 p-0 text-left focus:outline-none"
               >
                 {pinToDisplay}
-              </span>
-              {copiedPin ? (
-                <span className="text-xs font-medium text-[#8ab4f8] animate-in fade-in">
-                  (Skopiowano!)
-                </span>
-              ) : (
-                <span className="text-xs text-[#9aa0a6]">
-                  (kliknij, aby skopiować)
-                </span>
-              )}
+              </button>
             </div>
 
-            <button
-              type="button"
-              onClick={handleRegeneratePin}
-              className="text-xs text-[#8ab4f8] hover:text-[#b8d4ff] hover:underline transition font-medium cursor-pointer"
-              title="Wygeneruj nowy PIN"
-            >
-              Nowy PIN
-            </button>
+            <div className="flex items-center space-x-2">
+              {/* Przycisk Kopiuj PIN: bez borderu, mniejsze tło, przy skopiowaniu tylko zielona ikonka ticka */}
+              <button
+                type="button"
+                onClick={handleCopyPin}
+                aria-label="Kopiuj PIN"
+                title={copiedPin ? "Skopiowano PIN!" : "Kopiuj PIN"}
+                className="w-8 h-8 rounded-full bg-[#434649] hover:bg-[#525659] text-[#8ab4f8] border-0 flex items-center justify-center transition cursor-pointer shrink-0 active:scale-95"
+              >
+                {copiedPin ? (
+                  <svg className="w-4 h-4 text-[#81c995]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-[#8ab4f8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="9" y="9" width="11" height="11" rx="2" />
+                    <path d="M5 15V6a2 2 0 0 1 2-2h9" />
+                  </svg>
+                )}
+              </button>
+
+              {/* Przycisk Nowy PIN: animacja obrotu w prawo (360deg) */}
+              <button
+                type="button"
+                onClick={handleRegeneratePin}
+                aria-label="Nowy PIN"
+                title="Wygeneruj nowy PIN"
+                className="w-8 h-8 rounded-full bg-[#434649] hover:bg-[#525659] text-[#8ab4f8] border-0 flex items-center justify-center transition cursor-pointer shrink-0 active:scale-95"
+              >
+                <svg 
+                  className="w-4 h-4 text-[#8ab4f8]" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  style={{
+                    transform: isSpinningPin ? 'rotate(360deg)' : 'rotate(0deg)',
+                    transition: isSpinningPin ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none'
+                  }}
+                >
+                  <path d="M21 12a9 9 0 1 1-3-6.7" />
+                  <path d="M21 4v5h-5" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
         {/* 5. Footer: Kopiuj link (z lewej) oraz Gotowe (z prawej) */}
         <div className="mt-7 pt-1 flex items-center justify-between">
-          {/* Przycisk Kopiuj link: z oryginalnym eleganckim borderem */}
+          {/* Przycisk Kopiuj link: z ikoną kopiowania jak na zdjęciu */}
           <button
             type="button"
             onClick={handleCopyLink}
             className="flex items-center space-x-2 px-5 py-2.5 rounded-full border border-[#8e918f] hover:border-white text-[#8ab4f8] hover:bg-[#8ab4f8]/10 text-sm font-medium transition active:scale-95 cursor-pointer"
             title="Kopiuj link"
           >
-            <svg className="w-4 h-4 fill-current text-[#8ab4f8]" viewBox="0 0 24 24">
-              <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
-            </svg>
+            {copiedLink ? (
+              <svg className="w-4 h-4 text-[#81c995]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4 text-[#8ab4f8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="11" height="11" rx="2" />
+                <path d="M5 15V6a2 2 0 0 1 2-2h9" />
+              </svg>
+            )}
             <span>{copiedLink ? 'Link skopiowany!' : 'Kopiuj link'}</span>
           </button>
 
