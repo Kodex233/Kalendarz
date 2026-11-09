@@ -6,10 +6,11 @@ export default function JoinRoomModal({
   isOpen,
   onClose,
   initialRoomCode = 'kodex',
+  initialUserName = '',
   onJoinSuccess
 }) {
   const [roomCode, setRoomCode] = useState(initialRoomCode);
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState(initialUserName);
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -17,9 +18,10 @@ export default function JoinRoomModal({
   // Przy każdym otwarciu okna pole na PIN jest czyste i puste
   useEffect(() => {
     if (initialRoomCode) setRoomCode(initialRoomCode);
+    if (initialUserName) setUserName(initialUserName);
     setPin('');
     setError('');
-  }, [initialRoomCode, isOpen]);
+  }, [initialRoomCode, initialUserName, isOpen]);
 
   if (!isOpen) return null;
 

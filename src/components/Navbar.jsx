@@ -723,18 +723,21 @@ export default function Navbar({
         </div>
 
         {/* User Auth Info */}
-        {user ? (
+        {(user || currentUser) ? (
           <div className="flex items-center space-x-2 pl-2">
             <div 
               className="w-9 h-9 rounded-full bg-[#d93025] text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-[#3c4043] cursor-pointer"
-              title={user.displayName || user.email}
+              title={user ? (user.displayName || user.email) : currentUser}
             >
-              {user.displayName ? user.displayName[0].toUpperCase() : (user.email ? user.email[0].toUpperCase() : 'K')}
+              {user ? (user.displayName ? user.displayName[0].toUpperCase() : (user.email ? user.email[0].toUpperCase() : 'K')) : (currentUser ? currentUser[0].toUpperCase() : 'U')}
             </div>
+            <span className="text-xs text-[#c4c7c5] font-medium hidden sm:inline">
+              {currentUser || (user ? (user.displayName || user.email) : '')}
+            </span>
             <button
               onClick={onLogout}
-              className="p-2 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] transition"
-              title="Wyloguj się"
+              className="p-2 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition"
+              title="Wyloguj się / Zablokuj kalendarz"
             >
               <LogOut className="w-4 h-4" />
             </button>

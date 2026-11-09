@@ -23,7 +23,7 @@ import ExchangeModal from './components/ExchangeModal';
 import AuthModal from './components/AuthModal';
 import ShareCalendarModal from './components/ShareCalendarModal';
 import { generateSecurePin, verifyPin, checkPinRateLimit, recordFailedPinAttempt, resetPinRateLimit } from './utils/security';
-import { auth, onAuthStateChanged, logoutUser, db } from './firebase/config';
+import { auth, onAuthStateChanged, logoutUser, loginWithGoogle, db } from './firebase/config';
 import { collection, getDocs } from 'firebase/firestore';
 import JoinRoomModal from './components/JoinRoomModal';
 import { 
@@ -203,24 +203,42 @@ export default function App() {
   const [currentUserName, setCurrentUserName] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      const r = params.get('room');
-      if (r) {
-        const saved = localStorage.getItem(`room_${r}_user`);
-        return saved || '';
+      const r = params.get('room') || 'kodex';
+      const saved = localStorage.getItem(`room_${r}_user`);
+      if (saved === 'Kodex') {
+        const verified = localStorage.getItem('kodex_auth_verified');
+        if (verified === 'true') return 'Kodex';
+        return '';
       }
+      return saved || '';
     }
-    return 'Kodex';
+    return '';
   });
-  const [userRole, setUserRole] = useState('Właściciel'); // 'Właściciel' | 'Pełny dostęp' | 'Edytor' | 'Przeglądający'
+  const [userRole, setUserRole] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const verified = localStorage.getItem('kodex_auth_verified');
+      if (verified === 'true') return 'Właściciel';
+      const params = new URLSearchParams(window.location.search);
+      const r = params.get('room') || 'kodex';
+      const saved = localStorage.getItem(`room_${r}_user`);
+      if (saved) return 'Uczestnik';
+    }
+    return '';
+  });
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [urlJoinParams, setUrlJoinParams] = useState({ room: 'kodex' });
 
-  // Autoryzacja dostępu: tylko właściciel ('Kodex') lub zaakceptowany uczestnik z kodem PIN
+  // Autoryzacja dostępu: tylko zweryfikowany właściciel ('Kodex') lub zaakceptowany uczestnik z listy pokoju
+  const isOwnerVerified = Boolean(
+    (user && user.email && user.email.toLowerCase() === 'kodex233@gmail.com') ||
+    (typeof window !== 'undefined' && localStorage.getItem('kodex_auth_verified') === 'true')
+  );
+
   const isAuthorized = Boolean(
     currentUserName && (
-      currentUserName === 'Kodex' || 
-      participants.includes(currentUserName)
+      (currentUserName === 'Kodex' && isOwnerVerified) ||
+      (currentUserName !== 'Kodex' && participants.includes(currentUserName))
     )
   );
 
@@ -246,15 +264,18 @@ export default function App() {
           // Nowa osoba z innego urządzenia wchodząca z linku: wymuszenie dołączenia kodem PIN
           setJoinModalOpen(true);
         } else {
-          setCurrentUserName(savedUser);
+          if (savedUser === 'Kodex') {
+            const verified = localStorage.getItem('kodex_auth_verified');
+            if (verified === 'true') setCurrentUserName('Kodex');
+            else setCurrentUserName('');
+          } else {
+            setCurrentUserName(savedUser);
+          }
         }
       } else {
-        // Bezpieczna inicjalizacja pokoju w Firestore z silnym kryptograficznym hashem
-        const savedOwnerPin = localStorage.getItem('kalendarz_owner_pin') || generateSecurePin();
-        localStorage.setItem('kalendarz_owner_pin', savedOwnerPin);
-        setRoomPin(savedOwnerPin);
-        createOrUpdateRoom('kodex', { pin: savedOwnerPin, hostName: 'Kodex' })
-          .catch(e => console.warn('Room init:', e));
+        // Bezpieczne upewnienie się, że pokój istnieje w Firestore (BEZ nadpisywania istniejącego PINu pokoju!)
+        ensureRoom('kodex', { hostName: 'Kodex' })
+          .catch(e => console.warn('Room ensure error:', e));
 
         // Zapewnij obecność początkowego wydarzenia w pokoju Firestore jeśli kolekcja jest pusta
         getDocs(collection(db, 'events')).then(snap => {
@@ -341,6 +362,14 @@ export default function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      if (currentUser) {
+        if (currentUser.email && currentUser.email.toLowerCase() === 'kodex233@gmail.com') {
+          setCurrentUserName('Kodex');
+          setUserRole('Właściciel');
+          localStorage.setItem('room_kodex_user', 'Kodex');
+          localStorage.setItem('kodex_auth_verified', 'true');
+        }
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -618,18 +647,96 @@ export default function App() {
     }
 
     resetPinRateLimit();
-    await joinRoom(rCode, uName);
+
+    const isKodexName = uName.trim().toLowerCase() === 'kodex';
+    if (isKodexName) {
+      // Weryfikacja właściciela (Kodex)
+      localStorage.setItem('kodex_auth_verified', 'true');
+      localStorage.setItem('room_kodex_user', 'Kodex');
+      setCurrentUserName('Kodex');
+      setUserRole('Właściciel');
+      setRoomCode(rCode);
+      showToast('Zalogowano pomyślnie jako Właściciel!');
+      return;
+    }
+
+    // Uczestnik z własnym imieniem
+    const cleanEmail = user?.email || `${uName.toLowerCase().replace(/\s+/g, '')}@gmail.com`;
+    await joinRoom(rCode, uName, cleanEmail);
     setRoomCode(rCode);
     setCurrentUserName(uName);
+    setUserRole('Pełny dostęp');
     localStorage.setItem(`room_${rCode}_user`, uName);
 
     setDetailedParticipants(prev => {
       if (prev.some(p => p.name === uName)) return prev;
-      return [...prev, { name: uName, email: `${uName.toLowerCase().replace(/\s+/g, '')}@gmail.com`, role: 'Pełny dostęp', isOwner: false }];
+      return [...prev, { name: uName, email: cleanEmail, role: 'Pełny dostęp', isOwner: false }];
     });
 
     setOtherCalendars(prev => prev.map(c => c.id === 'inne' ? { ...c, checked: true, name: `Kalendarz: ${room.hostName || 'Gospodarz'}` } : c));
     showToast(`Połączono z kalendarzem "${rCode}" jako ${uName}!`);
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await loginWithGoogle();
+      const gUser = result.user;
+      setUser(gUser);
+
+      if (gUser.email && gUser.email.toLowerCase() === 'kodex233@gmail.com') {
+        setCurrentUserName('Kodex');
+        setUserRole('Właściciel');
+        localStorage.setItem('room_kodex_user', 'Kodex');
+        localStorage.setItem('kodex_auth_verified', 'true');
+        showToast(`Zalogowano jako Właściciel (${gUser.email})!`);
+        return;
+      }
+
+      // Inny użytkownik konta Google
+      const gName = gUser.displayName || gUser.email.split('@')[0];
+      if (participants.includes(gName) || participants.includes(gUser.displayName) || participants.includes(gUser.email)) {
+        const matched = participants.includes(gName) ? gName : (participants.includes(gUser.displayName) ? gUser.displayName : gUser.email);
+        setCurrentUserName(matched);
+        localStorage.setItem(`room_${roomCode}_user`, matched);
+        showToast(`Witaj ponownie, ${matched}!`);
+      } else {
+        setUrlJoinParams(prev => ({
+          ...prev,
+          suggestedName: gName,
+          suggestedEmail: gUser.email
+        }));
+        setJoinModalOpen(true);
+        showToast(`Zalogowano przez Google (${gUser.email}). Podaj kod PIN, aby dołączyć.`);
+      }
+    } catch (err) {
+      console.warn('Google login error:', err);
+      if (err.code === 'auth/popup-blocked') {
+        showToast('Przeglądarka zablokowała wyskakujące okienko Google. Zezwól na pop-upy.');
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        // Zamknięto okienko
+      } else {
+        showToast('Błąd logowania Google: ' + (err.message || err.code));
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch (e) {
+      console.warn('Logout error:', e);
+    }
+    setUser(null);
+    setCurrentUserName('');
+    setUserRole('');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('room_kodex_user');
+      localStorage.removeItem('kodex_auth_verified');
+      if (roomCode) {
+        localStorage.removeItem(`room_${roomCode}_user`);
+      }
+    }
+    showToast('Wylogowano. Kalendarz został zablokowany.');
   };
 
   const handleUpdateParticipants = async (newParticipants, options = {}) => {
@@ -872,47 +979,108 @@ export default function App() {
   // Ekran blokady / dołączania dla osób nieautoryzowanych (podczas logowania nie widać kalendarza!)
   if (!isAuthorized) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#131314] text-[#e3e3e3] p-4 select-none relative font-['Roboto',sans-serif]">
+      <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-[#131314] text-[#e3e3e3] p-4 select-none relative font-['Roboto',sans-serif]">
+        {/* Subtle decorative background gradient circles */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#1a73e8]/10 rounded-full blur-3xl pointer-events-none" />
+
         {/* Google Calendar minimal branded logo */}
-        <div className="flex items-center space-x-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-[#1a73e8] flex items-center justify-center text-white font-bold text-lg shadow-md">
+        <div className="flex items-center space-x-3 mb-6 relative z-10">
+          <div className="w-11 h-11 rounded-2xl bg-[#1a73e8] flex items-center justify-center text-white font-bold text-xl shadow-lg ring-1 ring-white/20">
             {format(currentDate, 'd')}
           </div>
           <span className="text-2xl font-normal text-[#e3e3e3] font-['Google_Sans',sans-serif] tracking-tight">
-            Kalendarz
+            Google Kalendarz
           </span>
         </div>
 
         {/* Lock Screen Card */}
-        <div className="bg-[#1e1f20] border border-[#444746]/50 rounded-[28px] p-8 max-w-[440px] w-full text-center shadow-2xl space-y-4">
-          <div className="w-14 h-14 mx-auto rounded-full bg-[#282a2d] border border-[#444746]/40 flex items-center justify-center text-[#8ab4f8]">
+        <div className="bg-[#1e1f20] border border-[#444746]/60 rounded-[28px] p-8 max-w-[440px] w-full text-center shadow-2xl space-y-5 relative z-10">
+          <div className="w-14 h-14 mx-auto rounded-full bg-[#282a2d] border border-[#444746]/50 flex items-center justify-center text-[#8ab4f8] shadow-inner">
             <svg className="w-7 h-7 fill-current text-[#8ab4f8]" viewBox="0 0 24 24">
               <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-normal font-['Google_Sans',sans-serif] text-white">
-            Kalendarz prywatny
-          </h2>
-          <p className="text-sm text-[#9aa0a6] leading-relaxed">
-            Ten kalendarz jest zabezpieczony. Aby uzyskać dostęp do wydarzeń i harmonogramu, musisz dołączyć podając poprawny kod PIN dostępu.
-          </p>
-          <div className="pt-2">
+
+          <div>
+            <h2 className="text-2xl font-normal font-['Google_Sans',sans-serif] text-white">
+              Kalendarz prywatny
+            </h2>
+            <p className="text-sm text-[#9aa0a6] mt-2 leading-relaxed">
+              Dostęp do tego kalendarza wymaga autoryzacji. Zaloguj się przez Google lub wpisz kod PIN dostępu.
+            </p>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            {/* Google Sign-in Button */}
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="w-full flex items-center justify-center space-x-3 py-3 px-4 bg-[#131314] hover:bg-[#282a2d] border border-[#747775] hover:border-[#8ab4f8] rounded-full text-[#e3e3e3] font-medium text-sm transition shadow-sm active:scale-[0.98] cursor-pointer"
+            >
+              <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+              </svg>
+              <span>Zaloguj się przez Google</span>
+            </button>
+
+            {/* Divider */}
+            <div className="flex items-center my-3">
+              <div className="flex-1 border-t border-[#3c4043]"></div>
+              <span className="px-3 text-xs text-[#9aa0a6] uppercase tracking-wider">lub</span>
+              <div className="flex-1 border-t border-[#3c4043]"></div>
+            </div>
+
+            {/* PIN Join Button */}
             <button
               type="button"
               onClick={() => setJoinModalOpen(true)}
-              className="px-8 py-2.5 bg-[#0b57d0] hover:bg-[#1b66c9] text-white rounded-full text-sm font-medium transition shadow-md active:scale-95 cursor-pointer"
+              className="w-full py-3 px-4 bg-[#0b57d0] hover:bg-[#1b66c9] text-white rounded-full text-sm font-medium transition shadow-md active:scale-[0.98] cursor-pointer"
             >
-              Dołącz do kalendarza
+              Dołącz kodem PIN
+            </button>
+          </div>
+
+          <div className="pt-2 text-center">
+            <button
+              type="button"
+              onClick={() => setAuthModalOpen(true)}
+              className="text-xs text-[#8ab4f8] hover:text-[#aecbfa] hover:underline cursor-pointer"
+            >
+              Logowanie e-mail lub konto testowe
             </button>
           </div>
         </div>
 
-        {/* Modal dołączania bezpośrednio na czystym tle (zero widocznego kalendarza) */}
+        {/* Modal dołączania kodem PIN */}
         <JoinRoomModal
           isOpen={joinModalOpen}
           onClose={() => setJoinModalOpen(false)}
           initialRoomCode={urlJoinParams.room || roomCode}
+          initialUserName={urlJoinParams.suggestedName || ''}
           onJoinSuccess={handleJoinRoom}
+        />
+
+        {/* Modal logowania e-mail / testowego */}
+        <AuthModal
+          isOpen={authModalOpen}
+          onClose={() => setAuthModalOpen(false)}
+          onTestLogin={(mockUser) => {
+            setUser(mockUser);
+            if (mockUser.email && mockUser.email.toLowerCase() === 'kodex233@gmail.com') {
+              setCurrentUserName('Kodex');
+              setUserRole('Właściciel');
+              localStorage.setItem('room_kodex_user', 'Kodex');
+              localStorage.setItem('kodex_auth_verified', 'true');
+            } else {
+              const uName = mockUser.displayName || mockUser.email.split('@')[0];
+              setCurrentUserName(uName);
+              setUserRole('Uczestnik');
+              localStorage.setItem(`room_${roomCode}_user`, uName);
+            }
+          }}
         />
 
         {toast && (
@@ -942,10 +1110,7 @@ export default function App() {
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         user={user}
         onOpenAuth={() => setAuthModalOpen(true)}
-        onLogout={() => {
-          logoutUser();
-          setUser(null);
-        }}
+        onLogout={handleLogout}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         activeView={activeView}
