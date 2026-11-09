@@ -65,7 +65,8 @@ export default function Navbar({
   myEvents = [],
   exchangeableEvents = [],
   onDirectSwap,
-  currentUser = 'Kodex'
+  currentUser = 'Kodex',
+  userRole = ''
 }) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
@@ -738,36 +739,83 @@ export default function Navbar({
         </div>
 
         {/* User Auth Info */}
-        {(user || currentUser) ? (
-          <div className="flex items-center space-x-2 pl-2">
-            {user?.photoURL ? (
-              <img 
-                src={user.photoURL}
-                alt={user.displayName || user.email || 'Google Avatar'}
-                referrerPolicy="no-referrer"
-                className="w-9 h-9 rounded-full ring-2 ring-[#3c4043] object-cover shadow-sm cursor-pointer"
-                title={user.displayName ? `${user.displayName} (${user.email})` : user.email}
-              />
-            ) : (
-              <div 
-                className="w-9 h-9 rounded-full bg-[#1a73e8] text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-[#3c4043] cursor-pointer"
-                title={user ? (user.displayName || user.email) : currentUser}
-              >
-                {user ? (user.displayName ? user.displayName[0].toUpperCase() : (user.email ? user.email[0].toUpperCase() : 'K')) : (currentUser ? currentUser[0].toUpperCase() : 'U')}
+        {(user || currentUser) ? (() => {
+          const isAdmin = userRole === 'Właściciel' || 
+                          userRole === 'Admin' || 
+                          currentUser === 'Kodex' || 
+                          (user?.email && user.email.toLowerCase().trim() === 'kodex233@gmail.com') ||
+                          (typeof window !== 'undefined' && localStorage.getItem('kodex_auth_verified') === 'true');
+          const displayName = currentUser || (user ? (user.displayName || user.email?.split('@')[0]) : 'Kodex');
+
+          return (
+            <div className="flex items-center space-x-2.5 pl-2">
+              {/* Avatar z borderem gradientowym dla admina jak w 'Zaproś', lub standardowym dla usera */}
+              {isAdmin ? (
+                <div 
+                  className="w-10 h-10 rounded-full p-[2.5px] bg-gradient-to-tr from-[#1a73e8] via-[#4285f4] to-[#d0c4fe] flex items-center justify-center shrink-0 shadow-sm cursor-pointer"
+                  title={`${displayName} (Admin)`}
+                >
+                  <div className="w-full h-full rounded-full p-[2px] bg-[#1e1f20] flex items-center justify-center">
+                    {user?.photoURL ? (
+                      <img 
+                        src={user.photoURL}
+                        alt={displayName}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full rounded-full bg-[#e8710a] text-white flex items-center justify-center font-bold text-xs select-none">
+                        {displayName ? displayName[0].toLowerCase() : 'k'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div 
+                  className="w-9 h-9 rounded-full ring-2 ring-[#3c4043] flex items-center justify-center shrink-0 shadow-sm cursor-pointer overflow-hidden"
+                  title={`${displayName} (User)`}
+                >
+                  {user?.photoURL ? (
+                    <img 
+                      src={user.photoURL}
+                      alt={displayName}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-full bg-[#1a73e8] text-white flex items-center justify-center font-bold text-xs select-none">
+                      {displayName ? displayName[0].toUpperCase() : 'U'}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Nazwa lekko wyżej oraz napis admin/user pod spodem, jak w 'Zaproś' (nazwa i rola) */}
+              <div className="flex flex-col justify-center text-left leading-none hidden sm:flex">
+                <span className="text-xs font-medium text-[#e3e3e3] leading-tight select-none">
+                  {displayName}
+                </span>
+                {isAdmin ? (
+                  <span className="text-[11px] font-semibold leading-tight text-[#8ab4f8] bg-gradient-to-r from-[#4285f4] to-[#d0c4fe] bg-clip-text text-transparent select-none">
+                    Admin
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-normal leading-tight text-[#9aa0a6] select-none">
+                    User
+                  </span>
+                )}
               </div>
-            )}
-            <span className="text-xs text-[#c4c7c5] font-medium hidden sm:inline">
-              {currentUser || (user ? (user.displayName || user.email) : '')}
-            </span>
-            <button
-              onClick={onLogout}
-              className="w-10 h-10 flex items-center justify-center hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition cursor-pointer"
-              title="Wyloguj się"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
-        ) : (
+
+              <button
+                onClick={onLogout}
+                className="w-10 h-10 flex items-center justify-center hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition cursor-pointer"
+                title="Wyloguj się"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            </div>
+          );
+        })() : (
           <button
             onClick={onLogout || onOpenAuth}
             className="w-10 h-10 flex items-center justify-center hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition cursor-pointer ml-1"

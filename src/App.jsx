@@ -1432,6 +1432,7 @@ export default function App() {
         exchangeableEvents={exchangeableEvents}
         onDirectSwap={handleDirectSwap}
         currentUser={currentUserName}
+        userRole={userRole}
       />
 
       {/* Main Container: Sidebar + Rounded Borderless Calendar Canvas */}
