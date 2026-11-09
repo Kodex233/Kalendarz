@@ -22,6 +22,182 @@ import {
 import { pl } from 'date-fns/locale';
 import TimeZoneModal from './TimeZoneModal';
 
+// Google Calendar styled custom Date Picker popover (eliminuje brzydkie systemowe popupy)
+function CustomDatePicker({ dateValue, onChange, onClose }) {
+  const [pickerMonth, setPickerMonth] = useState(() => {
+    try {
+      return dateValue ? new Date(dateValue + 'T00:00:00') : new Date();
+    } catch {
+      return new Date();
+    }
+  });
+
+  const calendarDays = useMemo(() => {
+    const monthStart = startOfMonth(pickerMonth);
+    const monthEnd = endOfMonth(monthStart);
+    const startDate = startOfWeek(monthStart, { weekStartsOn: 1 }); // Poniedziałek jako pierwszy dzień w Polsce
+    const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
+    return eachDayOfInterval({ start: startDate, end: endDate });
+  }, [pickerMonth]);
+
+  return (
+    <div 
+      className="absolute left-0 top-full mt-1.5 w-72 bg-[#282a2d] rounded-2xl shadow-2xl p-4 z-[95] animate-in fade-in zoom-in-95 duration-100 border border-[#444746] select-none text-[#e3e3e3]"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Month navigation */}
+      <div className="flex items-center justify-between pb-3 px-1">
+        <span className="text-sm font-semibold text-white capitalize">
+          {format(pickerMonth, 'LLLL yyyy', { locale: pl })}
+        </span>
+        <div className="flex items-center space-x-1">
+          <button
+            type="button"
+            onClick={() => setPickerMonth(subMonths(pickerMonth, 1))}
+            className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-[#35373a] text-[#c4c7c5] hover:text-white transition"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setPickerMonth(addMonths(pickerMonth, 1))}
+            className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-[#35373a] text-[#c4c7c5] hover:text-white transition"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-[#c4c7c5] mb-2">
+        {['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'].map((dayChar, i) => (
+          <div key={i} className="py-0.5">{dayChar}</div>
+        ))}
+      </div>
+
+      {/* Days grid */}
+      <div className="grid grid-cols-7 gap-1 text-center text-xs">
+        {calendarDays.map((d, i) => {
+          const isCurrentMonth = isSameMonth(d, pickerMonth);
+          const selDate = dateValue ? new Date(dateValue + 'T00:00:00') : null;
+          const isSelected = selDate ? isSameDay(d, selDate) : false;
+          const isToday = isSameDay(d, new Date());
+
+          let dayClass = 'text-white hover:bg-[#35373a]';
+          if (!isCurrentMonth) {
+            dayClass = 'text-[#70757a] hover:bg-[#35373a]';
+          }
+          if (isSelected) {
+            dayClass = 'bg-[#a8c7fa] text-[#041e49] font-bold';
+          } else if (isToday) {
+            dayClass = 'border border-[#a8c7fa] text-[#a8c7fa] font-bold';
+          }
+
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => {
+                onChange(format(d, 'yyyy-MM-dd'));
+                onClose();
+              }}
+              className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center transition shrink-0 ${dayClass}`}
+            >
+              {format(d, 'd')}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Footer: Dzisiaj */}
+      <div className="pt-3 mt-2 border-t border-[#3c4043] flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => {
+            const todayStr = format(new Date(), 'yyyy-MM-dd');
+            onChange(todayStr);
+            setPickerMonth(new Date());
+            onClose();
+          }}
+          className="text-xs font-medium text-[#a8c7fa] hover:bg-[#a8c7fa]/15 px-3 py-1.5 rounded-full transition"
+        >
+          Dzisiaj
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Google Calendar styled custom Time Picker dropdown (z interwałami co 15 minut i kalkulacją czasu trwania)
+function CustomTimePicker({ timeValue, onChange, onClose, startTimeForDuration = null, widthClass = 'w-36' }) {
+  const listRef = useRef(null);
+
+  const timeSlots = useMemo(() => {
+    const slots = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        const timeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+        let label = timeStr;
+        if (startTimeForDuration) {
+          const [sh, sm] = startTimeForDuration.split(':').map(Number);
+          const durMinutes = (h * 60 + m) - (sh * 60 + sm);
+          if (durMinutes > 0) {
+            const dh = Math.floor(durMinutes / 60);
+            const dm = durMinutes % 60;
+            let durText = '';
+            if (dh > 0 && dm > 0) durText = `${dh} godz. ${dm} min`;
+            else if (dh > 0) durText = `${dh} ${dh === 1 ? 'godz.' : dh < 5 ? 'godziny' : 'godz.'}`;
+            else durText = `${dm} min`;
+            label = `${timeStr} (${durText})`;
+          }
+        }
+        slots.push({ value: timeStr, label });
+      }
+    }
+    return slots;
+  }, [startTimeForDuration]);
+
+  useEffect(() => {
+    if (listRef.current && timeValue) {
+      const idx = timeSlots.findIndex(s => s.value === timeValue);
+      if (idx !== -1) {
+        const itemElem = listRef.current.children[idx];
+        if (itemElem) {
+          itemElem.scrollIntoView({ block: 'nearest' });
+        }
+      }
+    }
+  }, [timeValue, timeSlots]);
+
+  return (
+    <div 
+      ref={listRef}
+      onClick={(e) => e.stopPropagation()}
+      className={`absolute left-0 top-full mt-1.5 bg-[#282a2d] border border-[#444746] rounded-xl shadow-2xl py-1.5 max-h-56 overflow-y-auto ${widthClass} z-[95] text-sm text-[#e3e3e3] select-none`}
+    >
+      {timeSlots.map(slot => {
+        const isSelected = slot.value === timeValue;
+        return (
+          <div
+            key={slot.value}
+            onClick={() => {
+              onChange(slot.value);
+              onClose();
+            }}
+            className={`px-3.5 py-1.5 cursor-pointer text-xs truncate transition flex items-center justify-between ${
+              isSelected 
+                ? 'bg-[#004a77] text-[#c2e7ff] font-medium' 
+                : 'hover:bg-[#35373a] text-[#e3e3e3]'
+            }`}
+          >
+            <span>{slot.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function EventModal({
   isOpen,
   onClose,
@@ -50,36 +226,26 @@ export default function EventModal({
   const [loading, setLoading] = useState(false);
   const [hasDeadline, setHasDeadline] = useState(Boolean(initialData?.deadlineDate));
   const [deadlineDate, setDeadlineDate] = useState(initialData?.deadlineDate || '');
-  const [isDeadlinePickerOpen, setIsDeadlinePickerOpen] = useState(false);
-  const [deadlinePickerMonth, setDeadlinePickerMonth] = useState(() => new Date());
-  const deadlinePickerRef = useRef(null);
 
-  // Timezone and Repeat states
+  // Timezone, Repeat and Custom Pickers
   const [isTimeZoneModalOpen, setIsTimeZoneModalOpen] = useState(false);
   const [isRepeatMenuOpen, setIsRepeatMenuOpen] = useState(false);
   const [repeatRule, setRepeatRule] = useState('Nie powtarza się');
   const repeatMenuRef = useRef(null);
   const lastOpenedSlotRef = useRef(null);
 
-  const dateInputRef = useRef(null);
-  const startTimeInputRef = useRef(null);
-  const endTimeInputRef = useRef(null);
-  const taskDateInputRef = useRef(null);
-  const taskStartTimeInputRef = useRef(null);
-  const taskEndTimeInputRef = useRef(null);
+  // Active custom dropdown/popover: null | 'date' | 'startTime' | 'endTime' | 'deadlineDate'
+  const [activePicker, setActivePicker] = useState(null);
 
-  const openPicker = (ref) => {
-    if (ref?.current) {
-      if (typeof ref.current.showPicker === 'function') {
-        try {
-          ref.current.showPicker();
-          return;
-        } catch (e) {}
+  useEffect(() => {
+    const handleDocClick = (e) => {
+      if (activePicker && !e.target.closest('.picker-container')) {
+        setActivePicker(null);
       }
-      ref.current.focus();
-      ref.current.click();
-    }
-  };
+    };
+    document.addEventListener('mousedown', handleDocClick);
+    return () => document.removeEventListener('mousedown', handleDocClick);
+  }, [activePicker]);
 
   useEffect(() => {
     setActiveTab(eventType || 'Wydarzenie');
@@ -129,14 +295,9 @@ export default function EventModal({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isRepeatMenuOpen, isDeadlinePickerOpen]);
 
-  // Format 12h time (np. 1:00am, 2:00am)
+  // Format czasu w stylu 24h zgodnym z Google Kalendarz
   const formatTime12h = (timeStr) => {
-    if (!timeStr) return '';
-    const [h, m] = timeStr.split(':').map(Number);
-    const period = h >= 12 ? 'pm' : 'am';
-    const displayH = h % 12 === 0 ? 12 : h % 12;
-    const displayM = m !== undefined ? m.toString().padStart(2, '0') : '00';
-    return `${displayH}:${displayM}${period}`;
+    return timeStr || '';
   };
 
   // Explicit handlers that notify parent without wiping initialData or causing effect loops
@@ -162,7 +323,19 @@ export default function EventModal({
 
   const handleTabChange = (val) => {
     setActiveTab(val);
-    if (onFormChange) onFormChange({ type: val });
+    const isTask = val === 'Zadanie';
+    const taskCal = myCalendars.find(c => c.id === 'zadania');
+    const targetCalId = isTask ? (taskCal ? 'zadania' : selectedCalendarId) : (selectedCalendarId === 'zadania' ? 'kalendarz' : selectedCalendarId);
+    setSelectedCalendarId(targetCalId);
+    const targetColor = isTask ? (taskCal?.color || '#1a73e8') : (myCalendars.find(c => c.id === targetCalId)?.color || '#1a73e8');
+    if (onFormChange) {
+      onFormChange({
+        type: val,
+        calendarId: targetCalId,
+        color: targetColor,
+        customBg: targetColor
+      });
+    }
   };
 
   const currentCal = myCalendars.find(c => c.id === selectedCalendarId) || { name: 'Kalendarz', color: '#1a73e8' };
@@ -286,22 +459,28 @@ export default function EventModal({
 
     setLoading(true);
     try {
+      const isTask = activeTab === 'Zadanie';
+      const taskCal = myCalendars.find(c => c.id === 'zadania');
+      const finalCalId = isTask ? (taskCal ? 'zadania' : selectedCalendarId) : selectedCalendarId;
+      const finalColor = isTask ? (taskCal?.color || currentCal.color || '#1a73e8') : currentCal.color;
+
       await onSave({
-        title: title.trim() || 'Harmonogram spotkań',
+        title: title.trim() || (isTask ? 'Zadanie' : 'Wydarzenie'),
         date,
         startTime: isAllDay ? '00:00' : startTime,
         endTime: isAllDay ? '23:59' : endTime,
         isAllDay,
         type: activeTab,
-        calendarId: selectedCalendarId,
-        color: currentCal.color,
+        calendarId: finalCalId,
+        color: finalColor,
+        customBg: finalColor,
         description,
         location,
         hasMeet,
         invitedEmail: guests,
         isExchangeable: false,
         repeatRule,
-        deadlineDate: hasDeadline ? deadlineDate : null
+        deadlineDate: (isTask && hasDeadline) ? deadlineDate : null
       });
       onClose();
     } catch (err) {
@@ -424,19 +603,23 @@ export default function EventModal({
                 <div className="flex items-center space-x-4">
                   <Clock className="w-5 h-5 text-[#c4c7c5] shrink-0" />
                   <div className="flex items-center space-x-2 text-sm text-[#e3e3e3]">
-                    <div className="relative">
+                    <div className="relative picker-container">
                       <button
                         type="button"
-                        className="px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal capitalize flex items-center transition"
+                        onClick={() => setActivePicker(activePicker === 'date' ? null : 'date')}
+                        className={`px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal capitalize flex items-center transition cursor-pointer select-none ${
+                          activePicker === 'date' ? 'ring-1 ring-[#a8c7fa] bg-[#3c4043]' : ''
+                        }`}
                       >
                         {formattedDateLabel}
                       </button>
-                      <input
-                        type="date"
-                        value={date}
-                        onChange={(e) => handleDateChange(e.target.value)}
-                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                      />
+                      {activePicker === 'date' && (
+                        <CustomDatePicker
+                          dateValue={date}
+                          onChange={handleDateChange}
+                          onClose={() => setActivePicker(null)}
+                        />
+                      )}
                     </div>
                     <div className="px-4 py-2 bg-[#303134] text-[#e3e3e3] rounded-md text-sm font-normal">
                       {formatTime12h(startTime)} – {formatTime12h(endTime)}
@@ -502,56 +685,80 @@ export default function EventModal({
                   <Clock className="w-5 h-5 text-[#c4c7c5] mt-1 shrink-0" />
                   <div className="space-y-1">
                     <div className="flex items-center flex-wrap gap-2 text-sm text-[#e3e3e3]">
-                      <div 
-                        onClick={() => openPicker(taskDateInputRef)}
-                        className="relative cursor-pointer group"
-                      >
-                        <div className="px-4 py-2 bg-[#303134] group-hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal capitalize flex items-center transition select-none">
+                      {/* Wybór daty w Zadaniu */}
+                      <div className="relative picker-container">
+                        <button
+                          type="button"
+                          onClick={() => setActivePicker(activePicker === 'date' ? null : 'date')}
+                          className={`px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal capitalize flex items-center transition cursor-pointer select-none ${
+                            activePicker === 'date' ? 'ring-1 ring-[#a8c7fa] bg-[#3c4043]' : ''
+                          }`}
+                        >
                           {formattedDateLabel}
-                        </div>
-                        <input
-                          ref={taskDateInputRef}
-                          type="date"
-                          value={date}
-                          onChange={(e) => handleDateChange(e.target.value)}
-                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 [color-scheme:dark]"
-                        />
+                        </button>
+                        {activePicker === 'date' && (
+                          <CustomDatePicker
+                            dateValue={date}
+                            onChange={handleDateChange}
+                            onClose={() => setActivePicker(null)}
+                          />
+                        )}
                       </div>
 
                       {!isAllDay && (
                         <>
-                          <div 
-                            onClick={() => openPicker(taskStartTimeInputRef)}
-                            className="relative cursor-pointer group"
-                          >
-                            <div className="px-4 py-2 bg-[#303134] group-hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition select-none">
+                          {/* Czas od */}
+                          <div className="relative picker-container">
+                            <button
+                              type="button"
+                              onClick={() => setActivePicker(activePicker === 'startTime' ? null : 'startTime')}
+                              className={`px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition cursor-pointer select-none ${
+                                activePicker === 'startTime' ? 'ring-1 ring-[#a8c7fa] bg-[#3c4043]' : ''
+                              }`}
+                            >
                               {formatTime12h(startTime)}
-                            </div>
-                            <input
-                              ref={taskStartTimeInputRef}
-                              type="time"
-                              value={startTime}
-                              onChange={(e) => handleStartTimeChange(e.target.value)}
-                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 [color-scheme:dark]"
-                            />
+                            </button>
+                            {activePicker === 'startTime' && (
+                              <CustomTimePicker
+                                timeValue={startTime}
+                                onChange={(val) => {
+                                  handleStartTimeChange(val);
+                                  const [sh, sm] = val.split(':').map(Number);
+                                  const [eh, em] = endTime.split(':').map(Number);
+                                  if (eh * 60 + em <= sh * 60 + sm) {
+                                    const nextH = (sh + 1) % 24;
+                                    const newEnd = `${nextH.toString().padStart(2, '0')}:${sm.toString().padStart(2, '0')}`;
+                                    handleEndTimeChange(newEnd);
+                                  }
+                                }}
+                                onClose={() => setActivePicker(null)}
+                                widthClass="w-32"
+                              />
+                            )}
                           </div>
 
                           <span className="text-[#9aa0a6] select-none">–</span>
 
-                          <div 
-                            onClick={() => openPicker(taskEndTimeInputRef)}
-                            className="relative cursor-pointer group"
-                          >
-                            <div className="px-4 py-2 bg-[#303134] group-hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition select-none">
+                          {/* Czas do */}
+                          <div className="relative picker-container">
+                            <button
+                              type="button"
+                              onClick={() => setActivePicker(activePicker === 'endTime' ? null : 'endTime')}
+                              className={`px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition cursor-pointer select-none ${
+                                activePicker === 'endTime' ? 'ring-1 ring-[#a8c7fa] bg-[#3c4043]' : ''
+                              }`}
+                            >
                               {formatTime12h(endTime)}
-                            </div>
-                            <input
-                              ref={taskEndTimeInputRef}
-                              type="time"
-                              value={endTime}
-                              onChange={(e) => handleEndTimeChange(e.target.value)}
-                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 [color-scheme:dark]"
-                            />
+                            </button>
+                            {activePicker === 'endTime' && (
+                              <CustomTimePicker
+                                timeValue={endTime}
+                                onChange={handleEndTimeChange}
+                                onClose={() => setActivePicker(null)}
+                                startTimeForDuration={startTime}
+                                widthClass="w-48"
+                              />
+                            )}
                           </div>
                         </>
                       )}
@@ -818,59 +1025,80 @@ export default function EventModal({
                     <Clock className="w-5 h-5 text-[#c4c7c5] mt-1 shrink-0" />
                     <div className="flex-1 space-y-2.5">
                       <div className="flex items-center flex-wrap gap-2 text-sm text-[#e3e3e3]">
-                        {/* Wybór daty w identycznym stylu jak w Zadaniu */}
-                        <div 
-                          onClick={() => openPicker(dateInputRef)}
-                          className="relative cursor-pointer group"
-                        >
-                          <div className="px-4 py-2 bg-[#303134] group-hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal capitalize flex items-center transition select-none">
+                        {/* Wybór daty w Wydarzeniu */}
+                        <div className="relative picker-container">
+                          <button
+                            type="button"
+                            onClick={() => setActivePicker(activePicker === 'date' ? null : 'date')}
+                            className={`px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal capitalize flex items-center transition cursor-pointer select-none ${
+                              activePicker === 'date' ? 'ring-1 ring-[#a8c7fa] bg-[#3c4043]' : ''
+                            }`}
+                          >
                             {formattedDateLabel}
-                          </div>
-                          <input
-                            ref={dateInputRef}
-                            type="date"
-                            value={date}
-                            onChange={(e) => handleDateChange(e.target.value)}
-                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 [color-scheme:dark]"
-                          />
+                          </button>
+                          {activePicker === 'date' && (
+                            <CustomDatePicker
+                              dateValue={date}
+                              onChange={handleDateChange}
+                              onClose={() => setActivePicker(null)}
+                            />
+                          )}
                         </div>
 
                         {!isAllDay && (
                           <>
                             {/* Czas od */}
-                            <div 
-                              onClick={() => openPicker(startTimeInputRef)}
-                              className="relative cursor-pointer group"
-                            >
-                              <div className="px-4 py-2 bg-[#303134] group-hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition select-none">
+                            <div className="relative picker-container">
+                              <button
+                                type="button"
+                                onClick={() => setActivePicker(activePicker === 'startTime' ? null : 'startTime')}
+                                className={`px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition cursor-pointer select-none ${
+                                  activePicker === 'startTime' ? 'ring-1 ring-[#a8c7fa] bg-[#3c4043]' : ''
+                                }`}
+                              >
                                 {formatTime12h(startTime)}
-                              </div>
-                              <input
-                                ref={startTimeInputRef}
-                                type="time"
-                                value={startTime}
-                                onChange={(e) => handleStartTimeChange(e.target.value)}
-                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 [color-scheme:dark]"
-                              />
+                              </button>
+                              {activePicker === 'startTime' && (
+                                <CustomTimePicker
+                                  timeValue={startTime}
+                                  onChange={(val) => {
+                                    handleStartTimeChange(val);
+                                    const [sh, sm] = val.split(':').map(Number);
+                                    const [eh, em] = endTime.split(':').map(Number);
+                                    if (eh * 60 + em <= sh * 60 + sm) {
+                                      const nextH = (sh + 1) % 24;
+                                      const newEnd = `${nextH.toString().padStart(2, '0')}:${sm.toString().padStart(2, '0')}`;
+                                      handleEndTimeChange(newEnd);
+                                    }
+                                  }}
+                                  onClose={() => setActivePicker(null)}
+                                  widthClass="w-32"
+                                />
+                              )}
                             </div>
 
                             <span className="text-[#9aa0a6] select-none">–</span>
 
                             {/* Czas do */}
-                            <div 
-                              onClick={() => openPicker(endTimeInputRef)}
-                              className="relative cursor-pointer group"
-                            >
-                              <div className="px-4 py-2 bg-[#303134] group-hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition select-none">
+                            <div className="relative picker-container">
+                              <button
+                                type="button"
+                                onClick={() => setActivePicker(activePicker === 'endTime' ? null : 'endTime')}
+                                className={`px-4 py-2 bg-[#303134] hover:bg-[#3c4043] text-[#e3e3e3] rounded-md text-sm font-normal transition cursor-pointer select-none ${
+                                  activePicker === 'endTime' ? 'ring-1 ring-[#a8c7fa] bg-[#3c4043]' : ''
+                                }`}
+                              >
                                 {formatTime12h(endTime)}
-                              </div>
-                              <input
-                                ref={endTimeInputRef}
-                                type="time"
-                                value={endTime}
-                                onChange={(e) => handleEndTimeChange(e.target.value)}
-                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 [color-scheme:dark]"
-                              />
+                              </button>
+                              {activePicker === 'endTime' && (
+                                <CustomTimePicker
+                                  timeValue={endTime}
+                                  onChange={handleEndTimeChange}
+                                  onClose={() => setActivePicker(null)}
+                                  startTimeForDuration={startTime}
+                                  widthClass="w-48"
+                                />
+                              )}
                             </div>
                           </>
                         )}

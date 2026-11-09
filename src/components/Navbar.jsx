@@ -476,11 +476,11 @@ export default function Navbar({
           <div className="flex items-center space-x-2.5 cursor-pointer">
             <img 
               src="/calendar-logo.png" 
-              alt="KALEND67" 
+              alt="Kalendarz" 
               className="w-11 h-11 object-contain rounded-xl drop-shadow-md" 
             />
             <span className="text-[22px] font-normal text-[#e3e3e3] tracking-tight font-['Product_Sans',sans-serif]">
-              KALEND67
+              Kalendarz
             </span>
           </div>
         </div>

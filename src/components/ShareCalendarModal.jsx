@@ -104,11 +104,11 @@ export default function ShareCalendarModal({
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[1px] flex items-center justify-center p-4 animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div 
-        className="bg-[#282a2d] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[512px] overflow-hidden border border-[#444746] animate-in zoom-in-95 duration-150 p-6 relative"
+        className="bg-[#282a2d] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[512px] overflow-hidden border-0 animate-in zoom-in-95 duration-150 p-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 1. Header z tytułem i przyciskiem zamknięcia X (bez pytajnika i bez zębatki) */}

@@ -65,7 +65,8 @@ export default function CalendarWeek({
   onOpenCreateModal,
   onSelectDate,
   onViewChange,
-  creatingEvent
+  creatingEvent,
+  myCalendars = []
 }) {
   const containerRef = useRef(null);
   const today = new Date();
@@ -110,10 +111,14 @@ export default function CalendarWeek({
     e.preventDefault();
 
     const colElement = e.currentTarget;
-    const colRect = colElement.getBoundingClientRect();
-    const offsetY = Math.max(0, Math.min(colRect.height, e.clientY - colRect.top));
+    const container = containerRef.current;
+    if (!container) return;
 
-    // Zaokrąglenie do 15 minut (48px na godzinę -> 12px na 15 min)
+    const initialColRect = colElement.getBoundingClientRect();
+    const initialContainerRect = container.getBoundingClientRect();
+    const initialScrollTop = container.scrollTop;
+
+    const offsetY = Math.max(0, Math.min(initialColRect.height, e.clientY - initialColRect.top));
     const rawMinutes = (offsetY / 48) * 60;
     const snappedStartMinutes = Math.min(23 * 60 + 45, Math.floor(rawMinutes / 15) * 15);
     const initialEndMinutes = Math.min(24 * 60, snappedStartMinutes + 60);
@@ -125,7 +130,7 @@ export default function CalendarWeek({
       dateStr: format(day, 'yyyy-MM-dd'),
       startMinutes: snappedStartMinutes,
       currentMinutes: initialEndMinutes,
-      colRect,
+      colRect: initialColRect,
       startClientY: e.clientY,
       hasMoved: false
     };
@@ -136,40 +141,48 @@ export default function CalendarWeek({
     let autoScrollRaf = null;
     let latestClientY = e.clientY;
 
+    const computeSnapped = (clientY) => {
+      const curScrollTop = container.scrollTop;
+      const curColTop = initialColRect.top - (curScrollTop - initialScrollTop);
+      const curOffsetY = Math.max(0, Math.min(initialColRect.height, clientY - curColTop));
+      const curRawMinutes = (curOffsetY / 48) * 60;
+      let curSnapped = Math.max(0, Math.min(24 * 60, Math.round(curRawMinutes / 15) * 15));
+
+      if (curSnapped === dragRef.current.startMinutes) {
+        curSnapped = (clientY - dragRef.current.startClientY) >= 0
+          ? Math.min(24 * 60, dragRef.current.startMinutes + 30)
+          : Math.max(0, dragRef.current.startMinutes - 30);
+      }
+      return curSnapped;
+    };
+
+    const updateMinutesIfChanged = (clientY) => {
+      if (!dragRef.current) return;
+      const curSnapped = computeSnapped(clientY);
+      if (curSnapped !== dragRef.current.currentMinutes) {
+        dragRef.current.currentMinutes = curSnapped;
+        setDragState({ ...dragRef.current });
+      }
+    };
+
     const checkAutoScroll = () => {
       if (!dragRef.current || !containerRef.current) return;
-      const container = containerRef.current;
-      const cRect = container.getBoundingClientRect();
 
-      const bottomThreshold = cRect.bottom - 60;
-      const topThreshold = cRect.top + 60;
+      const bottomThreshold = initialContainerRect.bottom - 60;
+      const topThreshold = initialContainerRect.top + 60;
 
       let scrollDelta = 0;
       if (latestClientY > bottomThreshold) {
         const dist = latestClientY - bottomThreshold;
-        scrollDelta = Math.min(25, Math.max(4, dist * 0.45));
+        scrollDelta = Math.min(20, Math.max(3, dist * 0.35));
       } else if (latestClientY < topThreshold) {
         const dist = topThreshold - latestClientY;
-        scrollDelta = -Math.min(25, Math.max(4, dist * 0.45));
+        scrollDelta = -Math.min(20, Math.max(3, dist * 0.35));
       }
 
       if (scrollDelta !== 0) {
         container.scrollTop += scrollDelta;
-
-        const updatedColRect = colElement.getBoundingClientRect();
-        const curOffsetY = Math.max(0, Math.min(updatedColRect.height, latestClientY - updatedColRect.top));
-        const curRawMinutes = (curOffsetY / 48) * 60;
-        let curSnapped = Math.max(0, Math.min(24 * 60, Math.round(curRawMinutes / 15) * 15));
-
-        if (curSnapped === dragRef.current.startMinutes) {
-          curSnapped = (latestClientY - dragRef.current.startClientY) >= 0
-            ? Math.min(24 * 60, dragRef.current.startMinutes + 30)
-            : Math.max(0, dragRef.current.startMinutes - 30);
-        }
-
-        dragRef.current.currentMinutes = curSnapped;
-        dragRef.current.colRect = updatedColRect;
-        setDragState({ ...dragRef.current });
+        updateMinutesIfChanged(latestClientY);
       }
 
       autoScrollRaf = requestAnimationFrame(checkAutoScroll);
@@ -180,31 +193,26 @@ export default function CalendarWeek({
     const handleMouseMove = (moveEvent) => {
       if (!dragRef.current) return;
       latestClientY = moveEvent.clientY;
-      const info = dragRef.current;
-      const deltaY = moveEvent.clientY - info.startClientY;
+      const deltaY = moveEvent.clientY - dragRef.current.startClientY;
       if (Math.abs(deltaY) > 5) {
-        info.hasMoved = true;
+        dragRef.current.hasMoved = true;
       }
-
-      const updatedColRect = colElement.getBoundingClientRect();
-      info.colRect = updatedColRect;
-      const curOffsetY = Math.max(0, Math.min(updatedColRect.height, moveEvent.clientY - updatedColRect.top));
-      const curRawMinutes = (curOffsetY / 48) * 60;
-      let curSnapped = Math.max(0, Math.min(24 * 60, Math.round(curRawMinutes / 15) * 15));
-
-      if (curSnapped === info.startMinutes) {
-        curSnapped = deltaY >= 0 ? Math.min(24 * 60, info.startMinutes + 30) : Math.max(0, info.startMinutes - 30);
-      }
-
-      info.currentMinutes = curSnapped;
-      setDragState({ ...info });
+      updateMinutesIfChanged(moveEvent.clientY);
     };
+
+    const handleContainerScroll = () => {
+      if (!dragRef.current) return;
+      updateMinutesIfChanged(latestClientY);
+    };
+
+    container.addEventListener('scroll', handleContainerScroll, { passive: true });
 
     const handleMouseUp = () => {
       if (autoScrollRaf) {
         cancelAnimationFrame(autoScrollRaf);
         autoScrollRaf = null;
       }
+      container.removeEventListener('scroll', handleContainerScroll);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
 
@@ -257,9 +265,14 @@ export default function CalendarWeek({
     if (!e.touches || e.touches.length !== 1) return;
     const touch = e.touches[0];
     const colElement = e.currentTarget;
-    const colRect = colElement.getBoundingClientRect();
-    const offsetY = Math.max(0, Math.min(colRect.height, touch.clientY - colRect.top));
+    const container = containerRef.current;
+    if (!container) return;
 
+    const initialColRect = colElement.getBoundingClientRect();
+    const initialContainerRect = container.getBoundingClientRect();
+    const initialScrollTop = container.scrollTop;
+
+    const offsetY = Math.max(0, Math.min(initialColRect.height, touch.clientY - initialColRect.top));
     const rawMinutes = (offsetY / 48) * 60;
     const snappedStartMinutes = Math.min(23 * 60 + 45, Math.floor(rawMinutes / 15) * 15);
     const initialEndMinutes = Math.min(24 * 60, snappedStartMinutes + 60);
@@ -271,7 +284,7 @@ export default function CalendarWeek({
       dateStr: format(day, 'yyyy-MM-dd'),
       startMinutes: snappedStartMinutes,
       currentMinutes: initialEndMinutes,
-      colRect,
+      colRect: initialColRect,
       startClientY: touch.clientY,
       hasMoved: false
     };
@@ -282,40 +295,48 @@ export default function CalendarWeek({
     let touchScrollRaf = null;
     let latestTouchY = touch.clientY;
 
+    const computeSnappedTouch = (clientY) => {
+      const curScrollTop = container.scrollTop;
+      const curColTop = initialColRect.top - (curScrollTop - initialScrollTop);
+      const curOffsetY = Math.max(0, Math.min(initialColRect.height, clientY - curColTop));
+      const curRawMinutes = (curOffsetY / 48) * 60;
+      let curSnapped = Math.max(0, Math.min(24 * 60, Math.round(curRawMinutes / 15) * 15));
+
+      if (curSnapped === dragRef.current.startMinutes) {
+        curSnapped = (clientY - dragRef.current.startClientY) >= 0
+          ? Math.min(24 * 60, dragRef.current.startMinutes + 30)
+          : Math.max(0, dragRef.current.startMinutes - 30);
+      }
+      return curSnapped;
+    };
+
+    const updateTouchMinutesIfChanged = (clientY) => {
+      if (!dragRef.current) return;
+      const curSnapped = computeSnappedTouch(clientY);
+      if (curSnapped !== dragRef.current.currentMinutes) {
+        dragRef.current.currentMinutes = curSnapped;
+        setDragState({ ...dragRef.current });
+      }
+    };
+
     const checkTouchAutoScroll = () => {
       if (!dragRef.current || !containerRef.current) return;
-      const container = containerRef.current;
-      const cRect = container.getBoundingClientRect();
 
-      const bottomThreshold = cRect.bottom - 60;
-      const topThreshold = cRect.top + 60;
+      const bottomThreshold = initialContainerRect.bottom - 60;
+      const topThreshold = initialContainerRect.top + 60;
 
       let scrollDelta = 0;
       if (latestTouchY > bottomThreshold) {
         const dist = latestTouchY - bottomThreshold;
-        scrollDelta = Math.min(25, Math.max(4, dist * 0.45));
+        scrollDelta = Math.min(20, Math.max(3, dist * 0.35));
       } else if (latestTouchY < topThreshold) {
         const dist = topThreshold - latestTouchY;
-        scrollDelta = -Math.min(25, Math.max(4, dist * 0.45));
+        scrollDelta = -Math.min(20, Math.max(3, dist * 0.35));
       }
 
       if (scrollDelta !== 0) {
         container.scrollTop += scrollDelta;
-
-        const updatedColRect = colElement.getBoundingClientRect();
-        const curOffsetY = Math.max(0, Math.min(updatedColRect.height, latestTouchY - updatedColRect.top));
-        const curRawMinutes = (curOffsetY / 48) * 60;
-        let curSnapped = Math.max(0, Math.min(24 * 60, Math.round(curRawMinutes / 15) * 15));
-
-        if (curSnapped === dragRef.current.startMinutes) {
-          curSnapped = (latestTouchY - dragRef.current.startClientY) >= 0
-            ? Math.min(24 * 60, dragRef.current.startMinutes + 30)
-            : Math.max(0, dragRef.current.startMinutes - 30);
-        }
-
-        dragRef.current.currentMinutes = curSnapped;
-        dragRef.current.colRect = updatedColRect;
-        setDragState({ ...dragRef.current });
+        updateTouchMinutesIfChanged(latestTouchY);
       }
 
       touchScrollRaf = requestAnimationFrame(checkTouchAutoScroll);
@@ -332,26 +353,22 @@ export default function CalendarWeek({
         dragRef.current.hasMoved = true;
         if (moveEvent.cancelable) moveEvent.preventDefault();
       }
-
-      const updatedColRect = colElement.getBoundingClientRect();
-      dragRef.current.colRect = updatedColRect;
-      const curOffsetY = Math.max(0, Math.min(updatedColRect.height, curTouch.clientY - updatedColRect.top));
-      const curRawMinutes = (curOffsetY / 48) * 60;
-      let curSnapped = Math.max(0, Math.min(24 * 60, Math.round(curRawMinutes / 15) * 15));
-
-      if (curSnapped === dragRef.current.startMinutes) {
-        curSnapped = deltaY >= 0 ? Math.min(24 * 60, dragRef.current.startMinutes + 30) : Math.max(0, dragRef.current.startMinutes - 30);
-      }
-
-      dragRef.current.currentMinutes = curSnapped;
-      setDragState({ ...dragRef.current });
+      updateTouchMinutesIfChanged(curTouch.clientY);
     };
+
+    const handleContainerTouchScroll = () => {
+      if (!dragRef.current) return;
+      updateTouchMinutesIfChanged(latestTouchY);
+    };
+
+    container.addEventListener('scroll', handleContainerTouchScroll, { passive: true });
 
     const handleTouchEnd = () => {
       if (touchScrollRaf) {
         cancelAnimationFrame(touchScrollRaf);
         touchScrollRaf = null;
       }
+      container.removeEventListener('scroll', handleContainerTouchScroll);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('touchcancel', handleTouchEnd);
@@ -593,7 +610,7 @@ export default function CalendarWeek({
                         style={{
                           top: `${topPx}px`,
                           height: `${heightPx}px`,
-                          backgroundColor: '#e8710a'
+                          backgroundColor: myCalendars?.[0]?.color || '#1a73e8'
                         }}
                         className="absolute left-1 right-2 rounded-lg px-2.5 py-1 text-xs font-medium overflow-hidden shadow-2xl z-30 text-white pointer-events-none select-none border border-white/20 animate-in fade-in duration-75"
                       >
@@ -624,7 +641,10 @@ export default function CalendarWeek({
 
                     const titleDisplay = creatingEvent.title?.trim() || '(Bez tytułu)';
                     const isTask = creatingEvent.type === 'Zadanie';
-                    const bgColor = isTask ? '#1a73e8' : (creatingEvent.color || '#e8710a');
+                    const taskCal = myCalendars?.find(c => c.id === 'zadania');
+                    const defaultTaskColor = taskCal?.color || '#1a73e8';
+                    const calColor = myCalendars?.find(c => c.id === creatingEvent.calendarId)?.color;
+                    const bgColor = creatingEvent.customBg || creatingEvent.color || (isTask ? defaultTaskColor : (calColor || '#1a73e8'));
 
                     return (
                       <div
@@ -637,7 +657,7 @@ export default function CalendarWeek({
                       >
                         <div className="font-semibold truncate leading-tight flex items-center space-x-1.5">
                           {isTask && (
-                            <span className="w-2.5 h-2.5 rounded-full border-[1.5px] border-white inline-block shrink-0 -mt-0.5" />
+                            <span className="w-3.5 h-3.5 rounded-full border-2 border-white inline-block shrink-0 shadow-sm" />
                           )}
                           <span className="truncate">{titleDisplay}</span>
                         </div>
@@ -666,7 +686,10 @@ export default function CalendarWeek({
                     }
 
                     const isTask = event.type === 'Zadanie';
-                    const bgCol = isTask ? '#1a73e8' : (event.customBg || '#1a73e8');
+                    const taskCal = myCalendars?.find(c => c.id === 'zadania');
+                    const defaultTaskColor = taskCal?.color || '#1a73e8';
+                    const calColor = myCalendars?.find(c => c.id === event.calendarId)?.color;
+                    const bgCol = event.customBg || event.color || (isTask ? defaultTaskColor : (calColor || '#1a73e8'));
 
                     return (
                       <div
@@ -690,7 +713,7 @@ export default function CalendarWeek({
                       >
                         <div className="font-semibold truncate flex items-center space-x-1.5">
                           {isTask && (
-                            <span className="w-2.5 h-2.5 rounded-full border-[1.5px] border-white inline-block shrink-0 -mt-0.5" />
+                            <span className="w-3.5 h-3.5 rounded-full border-2 border-white inline-block shrink-0 shadow-sm" />
                           )}
                           <span className="truncate">{event.title}</span>
                         </div>

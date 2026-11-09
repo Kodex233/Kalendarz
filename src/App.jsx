@@ -511,12 +511,17 @@ export default function App() {
       showToast('Masz uprawnienia tylko do odczytu (Przeglądający). Nie możesz dodawać wydarzeń.');
       return;
     }
+    const calId = type === 'Zadanie' ? 'zadania' : 'kalendarz';
+    const calColor = myCalendars.find(c => c.id === calId)?.color || '#1a73e8';
     setEventType(type);
     setSelectedEvent({
       date: format(currentDate, 'yyyy-MM-dd'),
       startTime: '10:30',
       endTime: '11:30',
-      calendarId: 'kalendarz',
+      calendarId: calId,
+      color: calColor,
+      customBg: calColor,
+      type,
       dayIndex: 2,
       isNew: true
     });
@@ -534,12 +539,16 @@ export default function App() {
 
     const finalStartTime = slotInfo.startTime || `${h.toString().padStart(2, '0')}:00`;
     const finalEndTime = slotInfo.endTime || `${endH.toString().padStart(2, '0')}:00`;
+    const defaultCal = myCalendars?.[0] || { id: 'kalendarz', color: '#1a73e8' };
 
     setSelectedEvent({
       date: format(date, 'yyyy-MM-dd'),
       startTime: finalStartTime,
       endTime: finalEndTime,
-      calendarId: 'kalendarz',
+      calendarId: defaultCal.id,
+      color: defaultCal.color,
+      customBg: defaultCal.color,
+      type: 'Wydarzenie',
       dayIndex: slotInfo.dayIndex ?? 2,
       slotRect: slotInfo.slotRect,
       isNew: true,
@@ -1482,6 +1491,7 @@ export default function App() {
               onOpenCreateModal={handleOpenCreateModal}
               onSelectDate={handleSelectDate}
               onViewChange={handleViewChange}
+              myCalendars={myCalendars}
               creatingEvent={createModalOpen && selectedEvent?.isNew ? selectedEvent : null}
             />
           )}
