@@ -1035,8 +1035,8 @@ export default function App() {
           className="absolute inset-0 pointer-events-none gemini-aurora-glow"
           style={{
             background: `
-              radial-gradient(ellipse 90% 70% at 65% 36%, rgba(30, 75, 185, 0.52) 0%, rgba(20, 50, 130, 0.35) 35%, rgba(12, 24, 75, 0.18) 65%, transparent 85%),
-              radial-gradient(circle 600px at 35% 55%, rgba(45, 95, 210, 0.35) 0%, rgba(18, 35, 95, 0.18) 50%, transparent 80%)
+              radial-gradient(ellipse 65% 50% at 60% 35%, rgba(30, 75, 185, 0.46) 0%, rgba(18, 45, 120, 0.26) 35%, rgba(10, 20, 60, 0.1) 60%, transparent 75%),
+              radial-gradient(circle 420px at 45% 45%, rgba(40, 85, 195, 0.25) 0%, rgba(14, 28, 75, 0.1) 45%, transparent 70%)
             `
           }}
         />

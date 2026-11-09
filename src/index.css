@@ -108,6 +108,6 @@
 }
 
 .gemini-aurora-glow {
-  animation: geminiAtmosphereShift 20s linear infinite;
+  animation: geminiAtmosphereShift 45s linear infinite;
   will-change: filter, transform;
 }
