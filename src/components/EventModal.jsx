@@ -22,7 +22,7 @@ import {
 import { pl } from 'date-fns/locale';
 import TimeZoneModal from './TimeZoneModal';
 
-// Google Calendar styled custom Date Picker popover (eliminuje brzydkie systemowe popupy)
+// Google Calendar styled custom Date Picker popover (kompaktowy, bez border, kolory zgodne z lewym menu)
 function CustomDatePicker({ dateValue, onChange, onClose }) {
   const [pickerMonth, setPickerMonth] = useState(() => {
     try {
@@ -42,55 +42,55 @@ function CustomDatePicker({ dateValue, onChange, onClose }) {
 
   return (
     <div 
-      className="absolute left-0 top-full mt-1.5 w-72 bg-[#282a2d] rounded-2xl shadow-2xl p-4 z-[95] animate-in fade-in zoom-in-95 duration-100 border border-[#444746] select-none text-[#e3e3e3]"
+      className="absolute left-0 top-full mt-1.5 w-[256px] bg-[#282a2d] rounded-2xl shadow-2xl p-3 z-[95] animate-in fade-in zoom-in-95 duration-100 border-0 select-none text-[#e3e3e3]"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Month navigation */}
-      <div className="flex items-center justify-between pb-3 px-1">
-        <span className="text-sm font-semibold text-white capitalize">
+      <div className="flex items-center justify-between pb-2 px-1">
+        <span className="text-xs font-semibold text-white capitalize">
           {format(pickerMonth, 'LLLL yyyy', { locale: pl })}
         </span>
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-0.5">
           <button
             type="button"
             onClick={() => setPickerMonth(subMonths(pickerMonth, 1))}
-            className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-[#35373a] text-[#c4c7c5] hover:text-white transition"
+            className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-[#35373a] text-[#c4c7c5] hover:text-white transition"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-3.5 h-3.5" />
           </button>
           <button
             type="button"
             onClick={() => setPickerMonth(addMonths(pickerMonth, 1))}
-            className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-[#35373a] text-[#c4c7c5] hover:text-white transition"
+            className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-[#35373a] text-[#c4c7c5] hover:text-white transition"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
       {/* Weekday headers */}
-      <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-[#c4c7c5] mb-2">
+      <div className="grid grid-cols-7 gap-0.5 text-center text-[10.5px] font-medium text-[#c4c7c5] mb-1.5">
         {['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'].map((dayChar, i) => (
           <div key={i} className="py-0.5">{dayChar}</div>
         ))}
       </div>
 
-      {/* Days grid */}
-      <div className="grid grid-cols-7 gap-1 text-center text-xs">
+      {/* Days grid - tło aktualnej i wybranej daty dokładnie jak w lewym menu kalendarza */}
+      <div className="grid grid-cols-7 gap-y-1 gap-x-0.5 text-center text-[11px]">
         {calendarDays.map((d, i) => {
           const isCurrentMonth = isSameMonth(d, pickerMonth);
           const selDate = dateValue ? new Date(dateValue + 'T00:00:00') : null;
           const isSelected = selDate ? isSameDay(d, selDate) : false;
           const isToday = isSameDay(d, new Date());
 
-          let dayClass = 'text-white hover:bg-[#35373a]';
+          let dayClass = 'text-[#e3e3e3] hover:bg-[#35373a]';
           if (!isCurrentMonth) {
             dayClass = 'text-[#70757a] hover:bg-[#35373a]';
           }
-          if (isSelected) {
-            dayClass = 'bg-[#a8c7fa] text-[#041e49] font-bold';
-          } else if (isToday) {
-            dayClass = 'border border-[#a8c7fa] text-[#a8c7fa] font-bold';
+          if (isToday) {
+            dayClass = 'bg-[#a8c7fa] text-[#041e49] font-bold shadow-xs';
+          } else if (isSelected && isCurrentMonth) {
+            dayClass = 'bg-[#004a77] text-[#c2e7ff] font-bold shadow-xs';
           }
 
           return (
@@ -101,7 +101,7 @@ function CustomDatePicker({ dateValue, onChange, onClose }) {
                 onChange(format(d, 'yyyy-MM-dd'));
                 onClose();
               }}
-              className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center transition shrink-0 ${dayClass}`}
+              className={`w-7 h-7 mx-auto rounded-full flex items-center justify-center text-[11px] font-medium transition shrink-0 ${dayClass}`}
             >
               {format(d, 'd')}
             </button>
@@ -110,7 +110,7 @@ function CustomDatePicker({ dateValue, onChange, onClose }) {
       </div>
 
       {/* Footer: Dzisiaj */}
-      <div className="pt-3 mt-2 border-t border-[#3c4043] flex items-center justify-between">
+      <div className="pt-2 mt-2 border-t border-[#3c4043] flex items-center justify-between">
         <button
           type="button"
           onClick={() => {
@@ -119,7 +119,7 @@ function CustomDatePicker({ dateValue, onChange, onClose }) {
             setPickerMonth(new Date());
             onClose();
           }}
-          className="text-xs font-medium text-[#a8c7fa] hover:bg-[#a8c7fa]/15 px-3 py-1.5 rounded-full transition"
+          className="text-xs font-medium text-[#a8c7fa] hover:bg-[#a8c7fa]/15 px-2.5 py-1 rounded-full transition"
         >
           Dzisiaj
         </button>
@@ -128,7 +128,7 @@ function CustomDatePicker({ dateValue, onChange, onClose }) {
   );
 }
 
-// Google Calendar styled custom Time Picker dropdown (z interwałami co 15 minut i kalkulacją czasu trwania)
+// Google Calendar styled custom Time Picker dropdown (z interwałami co 15 minut i kalkulacją czasu trwania, bez border)
 function CustomTimePicker({ timeValue, onChange, onClose, startTimeForDuration = null, widthClass = 'w-36' }) {
   const listRef = useRef(null);
 
@@ -173,7 +173,7 @@ function CustomTimePicker({ timeValue, onChange, onClose, startTimeForDuration =
     <div 
       ref={listRef}
       onClick={(e) => e.stopPropagation()}
-      className={`absolute left-0 top-full mt-1.5 bg-[#282a2d] border border-[#444746] rounded-xl shadow-2xl py-1.5 max-h-56 overflow-y-auto ${widthClass} z-[95] text-sm text-[#e3e3e3] select-none`}
+      className={`absolute left-0 top-full mt-1.5 bg-[#282a2d] border-0 rounded-xl shadow-2xl py-1.5 max-h-56 overflow-y-auto ${widthClass} z-[95] text-sm text-[#e3e3e3] select-none`}
     >
       {timeSlots.map(slot => {
         const isSelected = slot.value === timeValue;

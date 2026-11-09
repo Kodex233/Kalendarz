@@ -114,13 +114,10 @@ export default function CalendarWeek({
     const container = containerRef.current;
     if (!container) return;
 
-    const initialColRect = colElement.getBoundingClientRect();
-    const initialContainerRect = container.getBoundingClientRect();
-    const initialScrollTop = container.scrollTop;
-
-    const offsetY = Math.max(0, Math.min(initialColRect.height, e.clientY - initialColRect.top));
-    const rawMinutes = (offsetY / 48) * 60;
-    const snappedStartMinutes = Math.min(23 * 60 + 45, Math.floor(rawMinutes / 15) * 15);
+    const cRect = container.getBoundingClientRect();
+    const yInContent = (e.clientY - cRect.top) + container.scrollTop;
+    const rawMinutes = (yInContent / 48) * 60;
+    const snappedStartMinutes = Math.min(23 * 60 + 45, Math.max(0, Math.floor(rawMinutes / 15) * 15));
     const initialEndMinutes = Math.min(24 * 60, snappedStartMinutes + 60);
 
     const newDragInfo = {
@@ -130,7 +127,6 @@ export default function CalendarWeek({
       dateStr: format(day, 'yyyy-MM-dd'),
       startMinutes: snappedStartMinutes,
       currentMinutes: initialEndMinutes,
-      colRect: initialColRect,
       startClientY: e.clientY,
       hasMoved: false
     };
@@ -138,81 +134,63 @@ export default function CalendarWeek({
     dragRef.current = newDragInfo;
     setDragState(newDragInfo);
 
-    let autoScrollRaf = null;
+    let rafId = null;
     let latestClientY = e.clientY;
 
-    const computeSnapped = (clientY) => {
-      const curScrollTop = container.scrollTop;
-      const curColTop = initialColRect.top - (curScrollTop - initialScrollTop);
-      const curOffsetY = Math.max(0, Math.min(initialColRect.height, clientY - curColTop));
-      const curRawMinutes = (curOffsetY / 48) * 60;
+    const step = () => {
+      if (!dragRef.current || !containerRef.current) return;
+      const currentContainer = containerRef.current;
+      const currentCRect = currentContainer.getBoundingClientRect();
+
+      // Płynne auto-scrollowanie przy krawędziach góra/dół (strefa 60px)
+      const bottomThreshold = currentCRect.bottom - 60;
+      const topThreshold = currentCRect.top + 60;
+
+      if (latestClientY > bottomThreshold) {
+        const dist = latestClientY - bottomThreshold;
+        const scrollDelta = Math.min(24, Math.max(4, dist * 0.4));
+        currentContainer.scrollTop += scrollDelta;
+      } else if (latestClientY < topThreshold) {
+        const dist = topThreshold - latestClientY;
+        const scrollDelta = -Math.min(24, Math.max(4, dist * 0.4));
+        currentContainer.scrollTop += scrollDelta;
+      }
+
+      // Bezpośrednie, natychmiastowe przeliczenie minut w siatce (100% synchronizacji z kursorem)
+      const curYInContent = (latestClientY - currentCRect.top) + currentContainer.scrollTop;
+      const curRawMinutes = (curYInContent / 48) * 60;
       let curSnapped = Math.max(0, Math.min(24 * 60, Math.round(curRawMinutes / 15) * 15));
 
       if (curSnapped === dragRef.current.startMinutes) {
-        curSnapped = (clientY - dragRef.current.startClientY) >= 0
+        curSnapped = (latestClientY >= dragRef.current.startClientY)
           ? Math.min(24 * 60, dragRef.current.startMinutes + 30)
           : Math.max(0, dragRef.current.startMinutes - 30);
       }
-      return curSnapped;
-    };
 
-    const updateMinutesIfChanged = (clientY) => {
-      if (!dragRef.current) return;
-      const curSnapped = computeSnapped(clientY);
       if (curSnapped !== dragRef.current.currentMinutes) {
         dragRef.current.currentMinutes = curSnapped;
         setDragState({ ...dragRef.current });
       }
+
+      rafId = requestAnimationFrame(step);
     };
 
-    const checkAutoScroll = () => {
-      if (!dragRef.current || !containerRef.current) return;
-
-      const bottomThreshold = initialContainerRect.bottom - 60;
-      const topThreshold = initialContainerRect.top + 60;
-
-      let scrollDelta = 0;
-      if (latestClientY > bottomThreshold) {
-        const dist = latestClientY - bottomThreshold;
-        scrollDelta = Math.min(20, Math.max(3, dist * 0.35));
-      } else if (latestClientY < topThreshold) {
-        const dist = topThreshold - latestClientY;
-        scrollDelta = -Math.min(20, Math.max(3, dist * 0.35));
-      }
-
-      if (scrollDelta !== 0) {
-        container.scrollTop += scrollDelta;
-        updateMinutesIfChanged(latestClientY);
-      }
-
-      autoScrollRaf = requestAnimationFrame(checkAutoScroll);
-    };
-
-    autoScrollRaf = requestAnimationFrame(checkAutoScroll);
+    rafId = requestAnimationFrame(step);
 
     const handleMouseMove = (moveEvent) => {
       if (!dragRef.current) return;
       latestClientY = moveEvent.clientY;
       const deltaY = moveEvent.clientY - dragRef.current.startClientY;
-      if (Math.abs(deltaY) > 5) {
+      if (Math.abs(deltaY) > 4) {
         dragRef.current.hasMoved = true;
       }
-      updateMinutesIfChanged(moveEvent.clientY);
     };
-
-    const handleContainerScroll = () => {
-      if (!dragRef.current) return;
-      updateMinutesIfChanged(latestClientY);
-    };
-
-    container.addEventListener('scroll', handleContainerScroll, { passive: true });
 
     const handleMouseUp = () => {
-      if (autoScrollRaf) {
-        cancelAnimationFrame(autoScrollRaf);
-        autoScrollRaf = null;
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
       }
-      container.removeEventListener('scroll', handleContainerScroll);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
 
@@ -257,7 +235,7 @@ export default function CalendarWeek({
       });
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     window.addEventListener('mouseup', handleMouseUp);
   };
 
@@ -268,13 +246,10 @@ export default function CalendarWeek({
     const container = containerRef.current;
     if (!container) return;
 
-    const initialColRect = colElement.getBoundingClientRect();
-    const initialContainerRect = container.getBoundingClientRect();
-    const initialScrollTop = container.scrollTop;
-
-    const offsetY = Math.max(0, Math.min(initialColRect.height, touch.clientY - initialColRect.top));
-    const rawMinutes = (offsetY / 48) * 60;
-    const snappedStartMinutes = Math.min(23 * 60 + 45, Math.floor(rawMinutes / 15) * 15);
+    const cRect = container.getBoundingClientRect();
+    const yInContent = (touch.clientY - cRect.top) + container.scrollTop;
+    const rawMinutes = (yInContent / 48) * 60;
+    const snappedStartMinutes = Math.min(23 * 60 + 45, Math.max(0, Math.floor(rawMinutes / 15) * 15));
     const initialEndMinutes = Math.min(24 * 60, snappedStartMinutes + 60);
 
     const newDragInfo = {
@@ -284,7 +259,6 @@ export default function CalendarWeek({
       dateStr: format(day, 'yyyy-MM-dd'),
       startMinutes: snappedStartMinutes,
       currentMinutes: initialEndMinutes,
-      colRect: initialColRect,
       startClientY: touch.clientY,
       hasMoved: false
     };
@@ -292,57 +266,46 @@ export default function CalendarWeek({
     dragRef.current = newDragInfo;
     setDragState(newDragInfo);
 
-    let touchScrollRaf = null;
+    let touchRafId = null;
     let latestTouchY = touch.clientY;
 
-    const computeSnappedTouch = (clientY) => {
-      const curScrollTop = container.scrollTop;
-      const curColTop = initialColRect.top - (curScrollTop - initialScrollTop);
-      const curOffsetY = Math.max(0, Math.min(initialColRect.height, clientY - curColTop));
-      const curRawMinutes = (curOffsetY / 48) * 60;
+    const touchStep = () => {
+      if (!dragRef.current || !containerRef.current) return;
+      const currentContainer = containerRef.current;
+      const currentCRect = currentContainer.getBoundingClientRect();
+
+      const bottomThreshold = currentCRect.bottom - 60;
+      const topThreshold = currentCRect.top + 60;
+
+      if (latestTouchY > bottomThreshold) {
+        const dist = latestTouchY - bottomThreshold;
+        const scrollDelta = Math.min(24, Math.max(4, dist * 0.4));
+        currentContainer.scrollTop += scrollDelta;
+      } else if (latestTouchY < topThreshold) {
+        const dist = topThreshold - latestTouchY;
+        const scrollDelta = -Math.min(24, Math.max(4, dist * 0.4));
+        currentContainer.scrollTop += scrollDelta;
+      }
+
+      const curYInContent = (latestTouchY - currentCRect.top) + currentContainer.scrollTop;
+      const curRawMinutes = (curYInContent / 48) * 60;
       let curSnapped = Math.max(0, Math.min(24 * 60, Math.round(curRawMinutes / 15) * 15));
 
       if (curSnapped === dragRef.current.startMinutes) {
-        curSnapped = (clientY - dragRef.current.startClientY) >= 0
+        curSnapped = (latestTouchY >= dragRef.current.startClientY)
           ? Math.min(24 * 60, dragRef.current.startMinutes + 30)
           : Math.max(0, dragRef.current.startMinutes - 30);
       }
-      return curSnapped;
-    };
 
-    const updateTouchMinutesIfChanged = (clientY) => {
-      if (!dragRef.current) return;
-      const curSnapped = computeSnappedTouch(clientY);
       if (curSnapped !== dragRef.current.currentMinutes) {
         dragRef.current.currentMinutes = curSnapped;
         setDragState({ ...dragRef.current });
       }
+
+      touchRafId = requestAnimationFrame(touchStep);
     };
 
-    const checkTouchAutoScroll = () => {
-      if (!dragRef.current || !containerRef.current) return;
-
-      const bottomThreshold = initialContainerRect.bottom - 60;
-      const topThreshold = initialContainerRect.top + 60;
-
-      let scrollDelta = 0;
-      if (latestTouchY > bottomThreshold) {
-        const dist = latestTouchY - bottomThreshold;
-        scrollDelta = Math.min(20, Math.max(3, dist * 0.35));
-      } else if (latestTouchY < topThreshold) {
-        const dist = topThreshold - latestTouchY;
-        scrollDelta = -Math.min(20, Math.max(3, dist * 0.35));
-      }
-
-      if (scrollDelta !== 0) {
-        container.scrollTop += scrollDelta;
-        updateTouchMinutesIfChanged(latestTouchY);
-      }
-
-      touchScrollRaf = requestAnimationFrame(checkTouchAutoScroll);
-    };
-
-    touchScrollRaf = requestAnimationFrame(checkTouchAutoScroll);
+    touchRafId = requestAnimationFrame(touchStep);
 
     const handleTouchMove = (moveEvent) => {
       if (!dragRef.current || !moveEvent.touches || moveEvent.touches.length !== 1) return;
@@ -353,22 +316,13 @@ export default function CalendarWeek({
         dragRef.current.hasMoved = true;
         if (moveEvent.cancelable) moveEvent.preventDefault();
       }
-      updateTouchMinutesIfChanged(curTouch.clientY);
     };
-
-    const handleContainerTouchScroll = () => {
-      if (!dragRef.current) return;
-      updateTouchMinutesIfChanged(latestTouchY);
-    };
-
-    container.addEventListener('scroll', handleContainerTouchScroll, { passive: true });
 
     const handleTouchEnd = () => {
-      if (touchScrollRaf) {
-        cancelAnimationFrame(touchScrollRaf);
-        touchScrollRaf = null;
+      if (touchRafId) {
+        cancelAnimationFrame(touchRafId);
+        touchRafId = null;
       }
-      container.removeEventListener('scroll', handleContainerTouchScroll);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('touchcancel', handleTouchEnd);
@@ -613,7 +567,7 @@ export default function CalendarWeek({
                           height: `${heightPx}px`,
                           backgroundColor: myCalendars?.[0]?.color || '#1a73e8'
                         }}
-                        className="absolute left-1 right-2 rounded-lg px-2.5 py-1 text-xs font-medium overflow-hidden shadow-2xl z-30 text-white pointer-events-none select-none border border-white/20 animate-in fade-in duration-75"
+                        className="absolute left-1 right-2 rounded-lg px-2.5 py-1 text-xs font-medium overflow-hidden shadow-2xl z-30 text-white pointer-events-none select-none border border-white/20"
                       >
                         <div className="font-semibold truncate leading-tight">
                           (Bez tytułu)

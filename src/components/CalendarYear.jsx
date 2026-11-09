@@ -162,7 +162,7 @@ export default function CalendarYear({
         ))}
       </div>
 
-      {/* Okienko z wydarzeniami w danym dniu w roku (1:1 z obrazami Image 1 i Image 2) */}
+      {/* Okienko z wydarzeniami w danym dniu w roku (bez border, z mniejszym paddingiem) */}
       {selectedDayInfo && (
         <div 
           ref={popoverRef}
@@ -170,7 +170,7 @@ export default function CalendarYear({
             top: `${selectedDayInfo.coords.top}px`, 
             left: `${selectedDayInfo.coords.left}px` 
           } : undefined}
-          className={`fixed z-50 bg-[#282a2d] text-[#e3e3e3] rounded-[20px] shadow-[0_12px_36px_rgba(0,0,0,0.65)] p-4 border border-[#444746] w-[260px] text-center animate-in fade-in zoom-in-95 duration-75 select-none ${
+          className={`fixed z-50 bg-[#282a2d] text-[#e3e3e3] rounded-[20px] shadow-[0_12px_36px_rgba(0,0,0,0.65)] px-2.5 py-2 border-0 w-[240px] text-center animate-in fade-in zoom-in-95 duration-75 select-none ${
             !selectedDayInfo.coords ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' : ''
           }`}
         >
@@ -185,7 +185,7 @@ export default function CalendarYear({
               <X className="w-4 h-4" />
             </button>
 
-            <span className="text-xs font-semibold uppercase text-[#9aa0a6] tracking-wider">
+            <span className="text-[11px] font-semibold uppercase text-[#9aa0a6] tracking-wider">
               {format(selectedDayInfo.day, 'EEE.', { locale: pl })}
             </span>
 
@@ -193,16 +193,16 @@ export default function CalendarYear({
             <button
               type="button"
               onClick={() => handleGoToDay(selectedDayInfo.day)}
-              className="text-3xl font-normal text-white my-1 hover:text-[#8ab4f8] transition cursor-pointer"
+              className="text-2xl font-normal text-white my-0.5 hover:text-[#8ab4f8] transition cursor-pointer"
               title="Przejdź do widoku dnia"
             >
               {format(selectedDayInfo.day, 'd')}
             </button>
           </div>
 
-          {/* Lista wydarzeń lub napis o braku wydarzeń (Image 1 i Image 2) */}
+          {/* Lista wydarzeń lub napis o braku wydarzeń (napisy bliżej krawędzi) */}
           {selectedDayInfo.events.length > 0 ? (
-            <div className="space-y-1.5 text-left mt-2.5 max-h-48 overflow-y-auto pr-0.5">
+            <div className="space-y-1 text-left mt-1.5 max-h-48 overflow-y-auto">
               {selectedDayInfo.events.map(ev => (
                 <div
                   key={ev.id}
@@ -210,13 +210,13 @@ export default function CalendarYear({
                     if (onSelectEvent) onSelectEvent(ev);
                     setSelectedDayInfo(null);
                   }}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium text-white truncate cursor-pointer hover:brightness-110 transition shadow-xs flex items-center justify-between"
+                  className="px-2 py-1 rounded-md text-xs font-medium text-white truncate cursor-pointer hover:brightness-110 transition shadow-xs flex items-center justify-between"
                   style={{ backgroundColor: ev.customBg || '#1e8e3e' }}
                   title={`${ev.title}${ev.startTime ? ' (' + ev.startTime + ')' : ''}`}
                 >
                   <span className="truncate">{ev.title}</span>
                   {ev.startTime && (
-                    <span className="text-[10px] opacity-90 ml-1.5 shrink-0 font-normal">
+                    <span className="text-[10px] opacity-90 ml-1 shrink-0 font-normal">
                       {ev.startTime}
                     </span>
                   )}
@@ -224,7 +224,7 @@ export default function CalendarYear({
               ))}
             </div>
           ) : (
-            <p className="text-xs text-[#9aa0a6] mt-3 mb-1 text-center leading-relaxed">
+            <p className="text-[11.5px] text-[#9aa0a6] mt-2 mb-0.5 text-center px-1 leading-snug">
               Na ten dzień nie ma zaplanowanych wydarzeń.
             </p>
           )}

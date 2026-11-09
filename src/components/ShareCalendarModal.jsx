@@ -107,7 +107,7 @@ export default function ShareCalendarModal({
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[1px] flex items-center justify-center p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 bg-black/35 flex items-center justify-center p-4 animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div 
