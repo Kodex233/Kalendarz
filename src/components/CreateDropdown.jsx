@@ -22,11 +22,11 @@ export default function CreateDropdown({ onSelectType, isCollapsed = false }) {
 
   return (
     <div className="relative inline-block" ref={dropdownRef}>
-      {/* Button Utwórz: płynne zwijanie i rozwijanie bez skakania */}
+      {/* Button Utwórz: brak białego borderu przy kliknięciu, oryginalne idealne ułożenie */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center bg-[#333538] hover:bg-[#3c3e42] shadow-md hover:shadow-lg rounded-2xl text-white font-medium transition-all duration-300 ease-in-out active:scale-[0.98] border-0 focus:outline-none overflow-hidden cursor-pointer ${
-          isCollapsed ? 'w-12 h-12 justify-center p-0' : 'px-5 py-3.5 min-h-[52px]'
+        className={`flex items-center bg-[#333538] hover:bg-[#3c3e42] shadow-md hover:shadow-lg rounded-2xl text-white font-medium transition duration-150 active:scale-[0.98] border-0 outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 active:outline-none active:ring-0 cursor-pointer ${
+          isCollapsed ? 'w-12 h-12 justify-center p-0' : 'space-x-3 px-5 py-3.5 min-h-[52px]'
         }`}
         title="Utwórz nowe"
       >
@@ -35,20 +35,20 @@ export default function CreateDropdown({ onSelectType, isCollapsed = false }) {
           <path d="M12 5v14M5 12h14" />
         </svg>
         
-        <div className={`flex items-center space-x-2 transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ${
-          isCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-xs opacity-100 ml-3'
-        }`}>
-          <span className="text-sm font-['Product_Sans',sans-serif] text-[#e3e3e3] font-medium tracking-wide">
-            Utwórz
-          </span>
-          {/* Trójkątna strzałka w dół ze zdjęcia Image 3 */}
-          <svg 
-            className={`w-2.5 h-2 fill-[#c4c7c5] ml-1 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
-            viewBox="0 0 10 6"
-          >
-            <path d="M0 0l5 6 5-6z" />
-          </svg>
-        </div>
+        {!isCollapsed && (
+          <>
+            <span className="text-sm font-['Product_Sans',sans-serif] text-[#e3e3e3] font-medium tracking-wide">
+              Utwórz
+            </span>
+            {/* Trójkątna strzałka w dół ze zdjęcia Image 3 */}
+            <svg 
+              className={`w-2.5 h-2 fill-[#c4c7c5] ml-1 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+              viewBox="0 0 10 6"
+            >
+              <path d="M0 0l5 6 5-6z" />
+            </svg>
+          </>
+        )}
       </button>
 
       {/* Dropdown list: ciemniejsze tło (#1e1f20), mniejszy radius (rounded-xl) */}

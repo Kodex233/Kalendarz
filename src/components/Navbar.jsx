@@ -90,12 +90,9 @@ export default function Navbar({
     showCompleted: true
   });
 
-  const [isHelpMenuOpen, setIsHelpMenuOpen] = useState(false);
-
   const searchInputRef = useRef(null);
   const monthPickerRef = useRef(null);
   const viewMenuRef = useRef(null);
-  const helpMenuRef = useRef(null);
   const advancedSearchRef = useRef(null);
   const searchInRef = useRef(null);
 
@@ -112,9 +109,6 @@ export default function Navbar({
       }
       if (viewMenuRef.current && !viewMenuRef.current.contains(e.target)) {
         setIsViewMenuOpen(false);
-      }
-      if (helpMenuRef.current && !helpMenuRef.current.contains(e.target)) {
-        setIsHelpMenuOpen(false);
       }
       if (searchInRef.current && !searchInRef.current.contains(e.target)) {
         setIsSearchInMenuOpen(false);
@@ -612,67 +606,13 @@ export default function Navbar({
           </svg>
         </button>
 
-        {/* Pomoc i opinie popover */}
-        <div className="relative" ref={helpMenuRef}>
-          <button
-            onClick={() => setIsHelpMenuOpen(!isHelpMenuOpen)}
-            className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition cursor-pointer"
-            title="Pomoc i opinie"
-          >
-            <HelpCircle className="w-6 h-6" />
-          </button>
-
-          {isHelpMenuOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-[#1e1f20] border-0 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-100 text-[#e3e3e3]">
-              <button
-                onClick={() => {
-                  alert('Centrum pomocy Kalendarza Google:\n\n• Przeciągaj wydarzenia po siatce, aby zmienić ich czas i dzień\n• Kliknij dowolną kratkę, aby szybko dodać nowe wydarzenie lub zadanie\n• Użyj przycisku "Zaproś", aby zarządzać uprawnieniami współpracowników');
-                  setIsHelpMenuOpen(false);
-                }}
-                className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-[#e3e3e3] hover:bg-[#282a2d] hover:text-white transition cursor-pointer text-left"
-              >
-                <HelpCircle className="w-4 h-4 text-[#c4c7c5]" />
-                <span>Pomoc</span>
-              </button>
-              <button
-                onClick={() => {
-                  alert('Przeszkolenie z obsługi Kalendarza:\n\nSkróty klawiszowe:\n• T - Dzisiaj\n• D - Widok dnia\n• W - Widok tygodnia\n• M - Widok miesiąca\n• Y - Widok roku\n• / - Szukaj');
-                  setIsHelpMenuOpen(false);
-                }}
-                className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-[#e3e3e3] hover:bg-[#282a2d] hover:text-white transition cursor-pointer text-left"
-              >
-                <BookOpen className="w-4 h-4 text-[#c4c7c5]" />
-                <span>Przeszkolenie</span>
-              </button>
-              <button
-                onClick={() => {
-                  alert('Aktualizacje Kalendarza:\n\n• Nowy, płynny tryb przeciągania wydarzeń 60 FPS\n• Ulepszone okno wyboru daty i czasu bez obramowań\n• Nowy motyw wizualny i zabezpieczenia dostępu');
-                  setIsHelpMenuOpen(false);
-                }}
-                className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-[#e3e3e3] hover:bg-[#282a2d] hover:text-white transition cursor-pointer text-left"
-              >
-                <Sparkles className="w-4 h-4 text-[#c4c7c5]" />
-                <span>Aktualizacje</span>
-              </button>
-
-              <div className="border-t border-[#3c4043] my-1.5" />
-
-              <button
-                onClick={() => {
-                  const feedback = prompt('Prześlij opinię do twórców aplikacji:\nCo możemy ulepszyć w Twoim Kalendarzu?');
-                  if (feedback) {
-                    alert('Dziękujemy za przesłanie opinii!');
-                  }
-                  setIsHelpMenuOpen(false);
-                }}
-                className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-[#e3e3e3] hover:bg-[#282a2d] hover:text-white transition cursor-pointer text-left"
-              >
-                <MessageSquare className="w-4 h-4 text-[#c4c7c5]" />
-                <span>Prześlij opinię</span>
-              </button>
-            </div>
-          )}
-        </div>
+        <button
+          onClick={() => alert('Centrum pomocy Kalendarza Google:\n\n• Przeciągaj wydarzenia po siatce, aby zmienić ich czas i dzień\n• Kliknij dowolną kratkę, aby szybko dodać nowe wydarzenie lub zadanie\n• Użyj przycisku "Zaproś", aby zarządzać uprawnieniami współpracowników')}
+          className="p-2.5 hover:bg-[#282a2d] rounded-full text-[#c4c7c5] hover:text-white transition cursor-pointer"
+          title="Pomoc"
+        >
+          <HelpCircle className="w-6 h-6" />
+        </button>
 
         <button
           onClick={() => alert('Ustawienia kalendarza')}

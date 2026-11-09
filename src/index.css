@@ -75,39 +75,4 @@
   transform: none !important;
 }
 
-/* Gemini atmospheric cosmic background aura z wielobarwną płynną zmianą kolorów */
-@keyframes geminiAtmosphereShift {
-  0% {
-    filter: hue-rotate(0deg) saturate(120%) brightness(1);
-    transform: scale(1) translate(0%, 0%);
-  }
-  15% {
-    filter: hue-rotate(50deg) saturate(130%) brightness(1.08);
-    transform: scale(1.04) translate(1.5%, -1%);
-  }
-  30% {
-    filter: hue-rotate(100deg) saturate(135%) brightness(1.12);
-    transform: scale(1.07) translate(-1%, 1.5%);
-  }
-  48% {
-    filter: hue-rotate(160deg) saturate(125%) brightness(1.06);
-    transform: scale(1.04) translate(1%, 2%);
-  }
-  65% {
-    filter: hue-rotate(220deg) saturate(120%) brightness(1.04);
-    transform: scale(1.06) translate(-1.5%, -1%);
-  }
-  82% {
-    filter: hue-rotate(290deg) saturate(130%) brightness(1.1);
-    transform: scale(1.03) translate(1%, -1.5%);
-  }
-  100% {
-    filter: hue-rotate(360deg) saturate(120%) brightness(1);
-    transform: scale(1) translate(0%, 0%);
-  }
-}
 
-.gemini-aurora-glow {
-  animation: geminiAtmosphereShift 45s linear infinite;
-  will-change: filter, transform;
-}

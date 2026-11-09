@@ -134,13 +134,13 @@ export default function EventDetailModal({
           </div>
         </div>
 
-        {/* Zaproś przez link button */}
+        {/* Zaproś przez link button: napis i ikonka na niebiesko jasno jak w aplikacji */}
         <div className="pl-7">
           <button
             onClick={handleCopyLink}
-            className="flex items-center space-x-2.5 px-4 py-2 rounded-full border border-[#5f6368] hover:bg-[#282a2d] text-xs font-medium text-[#e3e3e3] transition"
+            className="flex items-center space-x-2.5 px-4 py-2 rounded-full border border-[#5f6368] hover:bg-[#a8c7fa]/15 text-xs font-medium text-[#a8c7fa] transition cursor-pointer"
           >
-            <LinkIcon className="w-4 h-4 text-[#c4c7c5]" />
+            <LinkIcon className="w-4 h-4 text-[#a8c7fa]" />
             <span>Zaproś przez link</span>
           </button>
         </div>

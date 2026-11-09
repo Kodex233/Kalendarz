@@ -228,11 +228,19 @@ export default function ShareCalendarModal({
               );
             })}
 
-            {/* Właściciel: kodex (you) */}
+            {/* Właściciel: kodex (you) z oznaczeniem Google przy avatarze, napisem w borderze i osobną ikonką w borderze */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-9 h-9 rounded-full bg-[#e8710a] text-white flex items-center justify-center font-bold text-sm select-none shrink-0">
-                  k
+                <div className="relative">
+                  <div className="w-9 h-9 rounded-full bg-[#e8710a] text-white flex items-center justify-center font-bold text-sm select-none shrink-0 ring-2 ring-[#a8c7fa] ring-offset-2 ring-offset-[#282a2d]">
+                    k
+                  </div>
+                  {/* Google style verified badge */}
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#0b57d0] text-white rounded-full flex items-center justify-center ring-2 ring-[#282a2d]" title="Właściciel">
+                    <svg className="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+                    </svg>
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm font-normal text-[#e3e3e3] leading-snug">
@@ -244,9 +252,20 @@ export default function ShareCalendarModal({
                 </div>
               </div>
 
-              <span className="text-xs text-[#9aa0a6] font-normal select-none pr-1">
-                Właściciel
-              </span>
+              {/* Napis Właściciel w borderze i osobny border z ikonką informującą o roli właściciela */}
+              <div className="flex items-center space-x-1.5 pr-1 select-none">
+                <span className="text-xs text-[#e3e3e3] border border-[#747775] px-2.5 py-1 rounded-full font-medium">
+                  Właściciel
+                </span>
+                <div 
+                  className="w-7 h-7 flex items-center justify-center rounded-full border border-[#747775] text-[#a8c7fa]"
+                  title="Właściciel kalendarza"
+                >
+                  <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+                  </svg>
+                </div>
+              </div>
             </div>
 
             {/* Inne osoby (z możliwością zmiany uprawnień obok osoby!) */}
@@ -363,11 +382,17 @@ export default function ShareCalendarModal({
           </h3>
 
           <div className="flex items-start space-x-3">
-            {/* Ikona Kłódki w kółku */}
+            {/* Ikona Kłódki lub Globu w kółku */}
             <div className="w-9 h-9 rounded-full bg-[#3c4043] flex items-center justify-center text-[#e3e3e3] shrink-0 mt-0.5">
-              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
-              </svg>
+              {generalAccess === 'restricted' ? (
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" title="Dostęp ograniczony">
+                  <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
+                </svg>
+              ) : (
+                <svg className="w-4.5 h-4.5 fill-current text-[#8ab4f8]" viewBox="0 0 24 24" title="Każda osoba mająca link">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+                </svg>
+              )}
             </div>
 
             {/* Dropdown dostępu ogólnego */}
@@ -375,12 +400,17 @@ export default function ShareCalendarModal({
               <button
                 type="button"
                 onClick={() => setIsAccessDropdownOpen(!isAccessDropdownOpen)}
-                className="flex items-center space-x-1.5 hover:bg-[#35373a] px-2 py-1 -ml-2 rounded transition focus:outline-none"
+                className="flex items-center space-x-1.5 hover:bg-[#35373a] px-2 py-1 -ml-2 rounded transition focus:outline-none cursor-pointer"
               >
                 <span className="text-sm font-normal text-[#e3e3e3]">
                   {generalAccess === 'restricted' ? 'Dostęp ograniczony' : 'Każda osoba mająca link'}
                 </span>
-                <svg className="w-3.5 h-3.5 text-[#c4c7c5]" viewBox="0 0 24 24" fill="currentColor">
+                {/* Strzałka lekko większa i obracająca się przy otwarciu */}
+                <svg 
+                  className={`w-4 h-4 text-[#c4c7c5] transition-transform duration-200 ${isAccessDropdownOpen ? 'rotate-180' : ''}`} 
+                  viewBox="0 0 24 24" 
+                  fill="currentColor"
+                >
                   <path d="M7 10l5 5 5-5z" />
                 </svg>
               </button>
@@ -391,11 +421,11 @@ export default function ShareCalendarModal({
                   : 'Każda osoba w internecie z linkiem i kodem PIN może wyświetlać ten kalendarz'}
               </p>
 
-              {/* Menu wyboru dostępu ogólnego (Image 2) */}
+              {/* Menu wyboru dostępu ogólnego: bez borderu, z białym cieniem jako krawędzie */}
               {isAccessDropdownOpen && (
                 <div 
                   ref={accessDropdownRef}
-                  className="absolute left-0 mt-1 w-64 bg-[#282a2d] border border-[#444746] rounded-lg shadow-2xl py-1 z-50 animate-in fade-in zoom-in-95 duration-100"
+                  className="absolute left-0 mt-1 w-64 bg-[#282a2d] border-0 rounded-xl shadow-[0_0_0_1px_rgba(255,255,255,0.14),0_12px_36px_rgba(0,0,0,0.65)] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100"
                 >
                   <button
                     type="button"
@@ -403,7 +433,7 @@ export default function ShareCalendarModal({
                       setGeneralAccess('restricted');
                       setIsAccessDropdownOpen(false);
                     }}
-                    className="w-full flex items-center space-x-3 px-4 py-2 hover:bg-[#35373a] text-sm text-[#e3e3e3] transition text-left"
+                    className="w-full flex items-center space-x-3 px-4 py-2.5 hover:bg-[#35373a] text-sm text-[#e3e3e3] transition text-left cursor-pointer"
                   >
                     <div className="w-4 h-4 flex items-center justify-center shrink-0">
                       {generalAccess === 'restricted' && (
@@ -421,7 +451,7 @@ export default function ShareCalendarModal({
                       setGeneralAccess('pin');
                       setIsAccessDropdownOpen(false);
                     }}
-                    className="w-full flex items-center space-x-3 px-4 py-2 hover:bg-[#35373a] text-sm text-[#e3e3e3] transition text-left"
+                    className="w-full flex items-center space-x-3 px-4 py-2.5 hover:bg-[#35373a] text-sm text-[#e3e3e3] transition text-left cursor-pointer"
                   >
                     <div className="w-4 h-4 flex items-center justify-center shrink-0">
                       {generalAccess === 'pin' && (
@@ -480,11 +510,11 @@ export default function ShareCalendarModal({
 
         {/* 5. Footer: Kopiuj link (z lewej) oraz Gotowe (z prawej) */}
         <div className="mt-7 pt-1 flex items-center justify-between">
-          {/* Przycisk Kopiuj link */}
+          {/* Przycisk Kopiuj link: bez borderu, hover to kolor napisu z większą przezroczystością */}
           <button
             type="button"
             onClick={handleCopyLink}
-            className="flex items-center space-x-2 px-5 py-2.5 rounded-full border border-[#8e918f] hover:border-white text-[#8ab4f8] hover:bg-[#8ab4f8]/10 text-sm font-medium transition active:scale-95 cursor-pointer"
+            className="flex items-center space-x-2 px-5 py-2.5 rounded-full border-0 text-[#8ab4f8] hover:bg-[#8ab4f8]/20 text-sm font-medium transition active:scale-95 cursor-pointer"
             title="Kopiuj link"
           >
             <svg className="w-4 h-4 fill-current text-[#8ab4f8]" viewBox="0 0 24 24">

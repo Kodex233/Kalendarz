@@ -1115,13 +1115,13 @@ export default function App() {
   if (!isAuthorized) {
     return (
       <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-[#0d0e12] text-[#e3e3e3] p-4 select-none relative font-['Roboto',sans-serif] overflow-hidden">
-        {/* Gemini Atmospheric Cosmic Glow z wielobarwną płynną zmianą kolorów: soczysty, ale zbalansowany z prawej */}
+        {/* Gemini Atmospheric Cosmic Sapphire Background Glow */}
         <div 
-          className="absolute inset-0 pointer-events-none gemini-aurora-glow"
+          className="absolute inset-0 pointer-events-none"
           style={{
             background: `
-              radial-gradient(ellipse 42% 35% at 68% 28%, rgba(66, 133, 244, 0.44) 0%, rgba(26, 115, 232, 0.20) 45%, transparent 70%),
-              radial-gradient(circle 360px at 45% 45%, rgba(66, 133, 244, 0.22) 0%, rgba(26, 115, 232, 0.08) 50%, transparent 75%)
+              radial-gradient(ellipse 85% 65% at 65% 38%, rgba(28, 68, 158, 0.45) 0%, rgba(18, 42, 105, 0.28) 35%, rgba(11, 22, 60, 0.12) 65%, transparent 85%),
+              radial-gradient(circle 500px at 50% 50%, rgba(30, 75, 170, 0.25) 0%, rgba(14, 28, 70, 0.12) 50%, transparent 80%)
             `
           }}
         />
