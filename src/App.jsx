@@ -1119,24 +1119,16 @@ export default function App() {
         {/* Gemini Atmospheric Background ze zmianą kolorów co ~20s i falą kropek ze zdjęcia Gemini */}
         <GeminiLoginBackground />
 
-        {/* Google Calendar original branded logo ze stylizowanym napisem Google w kolorach marki */}
+        {/* Google Calendar original branded logo */}
         <div className="flex items-center space-x-3 mb-6 relative z-10 select-none">
           <img 
             src="/calendar-logo.png" 
             alt="Kalendarz Google" 
             className="w-12 h-12 object-contain drop-shadow-xl" 
           />
-          <div className="flex items-center space-x-2 text-[27px] font-['Product_Sans',sans-serif] tracking-tight">
-            <span className="text-[#e3e3e3] font-normal">Kalendarz</span>
-            <span className="font-semibold tracking-normal inline-flex items-center ml-0.5">
-              <span className="text-[#4285F4]">G</span>
-              <span className="text-[#EA4335]">o</span>
-              <span className="text-[#FBBC05]">o</span>
-              <span className="text-[#4285F4]">g</span>
-              <span className="text-[#34A853]">l</span>
-              <span className="text-[#EA4335]">e</span>
-            </span>
-          </div>
+          <span className="text-[26px] font-normal text-white font-['Product_Sans','Google_Sans',sans-serif] tracking-tight">
+            Kalendarz Google
+          </span>
         </div>
 
         {/* Jeśli użytkownik zalogował się przez Google, ale nie ma jeszcze akceptacji właściciela */}
