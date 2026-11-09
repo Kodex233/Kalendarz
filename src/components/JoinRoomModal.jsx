@@ -107,7 +107,7 @@ export default function JoinRoomModal({
               placeholder="np. Kasia"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
-              className="w-full bg-[#1e1f20] border border-[#444746] focus:border-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#747775] focus:outline-none transition"
+              className="w-full bg-[#303134] hover:bg-[#35373a] border border-[#5f6368]/70 focus:border-[#8ab4f8] focus:ring-1 focus:ring-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:outline-none transition"
               autoFocus
             />
           </div>
@@ -122,7 +122,7 @@ export default function JoinRoomModal({
               placeholder="kodex"
               value={roomCode}
               onChange={(e) => setRoomCode(e.target.value)}
-              className="w-full bg-[#1e1f20] border border-[#444746] focus:border-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#747775] focus:outline-none transition"
+              className="w-full bg-[#303134] hover:bg-[#35373a] border border-[#5f6368]/70 focus:border-[#8ab4f8] focus:ring-1 focus:ring-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] focus:outline-none transition"
             />
           </div>
 
@@ -144,7 +144,7 @@ export default function JoinRoomModal({
               placeholder="Wpisz kod PIN lub kod dostępu"
               value={pin}
               onChange={(e) => setPin(e.target.value)}
-              className="w-full bg-[#1e1f20] border border-[#444746] focus:border-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#747775] font-mono tracking-wider focus:outline-none transition"
+              className="w-full bg-[#303134] hover:bg-[#35373a] border border-[#5f6368]/70 focus:border-[#8ab4f8] focus:ring-1 focus:ring-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] font-mono tracking-wider focus:outline-none transition"
             />
           </div>
 

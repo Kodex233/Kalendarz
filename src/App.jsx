@@ -1030,13 +1030,13 @@ export default function App() {
   if (!isAuthorized) {
     return (
       <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-[#0d0e12] text-[#e3e3e3] p-4 select-none relative font-['Roboto',sans-serif] overflow-hidden">
-        {/* Gemini Atmospheric Cosmic Sapphire Background Glow z płynną zmianą kolorów */}
+        {/* Gemini Atmospheric Cosmic Glow z wielobarwną płynną zmianą kolorów */}
         <div 
           className="absolute inset-0 pointer-events-none gemini-aurora-glow"
           style={{
             background: `
-              radial-gradient(ellipse 85% 65% at 65% 38%, rgba(28, 68, 158, 0.48) 0%, rgba(18, 42, 105, 0.3) 35%, rgba(11, 22, 60, 0.14) 65%, transparent 85%),
-              radial-gradient(circle 550px at 50% 50%, rgba(30, 75, 170, 0.28) 0%, rgba(14, 28, 70, 0.14) 50%, transparent 80%)
+              radial-gradient(ellipse 90% 70% at 65% 36%, rgba(30, 75, 185, 0.52) 0%, rgba(20, 50, 130, 0.35) 35%, rgba(12, 24, 75, 0.18) 65%, transparent 85%),
+              radial-gradient(circle 600px at 35% 55%, rgba(45, 95, 210, 0.35) 0%, rgba(18, 35, 95, 0.18) 50%, transparent 80%)
             `
           }}
         />
@@ -1178,7 +1178,7 @@ export default function App() {
                     value={adminInputCode}
                     onChange={(e) => setAdminInputCode(e.target.value)}
                     autoFocus
-                    className="w-full bg-[#1e1f20] border border-[#444746] focus:border-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#747775] font-mono tracking-wider focus:outline-none transition"
+                    className="w-full bg-[#303134] hover:bg-[#35373a] border border-[#5f6368]/70 focus:border-[#8ab4f8] focus:ring-1 focus:ring-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] font-mono tracking-wider focus:outline-none transition"
                   />
                 </div>
 
