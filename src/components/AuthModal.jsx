@@ -86,8 +86,8 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-[#131314] flex items-center justify-center p-4">
-      {/* Authentic Google Sign-in Card */}
-      <div className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[460px] overflow-hidden border border-[#3c4043] animate-in fade-in zoom-in-95 duration-150 p-9 relative">
+      {/* Authentic Google Sign-in Card: bez bordera */}
+      <div className="bg-[#1e1f20] text-[#e3e3e3] rounded-[28px] shadow-2xl w-full max-w-[460px] overflow-hidden animate-in fade-in zoom-in-95 duration-150 p-9 relative">
         <button
           onClick={onClose}
           className="absolute right-5 top-5 p-2 text-[#9aa0a6] hover:bg-[#282a2d] hover:text-[#e3e3e3] rounded-full transition"
@@ -151,11 +151,11 @@ export default function AuthModal({ isOpen, onClose, onTestLogin }) {
           </div>
         )}
 
-        {/* Official Google Sign-In Button */}
+        {/* Official Google Sign-In Button: zgodny z ekranem głównym (jasnoszary, bez bordera) */}
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
-          className="w-full flex items-center justify-center space-x-3 py-3 px-4 bg-[#131314] hover:bg-[#282a2d] border border-[#747775] rounded-full text-[#e3e3e3] font-medium text-sm transition shadow-sm disabled:opacity-50 active:scale-[0.99] mb-5"
+          className="w-full flex items-center justify-center space-x-3 py-3 px-4 bg-[#35373a] hover:bg-[#434649] rounded-full text-[#e3e3e3] font-medium text-sm transition shadow-sm disabled:opacity-50 active:scale-[0.98] cursor-pointer mb-5"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path

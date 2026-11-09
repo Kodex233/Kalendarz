@@ -1178,7 +1178,7 @@ export default function App() {
                     value={adminInputCode}
                     onChange={(e) => setAdminInputCode(e.target.value)}
                     autoFocus
-                    className="w-full bg-[#303134] hover:bg-[#35373a] border border-[#5f6368]/70 focus:border-[#8ab4f8] focus:ring-1 focus:ring-[#8ab4f8] rounded-xl px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] font-mono tracking-wider focus:outline-none transition"
+                    className="w-full bg-transparent border border-[#747775] hover:border-[#9aa0a6] focus:border-[#8ab4f8] focus:ring-1 focus:ring-[#8ab4f8] rounded-lg px-4 py-2.5 text-sm text-[#e3e3e3] placeholder-[#9aa0a6] font-mono tracking-wider focus:outline-none transition"
                   />
                 </div>
 
