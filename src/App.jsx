@@ -1029,9 +1029,17 @@ export default function App() {
   // Ekran blokady / dołączania dla osób nieautoryzowanych (podczas logowania nie widać kalendarza!)
   if (!isAuthorized) {
     return (
-      <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-[#131314] text-[#e3e3e3] p-4 select-none relative font-['Roboto',sans-serif]">
-        {/* Subtle decorative cool light blue background gradient */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-to-tr from-[#1a73e8]/20 via-[#4285f4]/25 to-[#8ab4f8]/20 rounded-full blur-[110px] pointer-events-none" />
+      <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-[#0d0e12] text-[#e3e3e3] p-4 select-none relative font-['Roboto',sans-serif] overflow-hidden">
+        {/* Gemini Atmospheric Cosmic Sapphire Background Glow */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `
+              radial-gradient(ellipse 85% 65% at 65% 38%, rgba(28, 68, 158, 0.45) 0%, rgba(18, 42, 105, 0.28) 35%, rgba(11, 22, 60, 0.12) 65%, transparent 85%),
+              radial-gradient(circle 500px at 50% 50%, rgba(30, 75, 170, 0.25) 0%, rgba(14, 28, 70, 0.12) 50%, transparent 80%)
+            `
+          }}
+        />
 
         {/* Google Calendar original branded logo */}
         <div className="flex items-center space-x-3 mb-6 relative z-10">
@@ -1057,11 +1065,11 @@ export default function App() {
           </div>
 
           <div className="space-y-3 pt-2">
-            {/* Google Sign-in Button: tło lekko jaśniejsze i bez bordera */}
+            {/* Google Sign-in Button: tło lekko jasny szary i bez bordera */}
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center space-x-3 py-3 px-4 bg-[#282a2d] hover:bg-[#35373a] rounded-full text-[#e3e3e3] font-medium text-sm transition shadow-sm active:scale-[0.98] cursor-pointer"
+              className="w-full flex items-center justify-center space-x-3 py-3 px-4 bg-[#35373a] hover:bg-[#434649] rounded-full text-[#e3e3e3] font-medium text-sm transition shadow-sm active:scale-[0.98] cursor-pointer"
             >
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -1088,28 +1096,28 @@ export default function App() {
               Dołącz kodem PIN
             </button>
 
-            {/* Admin Join Button: border mniej biały */}
-            <button
-              type="button"
-              onClick={() => {
-                setAdminModalOpen(true);
-                setAdminErrorCode('');
-                setAdminInputCode('');
-              }}
-              className="w-full py-2.5 px-4 bg-transparent hover:bg-[#282a2d] border border-[#3c4043] hover:border-[#444746] text-[#c4c7c5] hover:text-[#e3e3e3] rounded-full text-sm font-medium transition shadow-sm active:scale-[0.98] cursor-pointer"
-            >
-              Dołącz jako admin
-            </button>
-          </div>
+            {/* Dwa przyciski obok siebie (po 50% szerokości): Logowanie e-mail oraz Dołącz jako admin */}
+            <div className="flex items-center space-x-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => setAuthModalOpen(true)}
+                className="w-1/2 py-2.5 px-3 bg-transparent hover:bg-[#282a2d] border border-[#3c4043] hover:border-[#444746] text-[#c4c7c5] hover:text-[#e3e3e3] rounded-full text-xs sm:text-sm font-medium transition shadow-sm active:scale-[0.98] cursor-pointer text-center truncate"
+              >
+                Logowanie przez e-mail
+              </button>
 
-          <div className="pt-2 text-center">
-            <button
-              type="button"
-              onClick={() => setAuthModalOpen(true)}
-              className="px-4 py-2 rounded-full text-xs text-[#8ab4f8] hover:bg-[#8ab4f8]/15 hover:text-[#c2e7ff] transition cursor-pointer font-medium inline-block"
-            >
-              Logowanie przez e-mail
-            </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAdminModalOpen(true);
+                  setAdminErrorCode('');
+                  setAdminInputCode('');
+                }}
+                className="w-1/2 py-2.5 px-3 bg-transparent hover:bg-[#282a2d] border border-[#3c4043] hover:border-[#444746] text-[#c4c7c5] hover:text-[#e3e3e3] rounded-full text-xs sm:text-sm font-medium transition shadow-sm active:scale-[0.98] cursor-pointer text-center truncate"
+              >
+                Dołącz jako admin
+              </button>
+            </div>
           </div>
         </div>
 
