@@ -50,6 +50,8 @@ export default function Navbar({
   otherCalendars = [],
   onOpenExchangeModal,
   onOpenShareModal,
+  onOpenAccessModal,
+  pendingRequestsCount = 0,
   pendingExchangesCount = 0,
   roomCode = 'kodex',
   roomPin = '1234',
@@ -618,6 +620,33 @@ export default function Navbar({
             <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54A.484.484 0 0 0 14 2h-4c-.25 0-.46.18-.49.42l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.63 8.47c-.12.21-.08.47.12.61L4.78 10.66c-.04.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
           </svg>
         </button>
+
+        {/* Przycisk Zarządzania Dostępem (Zezwól / Odrzuć) */}
+        {onOpenAccessModal && (
+          pendingRequestsCount > 0 ? (
+            <button
+              onClick={onOpenAccessModal}
+              className="flex items-center space-x-1.5 px-3.5 h-10 bg-[#ea4335] hover:bg-[#d93025] text-white rounded-full text-xs sm:text-sm font-medium transition shadow-md animate-pulse cursor-pointer shrink-0"
+              title="Oczekujące prośby o dostęp do kalendarza"
+            >
+              <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+              </svg>
+              <span className="font-semibold">Prośby ({pendingRequestsCount})</span>
+            </button>
+          ) : (
+            <button
+              onClick={onOpenAccessModal}
+              className="flex items-center space-x-1.5 px-3.5 h-10 bg-[#282a2d] hover:bg-[#35373a] text-[#c4c7c5] hover:text-white border border-[#444746] hover:border-white/50 rounded-full text-xs sm:text-sm font-medium transition cursor-pointer shrink-0"
+              title="Zarządzaj dostępem (Zezwól / Odrzuć)"
+            >
+              <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+              </svg>
+              <span className="hidden sm:inline">Dostęp</span>
+            </button>
+          )
+        )}
 
         {/* Przycisk Zaproś do kalendarza (otwiera autentyczny modal Google Share) */}
         <button

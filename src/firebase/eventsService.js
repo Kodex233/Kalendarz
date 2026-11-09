@@ -36,9 +36,11 @@ export const ensureRoom = async (roomCode, { pin, hostName = 'Kodex' }) => {
   if (!snap.exists()) {
     const initialData = {
       roomCode,
+      pin: actualPin,
       pinHash,
       pinSalt: salt,
       hostName,
+      approvedEmails: ['kodex233@gmail.com'],
       participants: [hostName],
       participantsData: {
         'Kodex': { name: 'Kodex', role: 'Właściciel', email: 'kodex233@gmail.com' }
@@ -49,21 +51,7 @@ export const ensureRoom = async (roomCode, { pin, hostName = 'Kodex' }) => {
     await setDoc(roomRef, initialData);
     return { ...initialData, plainPin: actualPin };
   } else {
-    const existing = snap.data();
-    // Migracja / ulepszenie bezpieczeństwa: jeśli w bazie jest jeszcze czysty pin lub brak hasha
-    if (!existing.pinHash || existing.pin) {
-      const pinToHash = pin || existing.pin || actualPin;
-      const newSalt = generatePinSalt();
-      const newHash = await hashPin(pinToHash, newSalt);
-      await updateDoc(roomRef, {
-        pinHash: newHash,
-        pinSalt: newSalt,
-        pin: deleteField(), // Usunięcie czystego tekstu PIN z bazy!
-        updatedAt: serverTimestamp()
-      });
-      return { ...existing, pinHash: newHash, pinSalt: newSalt, plainPin: pinToHash };
-    }
-    return existing;
+    return snap.data();
   }
 };
 
@@ -200,6 +188,182 @@ export const removeParticipantFromRoom = async (roomCode, participantName) => {
     participantsData: currentParticipantsData,
     updatedAt: serverTimestamp()
   });
+};
+
+/**
+ * Złóż lub odśwież prośbę o dostęp do pokoju kalendarza
+ */
+export const requestRoomAccess = async (roomCode, user) => {
+  if (!roomCode || !user || !user.email) return null;
+  const roomRef = doc(db, ROOMS_COLLECTION, roomCode);
+  const snap = await getDoc(roomRef);
+  if (!snap.exists()) return null;
+  const data = snap.data();
+  const cleanEmail = user.email.toLowerCase().trim();
+
+  // Jeśli użytkownik jest już na liście zatwierdzonych, nic nie rób
+  const approvedList = (data.approvedEmails || []).map(e => e.toLowerCase().trim());
+  if (approvedList.includes(cleanEmail)) {
+    return { status: 'approved' };
+  }
+
+  const requests = data.accessRequests || [];
+  const existingIndex = requests.findIndex(r => (r.email || '').toLowerCase().trim() === cleanEmail);
+
+  const requestPayload = {
+    uid: user.uid || '',
+    email: cleanEmail,
+    name: user.displayName || cleanEmail.split('@')[0],
+    photoURL: user.photoURL || '',
+    requestedAt: new Date().toISOString(),
+    status: 'pending'
+  };
+
+  let updatedRequests;
+  if (existingIndex >= 0) {
+    updatedRequests = [...requests];
+    updatedRequests[existingIndex] = {
+      ...updatedRequests[existingIndex],
+      ...requestPayload,
+      status: 'pending'
+    };
+  } else {
+    updatedRequests = [...requests, requestPayload];
+  }
+
+  await updateDoc(roomRef, {
+    accessRequests: updatedRequests,
+    updatedAt: serverTimestamp()
+  });
+
+  return { status: 'pending' };
+};
+
+/**
+ * Zatwierdź prośbę o dostęp (Zezwól)
+ */
+export const approveRoomAccess = async (roomCode, email, userName, role = 'Pełny dostęp') => {
+  if (!roomCode || !email) return;
+  const roomRef = doc(db, ROOMS_COLLECTION, roomCode);
+  const snap = await getDoc(roomRef);
+  if (!snap.exists()) return;
+  const data = snap.data();
+  const cleanEmail = email.toLowerCase().trim();
+
+  // 1. Dodaj do approvedEmails
+  const currentApproved = (data.approvedEmails || []).map(e => e.toLowerCase().trim());
+  const updatedApproved = currentApproved.includes(cleanEmail)
+    ? currentApproved
+    : [...currentApproved, cleanEmail];
+
+  // 2. Zaktualizuj stan prośby w accessRequests
+  const requests = (data.accessRequests || []).map(r => {
+    if ((r.email || '').toLowerCase().trim() === cleanEmail) {
+      return { ...r, status: 'approved', resolvedAt: new Date().toISOString() };
+    }
+    return r;
+  });
+
+  // 3. Dodaj do participants i participantsData
+  const cleanName = (userName || cleanEmail.split('@')[0]).trim();
+  const currentParticipants = data.participants || [];
+  const currentParticipantsData = data.participantsData || {};
+
+  let updatedParticipants = currentParticipants;
+  if (!currentParticipants.includes(cleanName)) {
+    updatedParticipants = [...currentParticipants, cleanName];
+  }
+
+  const updatedParticipantsData = {
+    ...currentParticipantsData,
+    [cleanName]: {
+      name: cleanName,
+      email: cleanEmail,
+      role: role || 'Pełny dostęp'
+    }
+  };
+
+  await updateDoc(roomRef, {
+    approvedEmails: updatedApproved,
+    accessRequests: requests,
+    participants: updatedParticipants,
+    participantsData: updatedParticipantsData,
+    updatedAt: serverTimestamp()
+  });
+};
+
+/**
+ * Odrzuć prośbę o dostęp (Odrzuć)
+ */
+export const rejectRoomAccess = async (roomCode, email) => {
+  if (!roomCode || !email) return;
+  const roomRef = doc(db, ROOMS_COLLECTION, roomCode);
+  const snap = await getDoc(roomRef);
+  if (!snap.exists()) return;
+  const data = snap.data();
+  const cleanEmail = email.toLowerCase().trim();
+
+  const requests = (data.accessRequests || []).map(r => {
+    if ((r.email || '').toLowerCase().trim() === cleanEmail) {
+      return { ...r, status: 'rejected', resolvedAt: new Date().toISOString() };
+    }
+    return r;
+  });
+
+  await updateDoc(roomRef, {
+    accessRequests: requests,
+    updatedAt: serverTimestamp()
+  });
+};
+
+/**
+ * Cofnij przyznany dostęp (Revoke)
+ */
+export const revokeRoomAccess = async (roomCode, email) => {
+  if (!roomCode || !email) return;
+  const roomRef = doc(db, ROOMS_COLLECTION, roomCode);
+  const snap = await getDoc(roomRef);
+  if (!snap.exists()) return;
+  const data = snap.data();
+  const cleanEmail = email.toLowerCase().trim();
+
+  const updatedApproved = (data.approvedEmails || []).filter(e => e.toLowerCase().trim() !== cleanEmail);
+
+  // Usuń również z participantsData i participants
+  const participantsData = data.participantsData || {};
+  let removedName = null;
+  Object.keys(participantsData).forEach(k => {
+    if (participantsData[k]?.email?.toLowerCase().trim() === cleanEmail) {
+      removedName = k;
+    }
+  });
+
+  const updatedParticipants = removedName
+    ? (data.participants || []).filter(p => p !== removedName)
+    : data.participants;
+
+  const updatedParticipantsData = { ...participantsData };
+  if (removedName) {
+    delete updatedParticipantsData[removedName];
+  }
+
+  // Usuń lub zaktualizuj w accessRequests
+  const requests = (data.accessRequests || []).filter(r => (r.email || '').toLowerCase().trim() !== cleanEmail);
+
+  await updateDoc(roomRef, {
+    approvedEmails: updatedApproved,
+    participants: updatedParticipants,
+    participantsData: updatedParticipantsData,
+    accessRequests: requests,
+    updatedAt: serverTimestamp()
+  });
+};
+
+/**
+ * Dodaj e-mail bezpośrednio do zatwierdzonych (Biała lista)
+ */
+export const addApprovedEmail = async (roomCode, email, userName, role = 'Pełny dostęp') => {
+  return approveRoomAccess(roomCode, email, userName, role);
 };
 
 /**
