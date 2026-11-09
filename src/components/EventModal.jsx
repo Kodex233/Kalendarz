@@ -270,12 +270,11 @@ export default function EventModal({
         setRepeatRule('Nie powtarza się');
         setHasDeadline(Boolean(initialData?.deadlineDate));
         setDeadlineDate(initialData?.deadlineDate || '');
-        setIsDeadlinePickerOpen(false);
         if (initialData?.type) setActiveTab(initialData.type);
       }
     } else {
       lastOpenedSlotRef.current = false;
-      setIsDeadlinePickerOpen(false);
+      setActivePicker(null);
     }
   }, [isOpen, initialData?.id]);
 
@@ -285,15 +284,12 @@ export default function EventModal({
       if (repeatMenuRef.current && !repeatMenuRef.current.contains(e.target)) {
         setIsRepeatMenuOpen(false);
       }
-      if (deadlinePickerRef.current && !deadlinePickerRef.current.contains(e.target)) {
-        setIsDeadlinePickerOpen(false);
-      }
     };
-    if (isRepeatMenuOpen || isDeadlinePickerOpen) {
+    if (isRepeatMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isRepeatMenuOpen, isDeadlinePickerOpen]);
+  }, [isRepeatMenuOpen]);
 
   // Format czasu w stylu 24h zgodnym z Google Kalendarz
   const formatTime12h = (timeStr) => {
@@ -364,29 +360,6 @@ export default function EventModal({
       return deadlineDate || date;
     }
   }, [deadlineDate, date]);
-
-  // Dni miesiąca dla popupu wyboru terminu (od niedzieli jak na zrzucie ekranu)
-  const deadlineCalendarDays = useMemo(() => {
-    try {
-      const monthStart = startOfMonth(deadlinePickerMonth);
-      const monthEnd = endOfMonth(deadlinePickerMonth);
-      const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
-      const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
-      return eachDayOfInterval({ start: startDate, end: endDate });
-    } catch {
-      return [];
-    }
-  }, [deadlinePickerMonth]);
-
-  const handleOpenDeadlinePicker = () => {
-    try {
-      const d = deadlineDate ? new Date(deadlineDate + 'T00:00:00') : (date ? new Date(date + 'T00:00:00') : new Date());
-      setDeadlinePickerMonth(d);
-    } catch {
-      setDeadlinePickerMonth(new Date());
-    }
-    setIsDeadlinePickerOpen(prev => !prev);
-  };
 
   // Repeat menu options matching image 3 (dokładnie jak na zrzucie ekranu)
   const repeatOptions = useMemo(() => {
@@ -867,91 +840,26 @@ export default function EventModal({
                     <div className="flex items-center space-x-3 text-sm">
                       <span className="text-[#e3e3e3] font-normal">Termin</span>
                       
-                      {/* Przycisk terminu z popupem kalendarza dokładnie jak na zrzucie ekranu */}
-                      <div className="relative" ref={deadlinePickerRef}>
+                      {/* Przycisk terminu z popupem kalendarza dokładnie w stylu Google */}
+                      <div className="relative picker-container">
                         <button
                           type="button"
-                          onClick={handleOpenDeadlinePicker}
+                          onClick={() => setActivePicker(activePicker === 'deadlineDate' ? null : 'deadlineDate')}
                           className={`px-3.5 py-1.5 text-sm font-normal capitalize flex items-center transition cursor-pointer select-none ${
-                            isDeadlinePickerOpen
-                              ? 'bg-[#3c4043] rounded-t-md border-b-2 border-[#a8c7fa] text-white'
+                            activePicker === 'deadlineDate'
+                              ? 'bg-[#3c4043] rounded-md ring-1 ring-[#a8c7fa] text-white'
                               : 'bg-[#303134] hover:bg-[#3c4043] rounded-md text-[#e3e3e3]'
                           }`}
                         >
                           <span>{formattedDeadlineLabel}</span>
-                          {isDeadlinePickerOpen && (
-                            <span className="w-[1.5px] h-4 bg-[#a8c7fa] ml-0.5 animate-pulse" />
-                          )}
                         </button>
 
-                        {/* Popup kalendarza do wyboru terminu (1:1 ze zrzutem ekranu Image 1) */}
-                        {isDeadlinePickerOpen && (
-                          <div className="absolute left-0 top-full mt-0 w-72 bg-[#1e1f20] rounded-b-2xl rounded-tr-2xl shadow-2xl p-4 z-[90] animate-in fade-in zoom-in-95 duration-100 border border-white/10 select-none">
-                            {/* Nagłówek miesiąca z nawigacją */}
-                            <div className="flex items-center justify-between pb-3 px-1">
-                              <span className="text-sm font-semibold text-white capitalize">
-                                {format(deadlinePickerMonth, 'LLLL yyyy', { locale: pl })}
-                              </span>
-                              <div className="flex items-center space-x-1">
-                                <button
-                                  type="button"
-                                  onClick={() => setDeadlinePickerMonth(subMonths(deadlinePickerMonth, 1))}
-                                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-[#35373a] text-[#c4c7c5] hover:text-white transition"
-                                >
-                                  <ChevronLeft className="w-4 h-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setDeadlinePickerMonth(addMonths(deadlinePickerMonth, 1))}
-                                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-[#35373a] text-[#c4c7c5] hover:text-white transition"
-                                >
-                                  <ChevronRight className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Dni tygodnia: N P W Ś C P S */}
-                            <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-[#c4c7c5] mb-2">
-                              {['N', 'P', 'W', 'Ś', 'C', 'P', 'S'].map((dayChar, i) => (
-                                <div key={i} className="py-0.5">{dayChar}</div>
-                              ))}
-                            </div>
-
-                            {/* Siatka dni miesiąca */}
-                            <div className="grid grid-cols-7 gap-1 text-center text-xs">
-                              {deadlineCalendarDays.map((d, i) => {
-                                const isCurrentMonth = isSameMonth(d, deadlinePickerMonth);
-                                const selectedDeadline = deadlineDate ? new Date(deadlineDate + 'T00:00:00') : null;
-                                const isSelected = selectedDeadline ? isSameDay(d, selectedDeadline) : false;
-                                const isToday = isSameDay(d, new Date());
-
-                                let dayClass = 'text-white hover:bg-[#35373a]';
-                                if (!isCurrentMonth) {
-                                  dayClass = 'text-[#70757a] hover:bg-[#35373a]';
-                                }
-                                if (isSelected) {
-                                  dayClass = 'bg-[#004a77] text-white font-bold';
-                                } else if (isToday) {
-                                  dayClass = 'bg-[#a8c7fa] text-[#041e49] font-bold';
-                                }
-
-                                return (
-                                  <button
-                                    key={i}
-                                    type="button"
-                                    onClick={() => {
-                                      const pickedStr = format(d, 'yyyy-MM-dd');
-                                      setDeadlineDate(pickedStr);
-                                      setIsDeadlinePickerOpen(false);
-                                    }}
-                                    className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center transition shrink-0 ${dayClass}`}
-                                  >
-                                    {format(d, 'd')}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
+                        {activePicker === 'deadlineDate' && (
+                          <CustomDatePicker
+                            dateValue={deadlineDate || date}
+                            onChange={(val) => setDeadlineDate(val)}
+                            onClose={() => setActivePicker(null)}
+                          />
                         )}
                       </div>
 
@@ -961,9 +869,9 @@ export default function EventModal({
                         onClick={() => {
                           setHasDeadline(false);
                           setDeadlineDate('');
-                          setIsDeadlinePickerOpen(false);
+                          if (activePicker === 'deadlineDate') setActivePicker(null);
                         }}
-                        className="p-1 text-[#c4c7c5] hover:text-white hover:bg-[#35373a] rounded-full transition"
+                        className="p-1 text-[#c4c7c5] hover:text-white hover:bg-[#35373a] rounded-full transition cursor-pointer"
                         title="Usuń termin"
                       >
                         <X className="w-4 h-4" />
@@ -979,15 +887,13 @@ export default function EventModal({
                           const nextDay = new Date(date + 'T00:00:00');
                           nextDay.setDate(nextDay.getDate() + 1);
                           defaultD = format(nextDay, 'yyyy-MM-dd');
-                          setDeadlineDate(defaultD);
-                          setDeadlinePickerMonth(nextDay);
                         } catch {
-                          setDeadlineDate(date);
-                          setDeadlinePickerMonth(new Date());
+                          defaultD = date;
                         }
-                        setIsDeadlinePickerOpen(true);
+                        setDeadlineDate(defaultD);
+                        setActivePicker('deadlineDate');
                       }}
-                      className="text-sm text-[#c4c7c5] hover:text-white transition text-left"
+                      className="text-sm text-[#c4c7c5] hover:text-white transition text-left cursor-pointer"
                     >
                       Dodaj termin
                     </button>
