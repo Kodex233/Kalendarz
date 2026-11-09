@@ -228,11 +228,16 @@ export default function ShareCalendarModal({
               );
             })}
 
-            {/* Właściciel: kodex (you) z czystym obramowaniem avatara i napisem Właściciel w borderze */}
+            {/* Właściciel: kodex (you) z grubym gradientowym borderem i odstępem jak na zdjęciu */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-9 h-9 rounded-full bg-[#e8710a] text-white flex items-center justify-center font-bold text-sm select-none shrink-0 border-2 border-[#a8c7fa]">
-                  k
+                {/* Avatar ze zdjęciem/gradientowym borderem, odstępem i grubszym obramowaniem (1:1 ze zdjęcia) */}
+                <div className="w-11 h-11 rounded-full p-[2.5px] bg-gradient-to-tr from-[#1a73e8] via-[#4285f4] to-[#a8c7fa] flex items-center justify-center shrink-0 shadow-sm">
+                  <div className="w-full h-full rounded-full p-[2px] bg-[#282a2d] flex items-center justify-center">
+                    <div className="w-full h-full rounded-full bg-[#e8710a] text-white flex items-center justify-center font-bold text-sm select-none">
+                      k
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm font-normal text-[#e3e3e3] leading-snug">
@@ -244,9 +249,9 @@ export default function ShareCalendarModal({
                 </div>
               </div>
 
-              {/* Napis Właściciel w borderze bez zbędnych dodatkowych ikonek */}
+              {/* Napis Właściciel w borderze z lekko większym paddingiem */}
               <div className="flex items-center pr-1 select-none">
-                <span className="text-xs text-[#e3e3e3] border border-[#747775] px-2.5 py-1 rounded-full font-medium">
+                <span className="text-xs text-[#e3e3e3] border border-[#747775] px-4 py-1.5 rounded-full font-medium tracking-wide">
                   Właściciel
                 </span>
               </div>
