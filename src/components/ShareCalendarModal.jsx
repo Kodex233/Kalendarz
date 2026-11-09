@@ -414,11 +414,11 @@ export default function ShareCalendarModal({
                   : 'Każda osoba w internecie z linkiem i kodem PIN może wyświetlać ten kalendarz'}
               </p>
 
-              {/* Menu wyboru dostępu ogólnego: bez borderu, z białym cieniem jako krawędzie */}
+              {/* Menu wyboru dostępu ogólnego: bez bordera i bez obramowania */}
               {isAccessDropdownOpen && (
                 <div 
                   ref={accessDropdownRef}
-                  className="absolute left-0 mt-1 w-64 bg-[#282a2d] border-0 rounded-xl shadow-[0_0_0_1px_rgba(255,255,255,0.14),0_12px_36px_rgba(0,0,0,0.65)] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100"
+                  className="absolute left-0 mt-1 w-64 bg-[#282a2d] border-0 rounded-xl shadow-[0_8px_28px_rgba(0,0,0,0.7)] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100"
                 >
                   <button
                     type="button"
@@ -460,8 +460,8 @@ export default function ShareCalendarModal({
             </div>
           </div>
 
-          {/* Sekcja PIN dostępu: tło bg-[#35373a] jak w 'zaloguj przez google', bez bordera, mniejszy padding */}
-          <div className="mt-4 bg-[#35373a] rounded-[18px] py-2.5 px-4 flex items-center justify-between gap-3 shadow-sm border-0">
+          {/* Sekcja PIN dostępu: tło bg-[#35373a] jak w 'zaloguj przez google', bez bordera, lekko mniejszy radius */}
+          <div className="mt-4 bg-[#35373a] rounded-xl py-2.5 px-4 flex items-center justify-between gap-3 shadow-sm border-0">
             <div className="flex-1 min-w-0">
               <div className="text-[10px] font-medium tracking-[0.08em] uppercase text-[#9aa0a6] select-none">
                 PIN dostępu
