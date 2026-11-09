@@ -623,6 +623,10 @@ export default function App() {
       showToast('Masz uprawnienia tylko do odczytu.');
       return;
     }
+    // Natychmiastowa optymistyczna aktualizacja lokalnego stanu (stary przyciemniony natychmiast znika)
+    setMyEvents(prev => prev.map(e => e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e));
+    setExchangeableEvents(prev => prev.map(e => e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e));
+
     try {
       await saveRoomEvent(roomCode, updatedEvent);
       showToast('Przesunięto wydarzenie');

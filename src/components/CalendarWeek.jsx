@@ -109,6 +109,8 @@ export default function CalendarWeek({
     return () => {
       dragRef.current = null;
       movingEventRef.current = null;
+      document.body.classList.remove('dragging-event-active');
+      document.body.style.cursor = '';
     };
   }, []);
 
@@ -487,15 +489,20 @@ export default function CalendarWeek({
       latestClientX = moveEvent.clientX;
       latestClientY = moveEvent.clientY;
       const dist = Math.hypot(moveEvent.clientX - movingEventRef.current.startClientX, moveEvent.clientY - movingEventRef.current.startClientY);
-      if (dist > 4) {
+      if (dist > 3) {
         if (!movingEventRef.current.hasMoved) {
           movingEventRef.current.hasMoved = true;
+          document.body.classList.add('dragging-event-active');
+          document.body.style.cursor = 'move';
           setMovingEventState({ ...movingEventRef.current });
         }
       }
     };
 
     const handleMouseUp = () => {
+      document.body.classList.remove('dragging-event-active');
+      document.body.style.cursor = '';
+
       if (moveRafId) {
         cancelAnimationFrame(moveRafId);
         moveRafId = null;
@@ -817,7 +824,7 @@ export default function CalendarWeek({
                           height: `${heightPx}px`,
                           backgroundColor: bgCol
                         }}
-                        className="absolute left-1 right-2 rounded-lg px-2.5 py-1 text-xs font-medium overflow-hidden shadow-2xl z-40 text-white pointer-events-none select-none brightness-110 saturate-105 ring-2 ring-white/30 cursor-move"
+                        className="absolute left-1 right-2 rounded-lg px-2.5 py-1 text-xs font-medium overflow-hidden shadow-2xl z-40 text-white pointer-events-none select-none brightness-105 border-0 outline-none cursor-move"
                       >
                         <div className="font-semibold truncate flex items-center space-x-1.5 leading-tight">
                           {isTask && (
@@ -867,7 +874,7 @@ export default function CalendarWeek({
                         }}
                         className={`absolute left-1 right-2 rounded-lg px-2.5 py-1 text-xs font-medium overflow-hidden shadow-md cursor-move transition z-10 text-white ${
                           isBeingMoved 
-                            ? 'opacity-40 brightness-75 select-none' 
+                            ? 'opacity-90 brightness-[0.55] select-none' 
                             : 'hover:brightness-110'
                         }`}
                       >

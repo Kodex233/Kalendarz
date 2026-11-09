@@ -75,4 +75,12 @@
   transform: none !important;
 }
 
+/* Wymuszenie kursora 4 strzałek (move) przez cały czas przesuwania wydarzenia */
+body.dragging-event-active,
+body.dragging-event-active * {
+  cursor: move !important;
+  user-select: none !important;
+}
+
+
 
