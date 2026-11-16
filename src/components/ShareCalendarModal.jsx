@@ -491,8 +491,8 @@ export default function ShareCalendarModal({
                   </svg>
                 ) : (
                   <svg className="w-4 h-4 text-[#8ab4f8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="9" y="9" width="11" height="11" rx="2" />
-                    <path d="M5 15V6a2 2 0 0 1 2-2h9" />
+                    <rect x="8" y="3" width="11" height="13" rx="2" />
+                    <path d="M4 7v11a2 2 0 0 0 2 2h9" />
                   </svg>
                 )}
               </button>
@@ -541,8 +541,8 @@ export default function ShareCalendarModal({
               </svg>
             ) : (
               <svg className="w-4 h-4 text-[#8ab4f8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="9" y="9" width="11" height="11" rx="2" />
-                <path d="M5 15V6a2 2 0 0 1 2-2h9" />
+                <rect x="8" y="3" width="11" height="13" rx="2" />
+                <path d="M4 7v11a2 2 0 0 0 2 2h9" />
               </svg>
             )}
             <span>{copiedLink ? 'Link skopiowany!' : 'Kopiuj link'}</span>

@@ -1,14 +1,32 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc, serverTimestamp } from "firebase/firestore";
 
+import { readFileSync, existsSync } from "fs";
+
+// Wczytaj zmienne z .env jeśli plik istnieje lokalnie
+if (existsSync(".env")) {
+  const envContent = readFileSync(".env", "utf-8");
+  for (const line of envContent.split("\n")) {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith("#")) {
+      const eqIdx = trimmed.indexOf("=");
+      if (eqIdx !== -1) {
+        const k = trimmed.slice(0, eqIdx).trim();
+        const v = trimmed.slice(eqIdx + 1).trim();
+        process.env[k] = v;
+      }
+    }
+  }
+}
+
 const firebaseConfig = {
-  apiKey: "AIzaSyCt4Y0K_E5OmEiqZvRb8UELose64hm0htE",
-  authDomain: "kalendarz-d284f.firebaseapp.com",
-  projectId: "kalendarz-d284f",
-  storageBucket: "kalendarz-d284f.firebasestorage.app",
-  messagingSenderId: "55700214296",
-  appId: "1:55700214296:web:f826375ffa5ddf9796296d",
-  measurementId: "G-FNEGJ3D1KZ"
+  apiKey: process.env.VITE_FIREBASE_API_KEY || "",
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || "kalendarz-d284f.firebaseapp.com",
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID || "kalendarz-d284f",
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || "kalendarz-d284f.firebasestorage.app",
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: process.env.VITE_FIREBASE_APP_ID || "",
+  measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID || ""
 };
 
 const app = initializeApp(firebaseConfig);
